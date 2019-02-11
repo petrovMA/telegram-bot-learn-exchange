@@ -13,7 +13,9 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 import java.util.*
 
-private val log = Logger.getLogger(TelegramBot::class.java)
+object Main
+
+private val log = Logger.getLogger(Main::class.java)
 
 fun main() {
     var properties = Properties()
