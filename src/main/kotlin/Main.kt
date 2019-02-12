@@ -1,3 +1,4 @@
+import com.typesafe.config.ConfigFactory
 import org.apache.http.HttpHost
 import org.apache.http.client.config.RequestConfig
 import org.apache.log4j.Logger
@@ -7,47 +8,37 @@ import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import java.io.File
-import java.io.FileInputStream
 import java.io.IOException
-import java.io.InputStreamReader
-import java.nio.charset.Charset
-import java.util.*
 
 object Main
 
 private val log = Logger.getLogger(Main::class.java)
 
 fun main() {
-    var properties = Properties()
-    val proxyHost: String
-    val proxyPort: Int
-    val useProxy: Boolean
-    val botUsername: String
-    val botToken: String
-    val chatId: Long
 
     PropertyConfigurator.configure("log4j.properties")
 
-    try {
-        properties = load(File("common.properties"), properties)
+    val conf = try {
+        ConfigFactory.parseFile(File("settings.conf"))
     } catch (e: IOException) {
         log.error(e.message, e)
+        return
     }
-
-    useProxy = java.lang.Boolean.parseBoolean(properties.getProperty("use_proxy"))
-
-    botUsername = properties.getProperty("bot_name")
-    botToken = properties.getProperty("bot_token")
-    chatId = properties.getProperty("chat_id").toLong()
+    val proxyHost: String
+    val proxyPort: Int
+    val useProxy = conf.getBoolean("bot-settings.telegram.proxy.enable")
+    val botUsername = conf.getString("bot-settings.telegram.bot-name")!!
+    val botToken = conf.getString("bot-settings.telegram.bot-token")!!
+    val chatId = conf.getLong("bot-settings.telegram.chat-id")
 
     ApiContextInitializer.init()
     try {
         val bot: TelegramBot
         if (useProxy) {
-            val portHost = properties.getProperty("port_host")?.split(':')
+            val portHost = conf.getString("bot-settings.telegram.proxy.port-host")?.split(':')
             if (portHost == null) {
-                proxyHost = properties.getProperty("host")
-                proxyPort = Integer.parseInt(properties.getProperty("port"))
+                proxyHost = conf.getString("bot-settings.telegram.proxy.host")
+                proxyPort = conf.getInt("bot-settings.telegram.proxy.port")
             } else {
                 proxyHost = portHost[0]
                 proxyPort = Integer.parseInt(portHost[1])
@@ -75,13 +66,3 @@ fun main() {
         log.error(e.message, e)
     }
 }
-
-fun load(propertyFile: File, properties: Properties = Properties()): Properties = properties
-    .also {
-        InputStreamReader(
-            FileInputStream(propertyFile),
-            Charset.forName("UTF-8")).use { fis ->
-            it.load(fis)
-            log.debug("properties loaded")
-        }
-    }
