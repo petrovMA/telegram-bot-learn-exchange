@@ -7,6 +7,7 @@ import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
+import tasks.task_01.Task01
 import java.io.File
 import java.io.IOException
 
@@ -24,6 +25,17 @@ fun main() {
         log.error(e.message, e)
         return
     }
+    println(conf)
+    val q = Task01.conf.getConfigList("task.settings.questions")
+    for (i in q) {
+        println(i.getString("text"))
+        for (j in i.getConfigList("answer-options")) {
+            println(j.getString("option"))
+            println(j.getInt("value"))
+        }
+        println()
+    }
+
     val proxyHost: String
     val proxyPort: Int
     val useProxy = conf.getBoolean("bot-settings.telegram.proxy.enable")
