@@ -1,4 +1,7 @@
+import bot.TelegramBot
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import notificator.libs.readConf
 import org.apache.http.HttpHost
 import org.apache.http.client.config.RequestConfig
 import org.apache.log4j.Logger
@@ -7,9 +10,7 @@ import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
-import tasks.task_01.Task01
 import java.io.File
-import java.io.IOException
 
 object Main
 
@@ -19,21 +20,23 @@ fun main() {
 
     PropertyConfigurator.configure("log4j.properties")
 
-    val conf = try {
-        ConfigFactory.parseFile(File("settings.conf"))
-    } catch (e: IOException) {
-        log.error(e.message, e)
-        return
-    }
-    println(conf)
-    val q = Task01.conf.getConfigList("task.settings.questions")
-    for (i in q) {
-        println(i.getString("text"))
-        for (j in i.getConfigList("answer-options")) {
-            println(j.getString("option"))
-            println(j.getInt("value"))
+    val conf = readConf("settings.conf")!!
+
+    val tasks = HashMap<String, String>()
+
+    File(conf.getString("bot-settings.tasks-dir-path")).listFiles().forEach {
+        try {
+            if (it.isDirectory) {
+                val confFile = it.listFiles().find { f -> f.name == "task.conf" }!!
+                val taskConf = ConfigFactory.parseFile(confFile)
+                if (taskConf.getBoolean("task.enable"))
+                    tasks[taskConf.getString("task.name")] = confFile.path
+                else
+                    log.info("Task disabled '$it'")
+            }
+        } catch (t: Throwable) {
+            log.error("Can't load task data from dir '$it'", t)
         }
-        println()
     }
 
     val proxyHost: String
@@ -65,10 +68,17 @@ fun main() {
             botOptions.proxyPort = proxyPort
             botOptions.requestConfig = requestConfig
             bot = TelegramBot(
-                chatId = chatId,
                 botUsername = botUsername,
                 botToken = botToken,
+                tasks = tasks,
                 options = botOptions
+            )
+            TelegramBotsApi().registerBot(bot)
+        } else {
+            bot = TelegramBot(
+                botUsername = botUsername,
+                botToken = botToken,
+                tasks = tasks
             )
             TelegramBotsApi().registerBot(bot)
         }
