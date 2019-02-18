@@ -2,6 +2,7 @@ package bot
 
 import com.typesafe.config.Config
 import notificator.libs.readConf
+import tasks.types.*
 import org.apache.log4j.Logger
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -26,27 +27,32 @@ class TelegramBot : TelegramLongPollingBot {
     private val botUsername: String
     private val botToken: String
     private val tasks: Map<String, String>
+    private val text:Text
 
 
     constructor(
         botUsername: String,
         botToken: String,
         tasks: Map<String, String>,
+        text: Text,
         options: DefaultBotOptions?
     ) : super(options) {
         this.botUsername = botUsername
         this.botToken = botToken
         this.tasks = tasks
+        this.text = text
     }
 
     constructor(
         botUsername: String,
         botToken: String,
-        tasks: Map<String, String>
+        tasks: Map<String, String>,
+        text: Text
     ) : super() {
         this.botUsername = botUsername
         this.botToken = botToken
         this.tasks = tasks
+        this.text = text
     }
 
     override fun onUpdateReceived(update: Update) {
@@ -61,11 +67,21 @@ class TelegramBot : TelegramLongPollingBot {
 
         if (update.hasCallbackQuery()) {
             readConf(tasks[update.callbackQuery.data])?.run {
-                showQuestion(this, update.callbackQuery.message.chatId)
-            }
-                ?: sendMessage("task not found", update.callbackQuery.message.chatId)
+                val type = this.getString("type")
+                when (type) {
+                    "inquirer" -> {
+                        val inquirer = TaskInquirer(this)
+                        inquirer.showQuestion(update.callbackQuery.message.chatId)
 
-        } else if (update.message.text == "text.tasks") {
+                    }
+                    else -> {
+                        sendMessage(text.taskNotFound, update.callbackQuery.message.chatId)
+                    }
+                }
+            }
+                ?: sendMessage(text.taskNotFound, update.callbackQuery.message.chatId)
+
+        } else if (update.message.text == text.showTasksList) {
             showTaskList(update)
         } else {
             mainMenu(update.message)
@@ -95,41 +111,6 @@ class TelegramBot : TelegramLongPollingBot {
             message.text = "tasks"
 
             sendMessage(message, upd.message.chatId)
-        } catch (e: Exception) {
-            log.error(e.message, e)
-        }
-    }
-
-    // todo move it method!
-    private fun showQuestion(conf: Config, chatId: Long) {
-        try {
-
-            val message = SendMessage()
-
-            val markupInline = InlineKeyboardMarkup()
-            val rowsInline = ArrayList<List<InlineKeyboardButton>>()
-            val rowInline = ArrayList<InlineKeyboardButton>()
-
-            conf
-                .getConfigList("task.settings.questions")
-                .first()
-                .getConfigList("answer-options")
-                .forEach {
-                    rowInline.add(
-                        InlineKeyboardButton()
-                            .setText(it.getString("option"))
-                            .setCallbackData("option")
-                    )
-                }
-
-            // Set the keyboard to the markup
-            rowsInline.add(rowInline)
-            // Add it to the message
-            markupInline.keyboard = rowsInline
-            message.replyMarkup = markupInline
-            message.text = conf.getConfigList("task.settings.questions").first().getString("text")
-
-            sendMessage(message, chatId)
         } catch (e: Exception) {
             log.error(e.message, e)
         }

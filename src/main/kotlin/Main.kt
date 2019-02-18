@@ -1,4 +1,5 @@
 import bot.TelegramBot
+import bot.Text
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import notificator.libs.readConf
@@ -71,6 +72,7 @@ fun main() {
                 botUsername = botUsername,
                 botToken = botToken,
                 tasks = tasks,
+                text = readTexts(conf.getConfig("bot-settings.tesxs")),
                 options = botOptions
             )
             TelegramBotsApi().registerBot(bot)
@@ -78,7 +80,8 @@ fun main() {
             bot = TelegramBot(
                 botUsername = botUsername,
                 botToken = botToken,
-                tasks = tasks
+                tasks = tasks,
+                text = readTexts(conf.getConfig("bot-settings.tesxs"))
             )
             TelegramBotsApi().registerBot(bot)
         }
@@ -88,3 +91,10 @@ fun main() {
         log.error(e.message, e)
     }
 }
+
+private fun readTexts(conf: Config) =
+    Text(
+        timeOutTask = conf.getString("task-time-out"),
+        showTasksList = conf.getString("task-time-out"),
+        taskNotFound = conf.getString("task-time-out")
+    )
