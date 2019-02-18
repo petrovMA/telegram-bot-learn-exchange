@@ -1,4 +1,4 @@
-package tasks
+package root.groups
 
 import com.typesafe.config.Config
 

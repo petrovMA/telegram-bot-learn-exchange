@@ -1,8 +1,6 @@
-package bot
+package root.bot
 
-import com.typesafe.config.Config
 import notificator.libs.readConf
-import tasks.types.*
 import org.apache.log4j.Logger
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -13,6 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import root.groups.task.types.TaskInquirer
 import java.util.ArrayList
 import java.util.HashMap
 
@@ -27,7 +26,7 @@ class TelegramBot : TelegramLongPollingBot {
     private val botUsername: String
     private val botToken: String
     private val tasks: Map<String, String>
-    private val text:Text
+    private val text: Text
 
 
     constructor(
@@ -108,7 +107,7 @@ class TelegramBot : TelegramLongPollingBot {
             // Add it to the message
             markupInline.keyboard = rowsInline
             message.replyMarkup = markupInline
-            message.text = "tasks"
+            message.text = "root/groups"
 
             sendMessage(message, upd.message.chatId)
         } catch (e: Exception) {
@@ -131,7 +130,7 @@ class TelegramBot : TelegramLongPollingBot {
                 markup.oneTimeKeyboard = false
                 markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
                     keyboard.add(KeyboardRow().also {
-                        it.add("text.tasks")
+                        it.add("text.groups")
                     })
 
                 }

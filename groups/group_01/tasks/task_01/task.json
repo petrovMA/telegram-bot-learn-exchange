@@ -1,0 +1,68 @@
+{
+  "task": {
+    /* включен/выключен*/
+    "enable": true,
+    /* тип задания*/
+    "type": "inquirer",
+    /* имя задания (у каждого задания должно быть уникальное)*/
+    "name": "тест опрос 1",
+    /*# доп настройки*/
+    "settings": {
+      /* # вопросы*/
+      "questions": [
+        {
+          "text": "вопрос 1",
+          "answer-options": [
+            {
+              "option": "вариант 1 false",
+              "value": 0
+            },
+            {
+              "option": "вариант 2 false",
+              "value": 0
+            },
+            {
+              "option": "вариант 3 true",
+              /*# количество баллов*/
+              "value": 5
+            }
+          ]
+        },
+        {
+          "text": "вопрос 2",
+          "answer-options": [
+            {
+              "option": "вариант 1 false",
+              "value": 0
+            },
+            {
+              "option": "вариант 2 true",
+              "value": 12
+            },
+            {
+              "option": "вариант 3 false",
+              "value": 0
+            }
+          ]
+        },
+        {
+          "text": "вопрос 3",
+          "answer-options": [
+            {
+              "option": "вариант 1 true",
+              "value": 11
+            },
+            {
+              "option": "вариант 2 true",
+              "value": 13
+            },
+            {
+              "option": "вариант 3 false",
+              "value": -5
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

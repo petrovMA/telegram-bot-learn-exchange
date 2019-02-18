@@ -1,18 +1,14 @@
-package tasks.types
+package root.groups.task.types
 
-import bot.TelegramBot
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
 import org.apache.log4j.Logger
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
-import tasks.Task
-import java.io.File
-import java.io.IOException
+import root.groups.Task
 import java.util.ArrayList
 
-class TaskInquirer(conf: Config):Task(conf) {
+class TaskInquirer(conf: Config): Task(conf) {
     private val log = Logger.getLogger(TaskInquirer::class.java)
     init {
         

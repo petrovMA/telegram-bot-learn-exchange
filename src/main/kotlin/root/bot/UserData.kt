@@ -1,4 +1,4 @@
-package bot
+package root.bot
 
 import org.telegram.telegrambots.meta.api.objects.User
 
