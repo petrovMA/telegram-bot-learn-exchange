@@ -12,6 +12,5 @@ private val log = Logger.getLogger(Main::class.java)
 
 fun main() {
     ApiContextInitializer.init()
-
     SpringApplication.run(Main::class.java)
 }

@@ -11,7 +11,6 @@ import javax.persistence.*
 @Table(name = "Article")
 class Article(
         @Id
-        @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "id_Sequence")
         var id: Int?,
         var firstName: String?,
         var lastName: String?,
