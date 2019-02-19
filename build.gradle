@@ -28,6 +28,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile 'org.jetbrains.kotlin:kotlin-reflect:1.1.51'
     compile 'org.postgresql:postgresql:42.1.1'
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
 
