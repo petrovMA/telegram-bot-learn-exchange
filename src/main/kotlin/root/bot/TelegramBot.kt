@@ -11,7 +11,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import root.entity.Article
 import root.groups.task.types.TaskInquirer
+import root.service.ArticleService
 import java.util.ArrayList
 import java.util.HashMap
 
@@ -27,6 +29,7 @@ class TelegramBot : TelegramLongPollingBot {
     private val botToken: String
     private val tasks: Map<String, String>
     private val text: Text
+    private val service: ArticleService
 
 
     constructor(
@@ -34,24 +37,28 @@ class TelegramBot : TelegramLongPollingBot {
         botToken: String,
         tasks: Map<String, String>,
         text: Text,
+        service: ArticleService,
         options: DefaultBotOptions?
     ) : super(options) {
         this.botUsername = botUsername
         this.botToken = botToken
         this.tasks = tasks
         this.text = text
+        this.service = service
     }
 
     constructor(
         botUsername: String,
         botToken: String,
         tasks: Map<String, String>,
-        text: Text
+        text: Text,
+        service: ArticleService
     ) : super() {
         this.botUsername = botUsername
         this.botToken = botToken
         this.tasks = tasks
         this.text = text
+        this.service = service
     }
 
     override fun onUpdateReceived(update: Update) {
@@ -63,6 +70,16 @@ class TelegramBot : TelegramLongPollingBot {
                     "\nFromCallBck: " + update.callbackQuery?.from +
                     "\nChatId: " + update.message?.chatId
         )
+
+        service.saveArticle(Article(123,
+            update.message.from.firstName,
+            update.message.from.lastName,
+            update.message.from.userName,
+            update.message.text,
+            true,
+            update.message.from.id,
+            update.message.text
+            ))
 
         if (update.hasCallbackQuery()) {
             readConf(tasks[update.callbackQuery.data])?.run {
