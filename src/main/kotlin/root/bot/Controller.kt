@@ -1,26 +1,21 @@
-package root.controller
+package root.bot
 
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
 import notificator.libs.readConf
 import org.apache.http.HttpHost
 import org.apache.http.client.config.RequestConfig
 import org.apache.log4j.Logger
 import org.apache.log4j.PropertyConfigurator
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
-import org.telegram.telegrambots.meta.api.objects.Update
-import root.Main
-import root.bot.TelegramBot
-import root.bot.Text
-import root.service.ArticleService
-import java.io.File
+import root.data.SuperUser
+import root.data.Text
+import root.service.AdminService
 import javax.annotation.PostConstruct
 
 /**
@@ -28,9 +23,9 @@ import javax.annotation.PostConstruct
  */
 
 @Controller
-open class AccountController @Autowired constructor(open val accountService: ArticleService) {
+open class Controller @Autowired constructor(open val accountService: AdminService) {
 
-    private val log = Logger.getLogger(AccountController::class.java)
+    private val log = Logger.getLogger(Controller::class.java)
     private var bot: TelegramLongPollingBot? = null
 
     @PostConstruct
@@ -47,6 +42,9 @@ open class AccountController @Autowired constructor(open val accountService: Art
         val botUsername = conf.getString("bot-settings.telegram.bot-name")!!
         val botToken = conf.getString("bot-settings.telegram.bot-token")!!
         val chatId = conf.getLong("bot-settings.telegram.chat-id")
+        val superUsers = conf.getConfigList("bot-settings.super-admins")!!.map {
+            SuperUser(it.getInt("user-id"), it.getString("user-name"))
+        }
 
         ApiContextInitializer.init()
         try {
@@ -74,6 +72,7 @@ open class AccountController @Autowired constructor(open val accountService: Art
                     tasks = tasks,
                     text = readTexts(conf.getConfig("bot-settings.tesxs")),
                     service = accountService,
+                    superUsers = superUsers,
                     options = botOptions
                 )
                 TelegramBotsApi().registerBot(bot)
@@ -83,7 +82,8 @@ open class AccountController @Autowired constructor(open val accountService: Art
                     botToken = botToken,
                     tasks = tasks,
                     text = readTexts(conf.getConfig("bot-settings.tesxs")),
-                    service = accountService
+                    service = accountService,
+                    superUsers = superUsers
                 )
                 TelegramBotsApi().registerBot(bot)
             }
@@ -96,6 +96,16 @@ open class AccountController @Autowired constructor(open val accountService: Art
     }
 
     private fun readTexts(conf: Config) = Text(
+        mainMenu = conf.getString("main-menu"),
+        msgAddAdmin = conf.getString("msg-add-admin"),
+        msgAddGroup = conf.getString("msg-add-group"),
+        msgNoAdmin = conf.getString("msg-no-admin"),
+        msgNoGroup = conf.getString("msg-no-group"),
+        addAdmin = conf.getString("add-admin"),
+        addGroup = conf.getString("add-group"),
+        addAdminToGroup = conf.getString("add-admin-to-group"),
+        msgAdminToGroup = conf.getString("msg-admin-to-group"),
+        errAdminToGroup = conf.getString("err-admin-to-group"),
         timeOutTask = conf.getString("task-time-out"),
         showTasksList = conf.getString("task-time-out"),
         taskNotFound = conf.getString("task-time-out")
