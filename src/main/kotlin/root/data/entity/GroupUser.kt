@@ -20,6 +20,6 @@ data class GroupUser (
 
     var createDate: OffsetDateTime,
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     var groups: List<Group>
 )

@@ -41,7 +41,6 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         val useProxy = conf.getBoolean("bot-settings.telegram.proxy.enable")
         val botUsername = conf.getString("bot-settings.telegram.bot-name")!!
         val botToken = conf.getString("bot-settings.telegram.bot-token")!!
-        val chatId = conf.getLong("bot-settings.telegram.chat-id")
         val superUsers = conf.getConfigList("bot-settings.super-admins")!!.map {
             SuperUser(it.getInt("user-id"), it.getString("user-name"))
         }
@@ -103,6 +102,11 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         msgNoGroup = conf.getString("msg-no-group"),
         addAdmin = conf.getString("add-admin"),
         addGroup = conf.getString("add-group"),
+        sendToEveryUser = conf.getString("send-to-every-user"),
+        sendToEveryGroup = conf.getString("send-to-every-group"),
+        msgSendToEveryUser = conf.getString("msg-send-to-every-user"),
+        msgSendToEveryGroup = conf.getString("msg-send-to-every-group"),
+        msgNotAdmin = conf.getString("msg-not-admin"),
         addAdminToGroup = conf.getString("add-admin-to-group"),
         msgAdminToGroup = conf.getString("msg-admin-to-group"),
         errAdminToGroup = conf.getString("err-admin-to-group"),

@@ -20,6 +20,6 @@ data class Admin (
 
     var createDate: OffsetDateTime,
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     var groups: List<Group>
 )

@@ -8,5 +8,6 @@ interface AdminService {
     fun createOrUpdateGroupUser(user: GroupUser) : GroupUser
     fun saveAdmin(admin: Admin, groupId: Long) : Admin?
     fun getAdminById(userId: Int) : Admin?
-    fun getAllGroups() : List<Group>
+    fun getAllGroups() : MutableIterable<Group>
+    fun getAllUserIdInGroups(groups: List<Group>) : Iterable<Int>
 }

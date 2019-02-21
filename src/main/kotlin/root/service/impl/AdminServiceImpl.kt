@@ -29,6 +29,12 @@ open class AdminServiceImpl(
         return adminRepository.save(admin)
     }
 
+    override fun getAllUserIdInGroups(groups: List<Group>) = groupRepository.findAllUserIdInGroups(
+        groups.joinToString(
+            prefix = "any(ARRAY[",
+            postfix = "])"
+        ) { it.groupId.toString() })
+
     override fun getAdminById(userId: Int): Admin? = adminRepository.findAdminByUserId(userId)
-    override fun getAllGroups() : List<Group> = groupRepository.findAll().toList()
+    override fun getAllGroups(): MutableIterable<Group> = groupRepository.findAll()
 }
