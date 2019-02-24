@@ -1,8 +1,8 @@
 package root.repositories
 
 import org.springframework.data.repository.CrudRepository
-import root.data.entity.GroupUser
+import root.data.entity.UserInGroup
 
-interface GroupUserRepository : CrudRepository<GroupUser, Long> {
-    fun findGroupUserByUserId(id: Int): GroupUser?
+interface GroupUserRepository : CrudRepository<UserInGroup, Long> {
+    fun findGroupUserByUserId(id: Int): UserInGroup?
 }

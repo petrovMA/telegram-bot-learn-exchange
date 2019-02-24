@@ -23,6 +23,7 @@ group 'telegram-bot'
 version '1.0-SNAPSHOT'
 
 defaultTasks 'run'
+mainClassName = "root.MainKt"
 
 repositories {
     mavenCentral()

@@ -2,12 +2,12 @@ package root.service
 
 import root.data.entity.Admin
 import root.data.entity.Group
-import root.data.entity.GroupUser
+import root.data.entity.UserInGroup
 
 interface AdminService {
-    fun createOrUpdateGroupUser(user: GroupUser) : GroupUser
+    fun createOrUpdateGroupUser(user: UserInGroup) : UserInGroup
     fun saveAdmin(admin: Admin, groupId: Long) : Admin?
     fun getAdminById(userId: Int) : Admin?
     fun getAllGroups() : MutableIterable<Group>
-    fun getAllUserIdInGroups(groups: List<Group>) : Iterable<Int>
+//    fun getAllUserIdInCampaigns(groups: Set<Campaign>) : MutableIterable<Int>
 }

@@ -2,12 +2,15 @@ package root.data.entity
 
 import java.time.OffsetDateTime
 import javax.persistence.*
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 
 /**
  * Created by knekrasov on 10/24/2018.
  */
 @Entity
-@Table(name = "groups_admin")
+@Table(name = "admin_for_camp")
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 data class Admin (
     @Id
     var userId: Int,
@@ -21,5 +24,5 @@ data class Admin (
     var createDate: OffsetDateTime,
 
     @ManyToMany(fetch = FetchType.EAGER)
-    var groups: List<Group>
+    var campaigns: Set<Campaign>
 )

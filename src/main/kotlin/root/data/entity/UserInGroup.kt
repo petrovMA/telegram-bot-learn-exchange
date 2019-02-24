@@ -1,5 +1,7 @@
 package root.data.entity
 
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.time.OffsetDateTime
 import javax.persistence.*
 
@@ -7,8 +9,9 @@ import javax.persistence.*
  * Created by knekrasov on 10/24/2018.
  */
 @Entity
-@Table(name = "group_user")
-data class GroupUser (
+@Table(name = "user_in_group")
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+data class UserInGroup (
     @Id
     var userId: Int,
 
@@ -18,8 +21,5 @@ data class GroupUser (
 
     var userName: String? = null,
 
-    var createDate: OffsetDateTime,
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    var groups: List<Group>
+    var createDate: OffsetDateTime
 )

@@ -1,6 +1,5 @@
 package root.bot
 
-import notificator.libs.readConf
 import org.apache.log4j.Logger
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -16,16 +15,16 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import root.data.SuperUser
 import root.data.Text
 import root.data.UserData
-import root.data.UserState
 import root.data.entity.Admin
 import root.data.entity.Group
-import root.data.entity.GroupUser
+import root.data.entity.UserInGroup
 //import root.data.entity.User
-import root.groups.task.types.TaskInquirer
 import root.service.AdminService
 import java.time.OffsetDateTime.now
 import java.util.ArrayList
 import java.util.HashMap
+
+import root.data.UserState.*
 
 class TelegramBot : TelegramLongPollingBot {
 
@@ -85,161 +84,150 @@ class TelegramBot : TelegramLongPollingBot {
                     "\nFromCallBck: " + update.callbackQuery?.from +
                     "\nChatId: " + update.message?.chatId
         )
-//        log.info(service.getAllUserIdInGroups(listOf(Group(-252798409L, now()))))
+//        log.info(service.getAllUserIdInCampaigns(setOf(Campaign(-252798409L, now()))))
         try {
-            if (update.hasCallbackQuery()) {
-                readConf(tasks[update.callbackQuery.data])?.run {
-                    val type = this.getString("type")
-                    when (type) {
-                        "inquirer" -> {
-                            val inquirer = TaskInquirer(this)
-                            inquirer.showQuestion(update.callbackQuery.message.chatId)
+            val admin = service.getAdminById(update.message.from.id)
+            if (superUsers.contains(SuperUser(update.message.from.id, update.message.from.userName))) {
+                when (userStates[update.message.from.id]?.state) {
+                    ADD_ADMIN_TO_CAMPAIGN -> {
+                        try {
+                            val ids = update.message.text.split("\\s+".toRegex())
+                            val adminId = ids[0].toInt()
+                            val groupId = ids[1].toLong()
 
+                            service.saveAdmin(
+                                Admin(
+                                    userId = adminId,
+                                    createDate = now(),
+                                    campaigns = setOf()
+                                ),
+                                groupId
+                            )
+                        } catch (t: Throwable) {
+                            sendMessage(text.errAdminToCampaign, update.message.chatId)
+                            log.error("AdminGroup creating err.", t)
                         }
-                        else -> {
-                            sendMessage(text.taskNotFound, update.callbackQuery.message.chatId)
+
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
+                    MSG_TO_USERS -> {
+                        admin?.let { msgToUsers(admin, update) } ?: sendMessage(
+                            text.msgNotAdmin,
+                            update.message.chatId
+                        )
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
+                    MSG_TO_CAMPAIGN -> {
+                        admin?.let { msgToGroup(admin, update) } ?: sendMessage(
+                            text.msgNotAdmin,
+                            update.message.chatId
+                        )
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
+                    else -> {
+                        when (update.message.text) {
+                            text.addAdminToCampaign -> {
+                                sendMessage(text.msgAdminToCampaign, update.message.chatId)
+                                userStates[update.message.from.id] =
+                                    UserData(ADD_ADMIN_TO_CAMPAIGN, update.message.from)
+                            }
+                            text.sendToEveryUser -> {
+                                sendMessage(text.msgSendToEveryUser, update.message.chatId)
+                                userStates[update.message.from.id] =
+                                    UserData(MSG_TO_USERS, update.message.from)
+                            }
+                            text.sendToEveryGroup -> {
+                                sendMessage(text.msgSendToEveryCampaign, update.message.chatId)
+                                userStates[update.message.from.id] =
+                                    UserData(MSG_TO_CAMPAIGN, update.message.from)
+                            }
+                            text.reset -> {
+                                userStates.remove(update.message.from.id)
+                                superMenu(update.message)
+                            }
+                            else -> {
+                                superMenu(update.message)
+                            }
                         }
                     }
                 }
-                    ?: sendMessage(text.taskNotFound, update.callbackQuery.message.chatId)
+
+                // todo save admin to local storage
+            } else if (admin != null) {
+                when (userStates[admin.userId]?.state) {
+                    MSG_TO_USERS -> {
+                        msgToUsers(admin, update)
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
+                    MSG_TO_CAMPAIGN -> {
+                        msgToGroup(admin, update)
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
+                    ADD_ADMIN_TO_CAMPAIGN -> {
+                        try {
+                            val ids = update.message.text.split("\\s+".toRegex())
+                            val adminId = ids[0].toInt()
+                            val groupId = ids[1].toLong()
+
+                            service.saveAdmin(
+                                Admin(
+                                    userId = adminId,
+                                    createDate = now(),
+                                    campaigns = setOf()
+                                ),
+                                groupId
+                            )
+                        } catch (t: Throwable) {
+                            sendMessage(text.errAdminToCampaign, update.message.chatId)
+                            log.error("AdminGroup creating err.", t)
+                        }
+
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
+                    else -> {
+                        when (update.message.text) {
+                            text.sendToEveryUser -> {
+                                sendMessage(text.msgSendToEveryUser, update.message.chatId)
+                                userStates[update.message.from.id] =
+                                    UserData(MSG_TO_USERS, update.message.from)
+                            }
+                            text.sendToEveryGroup -> {
+                                sendMessage(text.msgSendToEveryCampaign, update.message.chatId)
+                                userStates[update.message.from.id] =
+                                    UserData(MSG_TO_CAMPAIGN, update.message.from)
+                            }
+                            text.reset -> {
+                                userStates.remove(update.message.from.id)
+                                adminMenu(update.message)
+                            }
+                            else -> {
+                                adminMenu(update.message)
+                            }
+                        }
+                    }
+                }
 
             } else {
-                val admin = service.getAdminById(update.message.from.id)
-                if (superUsers.contains(SuperUser(update.message.from.id, update.message.from.userName))) {
-                    when (userStates[update.message.from.id]?.state) {
-                        UserState.ADD_ADMIN_TO_GROUP -> {
-                            try {
-                                val ids = update.message.text.split("\\s+".toRegex())
-                                val adminId = ids[0].toInt()
-                                val groupId = ids[1].toLong()
+                // todo save users to local storage
+                val userChats = getAllUserChats(
+                    service.getAllGroups().toList(),
+                    update.message.from.id
+                )
 
-                                service.saveAdmin(
-                                    Admin(
-                                        userId = adminId,
-                                        createDate = now(),
-                                        groups = listOf()
-                                    ),
-                                    groupId
-                                )
-                            } catch (t: Throwable) {
-                                sendMessage(text.errAdminToGroup, update.message.chatId)
-                                log.error("AdminGroup creating err.", t)
-                            }
-
-                            userStates[update.message.from.id]!!.state = UserState.NONE
-                        }
-                        UserState.MSG_TO_USERS -> {
-                            admin?.let { msgToUsers(admin, update) } ?: sendMessage(
-                                text.msgNotAdmin,
-                                update.message.chatId
-                            )
-                            userStates[update.message.from.id]!!.state = UserState.NONE
-                        }
-                        UserState.MSG_TO_GROUPS -> {
-                            admin?.let { msgToGroup(admin, update) } ?: sendMessage(
-                                text.msgNotAdmin,
-                                update.message.chatId
-                            )
-                            userStates[update.message.from.id]!!.state = UserState.NONE
-                        }
-                        else -> {
-                            when (update.message.text) {
-                                text.addAdminToGroup -> {
-                                    sendMessage(text.msgAdminToGroup, update.message.chatId)
-                                    userStates[update.message.from.id] =
-                                        UserData(UserState.ADD_ADMIN_TO_GROUP, update.message.from)
-                                }
-                                text.sendToEveryUser -> {
-                                    sendMessage(text.msgSendToEveryUser, update.message.chatId)
-                                    userStates[update.message.from.id] =
-                                        UserData(UserState.MSG_TO_USERS, update.message.from)
-                                }
-                                text.sendToEveryGroup -> {
-                                    sendMessage(text.msgSendToEveryGroup, update.message.chatId)
-                                    userStates[update.message.from.id] =
-                                        UserData(UserState.MSG_TO_GROUPS, update.message.from)
-                                }
-                                else -> {
-                                    superMenu(update.message)
-                                }
-                            }
-                        }
-                    }
-
-                    // todo save admin to local storage
-                } else if (admin != null) {
-                    when (userStates[admin.userId]?.state) {
-                        UserState.MSG_TO_USERS -> {
-                            msgToUsers(admin, update)
-                            userStates[update.message.from.id]!!.state = UserState.NONE
-                        }
-                        UserState.MSG_TO_GROUPS -> {
-                            msgToGroup(admin, update)
-                            userStates[update.message.from.id]!!.state = UserState.NONE
-                        }
-                        UserState.ADD_ADMIN_TO_GROUP -> {
-                            try {
-                                val ids = update.message.text.split("\\s+".toRegex())
-                                val adminId = ids[0].toInt()
-                                val groupId = ids[1].toLong()
-
-                                service.saveAdmin(
-                                    Admin(
-                                        userId = adminId,
-                                        createDate = now(),
-                                        groups = listOf()
-                                    ),
-                                    groupId
-                                )
-                            } catch (t: Throwable) {
-                                sendMessage(text.errAdminToGroup, update.message.chatId)
-                                log.error("AdminGroup creating err.", t)
-                            }
-
-                            userStates[update.message.from.id]!!.state = UserState.NONE
-                        }
-                        else -> {
-                            when (update.message.text) {
-                                text.sendToEveryUser -> {
-                                    sendMessage(text.msgSendToEveryUser, update.message.chatId)
-                                    userStates[update.message.from.id] =
-                                        UserData(UserState.MSG_TO_USERS, update.message.from)
-                                }
-                                text.sendToEveryGroup -> {
-                                    sendMessage(text.msgSendToEveryGroup, update.message.chatId)
-                                    userStates[update.message.from.id] =
-                                        UserData(UserState.MSG_TO_GROUPS, update.message.from)
-                                }
-                                else -> {
-                                    adminMenu(update.message)
-                                }
-                            }
-                        }
-                    }
-
-                } else {
+                if (userChats.isNotEmpty()) {
                     // todo save users to local storage
-                    val userChats = getAllUserChats(
-                        service.getAllGroups().toList(),
-                        update.message.from.id
-                    )
-
-                    if (userChats.isNotEmpty()) {
-                        // todo save users to local storage
-                        val user = service.createOrUpdateGroupUser(
-                            GroupUser(
-                                update.message.from.id,
-                                createDate = now(),
-                                groups = userChats
-                            )
+                    val user = service.createOrUpdateGroupUser(
+                        UserInGroup(
+                            update.message.from.id,
+                            createDate = now()
                         )
-                    }
-
+                    )
                 }
             }
         } catch (t: Throwable) {
             t.printStackTrace()
             log.error("error in onUpdateReceived() method", t)
+            userStates.remove(update.message.from.id)
         }
     }
 
@@ -284,7 +272,7 @@ class TelegramBot : TelegramLongPollingBot {
                     it.add(text.sendToEveryGroup)
                 })
                 keyboard.add(KeyboardRow().also {
-                    it.add(text.addAdminToGroup)
+                    it.add(text.addAdminToCampaign)
                 })
             }
         }
@@ -327,7 +315,7 @@ class TelegramBot : TelegramLongPollingBot {
         getUser(it.groupId, userId).status == "member"
     }
 
-    private fun msgToGroup(admin: Admin, upd: Update) = admin.groups.forEach {
+    private fun msgToGroup(admin: Admin, upd: Update) = admin.campaigns.forEach {
         execute(
             ForwardMessage(
                 it.groupId,
@@ -337,15 +325,18 @@ class TelegramBot : TelegramLongPollingBot {
         )
     }
 
-    private fun msgToUsers(admin: Admin, upd: Update) = service.getAllUserIdInGroups(admin.groups).forEach {
-        execute(
-            ForwardMessage(
-                it.toLong(),
-                upd.message.chatId,
-                upd.message.messageId
-            )
-        )
+    private fun msgToUsers(admin: Admin, upd: Update) {
+        TODO()
     }
+//        service.getAllUserIdInCampaigns(admin.campaigns).forEach {
+//        execute(
+//            ForwardMessage(
+//                it.toLong(),
+//                upd.message.chatId,
+//                upd.message.messageId
+//            )
+//        )
+//    }
 
     private fun getUser(chatId: Long, userId: Int) = execute(GetChatMember().setChatId(chatId).setUserId(userId))
 
