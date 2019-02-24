@@ -4,6 +4,7 @@ spring:
     generate-ddl: true # Whether to initialize the schema on startup.
     hibernate.ddl-auto: validate
     properties.hibernate.temp.use_jdbc_metadata_defaults: false
+    properties.hibernate.enable_lazy_load_no_trans: true
   datasource:
     url: jdbc:postgresql://localhost:5432/appDB
     username: username

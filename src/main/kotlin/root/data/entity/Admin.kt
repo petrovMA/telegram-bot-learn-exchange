@@ -23,6 +23,6 @@ data class Admin (
 
     var createDate: OffsetDateTime,
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     var campaigns: Set<Campaign>
 )

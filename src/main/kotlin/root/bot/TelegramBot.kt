@@ -114,12 +114,15 @@ class TelegramBot : TelegramLongPollingBot {
                             val adminId = ids[0].toInt()
                             val name = ids[1]
 
-                            service.getCampaignByName(name)?.let {
-                                service.saveAdmin(
+                            service.getCampaignByName(name)?.let { camp ->
+                                service.getAdminById(adminId)?.let { admin ->
+                                    admin.campaigns = admin.campaigns.toHashSet().also { gr -> gr.add(camp) }
+                                    service.saveAdmin(admin)
+                                } ?: service.saveAdmin(
                                     Admin(
                                         userId = adminId,
                                         createDate = now(),
-                                        campaigns = setOf(it)
+                                        campaigns = setOf(camp)
                                     )
                                 )
                             } ?: {
