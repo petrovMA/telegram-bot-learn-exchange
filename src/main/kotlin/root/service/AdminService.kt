@@ -7,8 +7,9 @@ import root.data.entity.UserInGroup
 
 interface AdminService {
     fun createOrUpdateGroupUser(user: UserInGroup) : UserInGroup
-    fun saveAdmin(admin: Admin, groupId: Long) : Admin?
+    fun saveAdmin(admin: Admin) : Admin?
     fun createCampaign(campaign: Campaign) : Campaign
+    fun getCampaignByName(name: String) : Campaign?
     fun getAdminById(userId: Int) : Admin?
     fun getAllGroups() : MutableIterable<Group>
 //    fun getAllUserIdInCampaigns(groups: Set<Campaign>) : MutableIterable<Int>

@@ -112,16 +112,20 @@ class TelegramBot : TelegramLongPollingBot {
                         try {
                             val ids = update.message.text.split("\\s+".toRegex())
                             val adminId = ids[0].toInt()
-                            val groupId = ids[1].toLong()
+                            val name = ids[1]
 
-                            service.saveAdmin(
-                                Admin(
-                                    userId = adminId,
-                                    createDate = now(),
-                                    campaigns = setOf()
-                                ),
-                                groupId
-                            )
+                            service.getCampaignByName(name)?.let {
+                                service.saveAdmin(
+                                    Admin(
+                                        userId = adminId,
+                                        createDate = now(),
+                                        campaigns = setOf(it)
+                                    )
+                                )
+                            } ?: {
+                                sendMessage("кампания не найдена", update.message.chatId)
+                            }.invoke()
+
                         } catch (t: Throwable) {
                             sendMessage(text.errAdminToCampaign, update.message.chatId)
                             log.error("AdminGroup creating err.", t)
@@ -185,27 +189,6 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     MSG_TO_CAMPAIGN -> {
                         msgToGroup(admin, update)
-                        userStates[update.message.from.id]!!.state = NONE
-                    }
-                    ADD_ADMIN_TO_CAMPAIGN -> {
-                        try {
-                            val ids = update.message.text.split("\\s+".toRegex())
-                            val adminId = ids[0].toInt()
-                            val groupId = ids[1].toLong()
-
-                            service.saveAdmin(
-                                Admin(
-                                    userId = adminId,
-                                    createDate = now(),
-                                    campaigns = setOf()
-                                ),
-                                groupId
-                            )
-                        } catch (t: Throwable) {
-                            sendMessage(text.errAdminToCampaign, update.message.chatId)
-                            log.error("AdminGroup creating err.", t)
-                        }
-
                         userStates[update.message.from.id]!!.state = NONE
                     }
                     else -> {

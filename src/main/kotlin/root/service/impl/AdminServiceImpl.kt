@@ -26,10 +26,8 @@ open class AdminServiceImpl(
             else groupUserRepository.save(user)
         }
 
-    override fun saveAdmin(admin: Admin, groupId: Long): Admin? {
-//        admin.campaigns = listOf(groupRepository.save(Group(groupId, now())))
-        return adminRepository.save(admin)
-    }
+    override fun saveAdmin(admin: Admin): Admin? = adminRepository.save(admin)
+    override fun getCampaignByName(name: String): Campaign? = campaignRepository.findCampaignByName(name)
 
     override fun createCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
 
