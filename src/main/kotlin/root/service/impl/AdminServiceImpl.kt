@@ -5,8 +5,10 @@ import root.service.AdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import root.data.entity.Admin
+import root.data.entity.Campaign
 import root.data.entity.Group
 import root.data.entity.UserInGroup
+import root.repositories.CampaignRepository
 import root.repositories.GroupRepository
 import root.repositories.GroupUserRepository
 
@@ -14,7 +16,8 @@ import root.repositories.GroupUserRepository
 open class AdminServiceImpl(
     @Autowired open val adminRepository: AdminRepository,
     @Autowired open val groupUserRepository: GroupUserRepository,
-    @Autowired open val groupRepository: GroupRepository
+    @Autowired open val groupRepository: GroupRepository,
+    @Autowired open val campaignRepository: CampaignRepository
 ) : AdminService {
 
     override fun createOrUpdateGroupUser(user: UserInGroup): UserInGroup =
@@ -27,6 +30,8 @@ open class AdminServiceImpl(
 //        admin.campaigns = listOf(groupRepository.save(Group(groupId, now())))
         return adminRepository.save(admin)
     }
+
+    override fun createCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
 
 //    override fun getAllUserIdInCampaigns(groups: Set<Campaign>) = groupRepository.findAllUserIdInGroups(
 //        groups.joinToString(

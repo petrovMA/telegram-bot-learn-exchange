@@ -18,13 +18,13 @@ import root.data.UserData
 import root.data.entity.Admin
 import root.data.entity.Group
 import root.data.entity.UserInGroup
-//import root.data.entity.User
 import root.service.AdminService
 import java.time.OffsetDateTime.now
 import java.util.ArrayList
 import java.util.HashMap
 
 import root.data.UserState.*
+import root.data.entity.Campaign
 
 class TelegramBot : TelegramLongPollingBot {
 
@@ -89,6 +89,25 @@ class TelegramBot : TelegramLongPollingBot {
             val admin = service.getAdminById(update.message.from.id)
             if (superUsers.contains(SuperUser(update.message.from.id, update.message.from.userName))) {
                 when (userStates[update.message.from.id]?.state) {
+                    CREATE_CAMPAIGN -> {
+                        try {
+                            val name = update.message.text
+
+                            service.createCampaign(
+                                Campaign(
+                                    name = name,
+                                    createDate = now(),
+                                    groups = emptySet(),
+                                    users = emptySet()
+                                )
+                            )
+                        } catch (t: Throwable) {
+                            sendMessage(text.errCreateCampaign, update.message.chatId)
+                            log.error("Campaign creating err.", t)
+                        }
+
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
                     ADD_ADMIN_TO_CAMPAIGN -> {
                         try {
                             val ids = update.message.text.split("\\s+".toRegex())
@@ -130,6 +149,11 @@ class TelegramBot : TelegramLongPollingBot {
                                 sendMessage(text.msgAdminToCampaign, update.message.chatId)
                                 userStates[update.message.from.id] =
                                     UserData(ADD_ADMIN_TO_CAMPAIGN, update.message.from)
+                            }
+                            text.addCreateCampaign -> {
+                                sendMessage(text.msgCreateCampaign, update.message.chatId)
+                                userStates[update.message.from.id] =
+                                    UserData(CREATE_CAMPAIGN, update.message.from)
                             }
                             text.sendToEveryUser -> {
                                 sendMessage(text.msgSendToEveryUser, update.message.chatId)
@@ -273,6 +297,7 @@ class TelegramBot : TelegramLongPollingBot {
                 })
                 keyboard.add(KeyboardRow().also {
                     it.add(text.addAdminToCampaign)
+                    it.add(text.addCreateCampaign)
                 })
             }
         }
@@ -318,7 +343,7 @@ class TelegramBot : TelegramLongPollingBot {
     private fun msgToGroup(admin: Admin, upd: Update) = admin.campaigns.forEach {
         execute(
             ForwardMessage(
-                it.groupId,
+                it.id,
                 upd.message.chatId,
                 upd.message.messageId
             )

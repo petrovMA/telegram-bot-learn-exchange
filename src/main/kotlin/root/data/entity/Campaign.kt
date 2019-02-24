@@ -11,7 +11,10 @@ import javax.persistence.*
 data class Campaign(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    var groupId: Long,
+    var id: Long? = null,
+
+    @Column(unique = true)
+    var name: String,
 
     var createDate: OffsetDateTime,
 
