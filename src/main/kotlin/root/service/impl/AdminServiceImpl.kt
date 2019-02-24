@@ -29,7 +29,9 @@ open class AdminServiceImpl(
     override fun saveAdmin(admin: Admin): Admin? = adminRepository.save(admin)
     override fun getCampaignByName(name: String): Campaign? = campaignRepository.findCampaignByName(name)
 
+    override fun createGroup(group: Group): Group = groupRepository.save(group)
     override fun createCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
+    override fun updateCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
 
 //    override fun getAllUserIdInCampaigns(groups: Set<Campaign>) = groupRepository.findAllUserIdInGroups(
 //        groups.joinToString(

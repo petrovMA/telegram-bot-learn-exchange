@@ -133,6 +133,27 @@ class TelegramBot : TelegramLongPollingBot {
 
                         userStates[update.message.from.id]!!.state = NONE
                     }
+                    ADD_GROUP_TO_CAMPAIGN -> {
+                        try {
+                            val ids = update.message.text.split("\\s+".toRegex())
+                            val groupId = ids[0].toLong()
+                            val name = ids[1]
+
+                            service.getCampaignByName(name)?.let {
+                                val group = service.createGroup(Group(groupId, now()))
+                                it.groups = it.groups.toHashSet().also { gr -> gr.add(group) }
+                                service.updateCampaign(it)
+                            } ?: {
+                                sendMessage("кампания не найдена", update.message.chatId)
+                            }.invoke()
+
+                        } catch (t: Throwable) {
+                            sendMessage(text.errGroupToCampaign, update.message.chatId)
+                            log.error("AdminGroup creating err.", t)
+                        }
+
+                        userStates[update.message.from.id]!!.state = NONE
+                    }
                     MSG_TO_USERS -> {
                         admin?.let { msgToUsers(admin, update) } ?: sendMessage(
                             text.msgNotAdmin,
@@ -153,6 +174,11 @@ class TelegramBot : TelegramLongPollingBot {
                                 sendMessage(text.msgAdminToCampaign, update.message.chatId)
                                 userStates[update.message.from.id] =
                                     UserData(ADD_ADMIN_TO_CAMPAIGN, update.message.from)
+                            }
+                            text.addGroupToCampaign -> {
+                                sendMessage(text.msgGroupToCampaign, update.message.chatId)
+                                userStates[update.message.from.id] =
+                                    UserData(ADD_GROUP_TO_CAMPAIGN, update.message.from)
                             }
                             text.addCreateCampaign -> {
                                 sendMessage(text.msgCreateCampaign, update.message.chatId)
@@ -279,6 +305,7 @@ class TelegramBot : TelegramLongPollingBot {
                     it.add(text.sendToEveryGroup)
                 })
                 keyboard.add(KeyboardRow().also {
+                    it.add(text.addGroupToCampaign)
                     it.add(text.addAdminToCampaign)
                     it.add(text.addCreateCampaign)
                 })
