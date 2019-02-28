@@ -25,5 +25,12 @@ data class Text(
     val timeOutTask: String,
     val showTasksList: String,
     val taskNotFound: String,
+    val inviteText: String,
+    val removeAdminFromCampaign: String,
+    val msgRemoveAdminFromCampaign: String,
+    val errRemoveAdminFromCampaign: String,
+    val removeGroupFromCampaign: String,
+    val msgRemoveGroupFromCampaign: String,
+    val errRemoveGroupFromCampaign: String,
     val reset: String
 )

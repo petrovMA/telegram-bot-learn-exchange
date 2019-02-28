@@ -119,6 +119,13 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         timeOutTask = conf.getString("task-time-out"),
         showTasksList = conf.getString("task-time-out"),
         taskNotFound = conf.getString("task-time-out"),
+        inviteText = conf.getString("invite-text"),
+        removeAdminFromCampaign = conf.getString("remove-admin-from-campaign"),
+        msgRemoveAdminFromCampaign = conf.getString("err-remove-admin-from-campaign"),
+        errRemoveAdminFromCampaign = conf.getString("msg-remove-admin-from-campaign"),
+        removeGroupFromCampaign = conf.getString("remove-group-from-campaign"),
+        msgRemoveGroupFromCampaign = conf.getString("err-remove-group-from-campaign"),
+        errRemoveGroupFromCampaign = conf.getString("msg-remove-group-from-campaign"),
         reset = conf.getString("reset")
     )
 }

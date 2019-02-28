@@ -35,6 +35,9 @@ open class AdminServiceImpl(
     override fun getCampaignByName(name: String): Campaign? = campaignRepository.findCampaignByName(name)
 
     @Transactional
+    override fun deleteCampaignByName(name: String) = campaignRepository.deleteByName(name)
+
+    @Transactional
     override fun createGroup(group: Group): Group = groupRepository.save(group)
 
     @Transactional
@@ -51,6 +54,12 @@ open class AdminServiceImpl(
 
     @Transactional
     override fun getAdminById(userId: Int): Admin? = adminRepository.findAdminByUserId(userId)
+
+    @Transactional
+    override fun deleteAdminById(userId: Int) = adminRepository.deleteById(userId.toLong())
+
+    @Transactional
+    override fun deleteGroupById(id: Long) = groupRepository.deleteById(id)
 
     @Transactional
     override fun getAllGroups(): MutableIterable<Group> = groupRepository.findAll()

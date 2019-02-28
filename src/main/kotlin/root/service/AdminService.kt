@@ -12,7 +12,10 @@ interface AdminService {
     fun createCampaign(campaign: Campaign) : Campaign
     fun updateCampaign(campaign: Campaign) : Campaign
     fun getCampaignByName(name: String) : Campaign?
+    fun deleteCampaignByName(name: String)
     fun getAdminById(userId: Int) : Admin?
+    fun deleteAdminById(userId: Int)
+    fun deleteGroupById(id: Long)
     fun getAllGroups() : MutableIterable<Group>
 //    fun getAllUserIdInCampaigns(groups: Set<Campaign>) : MutableIterable<Int>
 }
