@@ -62,7 +62,10 @@ open class AdminServiceImpl(
     override fun deleteGroupById(id: Long) = groupRepository.deleteById(id)
 
     @Transactional
-    override fun getAllGroups(): MutableIterable<Group> = groupRepository.findAll()
+    override fun getAllGroups(): Iterable<Group> = groupRepository.findAll()
+
+    @Transactional
+    override fun getAllCampaigns(): Iterable<Campaign> = campaignRepository.findAll()
 
     @Transactional
     override fun getAllUsers(): Iterable<UserInGroup> = groupUserRepository.findAll()

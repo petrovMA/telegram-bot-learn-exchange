@@ -86,7 +86,8 @@ class TelegramBot : TelegramLongPollingBot {
                     "\nChatId: " + update.message?.chatId
         )
         try {
-            if (update.message.isGroupMessage || update.message.isChannelMessage || update.message.isSuperGroupMessage) {
+            if (update.message.isUserMessage) {
+//            if (update.message.isGroupMessage || update.message.isChannelMessage || update.message.isSuperGroupMessage) {
                 val admin = service.getAdminById(update.message.from.id)
                 if (superUsers.contains(SuperUser(update.message.from.id, update.message.from.userName))) {
                     when (userStates[update.message.from.id]?.state) {
@@ -158,6 +159,16 @@ class TelegramBot : TelegramLongPollingBot {
 
                             userStates[update.message.from.id]!!.state = NONE
                         }
+                        REMOVE_CAMPAIGN -> {
+                            try {
+                                service.deleteCampaignByName(update.message.text)
+                            } catch (t: Throwable) {
+                                sendMessage(text.errRemoveCampaign, update.message.chatId)
+                                log.error("Campaign creating err.", t)
+                            }
+
+                            userStates[update.message.from.id]!!.state = NONE
+                        }
                         REMOVE_ADMIN_FROM_CAMPAIGN -> {
                             try {
                                 val params = update.message.text.split("\\s+".toRegex())
@@ -189,27 +200,26 @@ class TelegramBot : TelegramLongPollingBot {
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         MSG_TO_USERS -> {
-                            admin?.let { msgToUsers(service.getAllUsers(), update) } ?: sendMessage(
-                                text.msgNotAdmin,
-                                update.message.chatId
-                            )
+                            // todo and add "choose which campaign for SUPERUSER"
+                            msgToUsers(service.getAllUsers(), update)
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         MSG_TO_CAMPAIGN -> {
-                            admin?.let {
 
-                                // todo and add "choose campaign for SUPERUSER"
-                                val campId = it.campaigns.first().id ?: TODO("campaign not found")
+                            // todo and add "choose campaign for SUPERUSER"
+                            val groups = service.getAllCampaigns().firstOrNull()?.groups ?: TODO("campaign not found")
 
-                                msgToCampaign(service.getGroupsByCampaignId(campId), update)
-                            } ?: sendMessage(
-                                text.msgNotAdmin,
-                                update.message.chatId
-                            )
+                            msgToCampaign(groups, update)
+
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         else -> {
                             when (update.message.text) {
+                                text.removeCampaign -> {
+                                    sendMessage(text.msgRemoveCampaign, update.message.chatId)
+                                    userStates[update.message.from.id] =
+                                        UserData(REMOVE_CAMPAIGN, update.message.from)
+                                }
                                 text.removeAdminFromCampaign -> {
                                     sendMessage(text.msgRemoveAdminFromCampaign, update.message.chatId)
                                     userStates[update.message.from.id] =
@@ -272,9 +282,9 @@ class TelegramBot : TelegramLongPollingBot {
                         MSG_TO_CAMPAIGN -> {
 
                             // todo and add "choose campaign for ADMIN"
-                            val campId = admin.campaigns.first().id ?: TODO("campaign not found")
+                            val groups = admin.campaigns.firstOrNull()?.groups ?: TODO("campaign not found")
 
-                            msgToCampaign(service.getGroupsByCampaignId(campId), update)
+                            msgToCampaign(groups, update)
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         else -> {
@@ -369,6 +379,11 @@ class TelegramBot : TelegramLongPollingBot {
                     it.add(text.addGroupToCampaign)
                     it.add(text.addAdminToCampaign)
                     it.add(text.addCreateCampaign)
+                })
+                keyboard.add(KeyboardRow().also {
+                    it.add(text.removeGroupFromCampaign)
+                    it.add(text.removeAdminFromCampaign)
+                    it.add(text.removeCampaign)
                 })
             }
         }

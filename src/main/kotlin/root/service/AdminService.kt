@@ -17,8 +17,9 @@ interface AdminService {
     fun getAdminById(userId: Int) : Admin?
     fun deleteAdminById(userId: Int)
     fun deleteGroupById(id: Long)
-    fun getAllGroups() : MutableIterable<Group>
+    fun getAllGroups() : Iterable<Group>
     fun getAllUsers() : Iterable<UserInGroup>
+    fun getAllCampaigns() : Iterable<Campaign>
     fun getGroupsByCampaignId(campaignId: Long) : Iterable<Group>
     fun getUsersByCampaignId(campaignId: Long) : Iterable<UserInGroup>
 //    fun getAllUserIdInCampaigns(groups: Set<Campaign>) : MutableIterable<Int>
