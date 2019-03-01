@@ -63,4 +63,15 @@ open class AdminServiceImpl(
 
     @Transactional
     override fun getAllGroups(): MutableIterable<Group> = groupRepository.findAll()
+
+    @Transactional
+    override fun getAllUsers(): Iterable<UserInGroup> = groupUserRepository.findAll()
+
+    @Transactional
+    override fun getGroupsByCampaignId(campaignId: Long) : Iterable<Group> =
+        groupRepository.findAllByCampaignId(campaignId)
+
+    @Transactional
+    override fun getUsersByCampaignId(campaignId: Long) : Iterable<UserInGroup> =
+        groupUserRepository.findAllUsersByCampaignId(campaignId)
 }

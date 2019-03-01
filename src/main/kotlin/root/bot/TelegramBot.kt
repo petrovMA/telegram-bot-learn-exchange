@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMem
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.User
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
@@ -159,13 +160,12 @@ class TelegramBot : TelegramLongPollingBot {
                         }
                         REMOVE_ADMIN_FROM_CAMPAIGN -> {
                             try {
-                                val ids = update.message.text.split("\\s+".toRegex())
-                                val adminId = ids[0].toInt()
-                                val name = ids[1]
+                                val params = update.message.text.split("\\s+".toRegex())
+                                val adminForDelete = service.getAdminById(params[0].toInt())
+                                adminForDelete!!.campaigns =
+                                    adminForDelete.campaigns.filter { it.name != params[1] }.toHashSet()
 
-                                // todo NOT delete, just update list @ManyToMany
-                                service.deleteAdminById(adminId)
-
+                                service.saveAdmin(adminForDelete)
                             } catch (t: Throwable) {
                                 sendMessage(text.errRemoveAdminFromCampaign, update.message.chatId)
                                 log.error("AdminGroup deleting err.", t)
@@ -175,13 +175,12 @@ class TelegramBot : TelegramLongPollingBot {
                         }
                         REMOVE_GROUP_FROM_CAMPAIGN -> {
                             try {
-                                val ids = update.message.text.split("\\s+".toRegex())
-                                val groupId = ids[0].toLong()
-                                val name = ids[1]
+                                val params = update.message.text.split("\\s+".toRegex())
+                                val groupId = params[0].toLong()
+                                val campaign = service.getCampaignByName(params[1])
+                                campaign!!.groups = campaign.groups.filter { it.groupId != groupId }.toHashSet()
 
-                                // todo NOT delete, just update list @ManyToMany
-                                service.deleteGroupById(groupId)
-
+                                service.updateCampaign(campaign)
                             } catch (t: Throwable) {
                                 sendMessage(text.errRemoveGroupFromCampaign, update.message.chatId)
                                 log.error("AdminGroup creating err.", t)
@@ -190,14 +189,20 @@ class TelegramBot : TelegramLongPollingBot {
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         MSG_TO_USERS -> {
-                            admin?.let { msgToUsers(admin, update) } ?: sendMessage(
+                            admin?.let { msgToUsers(service.getAllUsers(), update) } ?: sendMessage(
                                 text.msgNotAdmin,
                                 update.message.chatId
                             )
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         MSG_TO_CAMPAIGN -> {
-                            admin?.let { msgToGroup(admin, update) } ?: sendMessage(
+                            admin?.let {
+
+                                // todo and add "choose campaign for SUPERUSER"
+                                val campId = it.campaigns.first().id ?: TODO("campaign not found")
+
+                                msgToCampaign(service.getGroupsByCampaignId(campId), update)
+                            } ?: sendMessage(
                                 text.msgNotAdmin,
                                 update.message.chatId
                             )
@@ -251,17 +256,25 @@ class TelegramBot : TelegramLongPollingBot {
                         }
                     }
                 } else if (admin != null) {
-                    if (admin != update.message.from) {
+                    if (!admin.equals(update.message.from)) {
                         admin.update(update.message.from)
                         service.saveAdmin(admin)
                     }
                     when (userStates[admin.userId]?.state) {
                         MSG_TO_USERS -> {
-                            msgToUsers(admin, update)
+
+                            // todo and add "choose campaign"
+                            val campId = admin.campaigns.first().id ?: TODO("campaign not found")
+
+                            msgToUsers(service.getUsersByCampaignId(campId), update)
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         MSG_TO_CAMPAIGN -> {
-                            msgToGroup(admin, update)
+
+                            // todo and add "choose campaign for ADMIN"
+                            val campId = admin.campaigns.first().id ?: TODO("campaign not found")
+
+                            msgToCampaign(service.getGroupsByCampaignId(campId), update)
                             userStates[update.message.from.id]!!.state = NONE
                         }
                         else -> {
@@ -399,28 +412,25 @@ class TelegramBot : TelegramLongPollingBot {
         getUser(it.groupId, userId).status == "member"
     }
 
-    private fun msgToGroup(admin: Admin, upd: Update) = admin.campaigns.forEach {
+    private fun msgToCampaign(groups: Iterable<Group>, upd: Update) = groups.forEach {
         execute(
             ForwardMessage(
-                it.id,
+                it.groupId,
                 upd.message.chatId,
                 upd.message.messageId
             )
         )
     }
 
-    private fun msgToUsers(admin: Admin, upd: Update) {
-        TODO()
+    private fun msgToUsers(users: Iterable<UserInGroup>, upd: Update) = users.forEach {
+        execute(
+            ForwardMessage(
+                it.userId.toLong(),
+                upd.message.chatId,
+                upd.message.messageId
+            )
+        )
     }
-//        service.getAllUserIdInCampaigns(admin.campaigns).forEach {
-//        execute(
-//            ForwardMessage(
-//                it.toLong(),
-//                upd.message.chatId,
-//                upd.message.messageId
-//            )
-//        )
-//    }
 
     private fun getUser(chatId: Long, userId: Int) = execute(GetChatMember().setChatId(chatId).setUserId(userId))
 

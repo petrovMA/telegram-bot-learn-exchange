@@ -7,6 +7,6 @@ import root.data.entity.Group
 interface GroupRepository : CrudRepository<Group, Long> {
     fun findGroupByGroupId(id: Long): Group?
 
-//    @Query(value = "SELECT group_user_user_id FROM group_user_groups where groups_group_id = ?1 group by group_user_user_id", nativeQuery = true)
-//    fun findAllUserIdInGroups(array: String): List<Int>
+    @Query(value = "SELECT * from exchange_group where group_id in (SELECT group_id from campaign_groups where campaign_id = ?1", nativeQuery = true)
+    fun findAllByCampaignId(campaignId: Long): Iterable<Group>
 }
