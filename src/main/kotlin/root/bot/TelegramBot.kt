@@ -110,8 +110,8 @@ class TelegramBot : TelegramLongPollingBot {
                 val admin = service.getAdminById(sender.id)
                 when {
                     mainAdmins.contains(MainAdmin(sender.id, sender.userName)) -> doMainAdminUpdate(update)
-                    admin != null -> doAdminUpdate(update, admin)
-                    else -> doUserUpdate(update)
+                    else -> service.getSuperAdminById(sender.id)?.let { doSuperAdminUpdate(update, it) }
+                        ?: service.getAdminById(sender.id)?.let { doAdminUpdate(update, it) } ?: doUserUpdate(update)
                 }
             } catch (t: Throwable) {
                 t.printStackTrace()
@@ -421,6 +421,269 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     else -> {
                         mainAdminMenu(upd.message)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun doSuperAdminUpdate(upd: Update, admin: SuperAdmin) {
+        if (!admin.equals(upd.message.from)) {
+            admin.update(upd.message.from)
+            service.saveSuperAdmin(admin)
+        }
+        when (userStates[upd.message.from.id]?.state) {
+            CREATE_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val name = upd.message.text
+
+                        service.createCampaign(
+                            Campaign(
+                                name = name,
+                                createDate = now(),
+                                groups = emptySet()
+                            )
+                        )
+
+                        end(upd, text.sucCreateCampaign) { msg: Message -> superAdminMenu(msg) }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errCreateCampaign, upd.message.chatId)
+                        log.error("Campaign creating err.", t)
+                    }
+                }
+            }
+            ADD_ADMIN_TO_CAMPAIGN -> {
+
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val ids = upd.message.text.split("\\s+".toRegex(), 2)
+                        val adminId = ids[0].toInt()
+                        val name = ids[1]
+
+                        service.getCampaignByName(name)?.let { camp ->
+                            service.getAdminById(adminId)?.let { admin ->
+                                admin.campaigns =
+                                    admin.campaigns.toHashSet().also { gr -> gr.add(camp) }
+                                service.saveAdmin(admin)
+                            } ?: service.saveAdmin(
+                                Admin(
+                                    userId = adminId,
+                                    createDate = now(),
+                                    campaigns = setOf(camp)
+                                )
+                            )
+
+                            end(upd, text.sucAdminToCampaign) { msg: Message -> superAdminMenu(msg) }
+                        } ?: {
+                            sendMessage(text.errCampaignNotFound, upd.message.chatId)
+                        }.invoke()
+
+                    } catch (t: Throwable) {
+                        sendMessage(text.errAdminToCampaign, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
+                }
+            }
+            ADD_GROUP_TO_CAMPAIGN -> {
+
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val ids = upd.message.text.split("\\s+".toRegex(), 2)
+                        val groupId = ids[0].toLong()
+                        val name = ids[1]
+
+                        service.getCampaignByName(name)?.let {
+                            val group = service.createGroup(Group(groupId, now()))
+                            it.groups = it.groups.toHashSet().also { gr -> gr.add(group) }
+                            service.updateCampaign(it)
+                        } ?: {
+                            sendMessage(text.errCampaignNotFound, upd.message.chatId)
+                        }.invoke()
+
+                        end(upd, text.sucGroupToCampaign) { msg: Message -> superAdminMenu(msg) }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errGroupToCampaign, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
+                }
+            }
+            REMOVE_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        service.deleteCampaignByName(upd.message.text)
+                        end(upd, text.sucRemoveCampaign) { msg: Message -> superAdminMenu(msg) }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveCampaign, upd.message.chatId)
+                        log.error("Campaign creating err.", t)
+                    }
+                }
+            }
+            REMOVE_ADMIN_FROM_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex(), 2)
+                        val adminForDelete = service.getAdminById(params[0].toInt())
+                        adminForDelete!!.campaigns =
+                            adminForDelete.campaigns.filter { it.name != params[1] }.toHashSet()
+
+                        service.saveAdmin(adminForDelete)
+                        end(upd, text.sucRemoveAdminFromCampaign) { msg: Message -> superAdminMenu(msg) }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveAdminFromCampaign, upd.message.chatId)
+                        log.error("AdminGroup deleting err.", t)
+                    }
+                }
+            }
+            REMOVE_GROUP_FROM_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex(), 2)
+                        val groupId = params[0].toLong()
+                        val campaign = service.getCampaignByName(params[1])
+                        campaign!!.groups = campaign.groups.filter { it.groupId != groupId }.toHashSet()
+
+                        service.updateCampaign(campaign)
+                        end(upd, text.sucRemoveGroupFromCampaign) { msg: Message -> superAdminMenu(msg) }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveGroupFromCampaign, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
+                }
+            }
+            MSG_TO_USERS -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val users = userStates[upd.message.from.id]?.users
+                        if (users?.firstOrNull() != null) {
+                            msgToUsers(users, upd)
+                            end(upd, text.sucMsgToUsers) { msg: Message -> superAdminMenu(msg) }
+                        } else
+                            end(upd, text.errMsgToUsersNotFound) { msg: Message -> superAdminMenu(msg) }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errMsgToUsers, upd.message.chatId)
+                        log.error("error msgToUsers", t)
+                    }
+                }
+            }
+            MSG_TO_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val groups = userStates[upd.message.from.id]?.groups
+                        if (!groups.isNullOrEmpty()) {
+                            msgToCampaign(groups.toList(), upd)
+                            end(upd, text.sucMsgToCampaign) { msg: Message -> superAdminMenu(msg) }
+                        } else {
+                            end(upd, text.errMsgToCampaignNotFound) { msg: Message -> superAdminMenu(msg) }
+                        }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errMsgToCampaign, upd.message.chatId)
+                        log.error("error msgToUsers", t)
+                    }
+                }
+            }
+            else -> {
+                when (upd.message.text) {
+                    text.removeCampaign -> {
+                        resetMenu(upd.message, text.msgRemoveCampaign)
+                        userStates[upd.message.from.id] =
+                            UserData(REMOVE_CAMPAIGN, upd.message.from)
+                    }
+                    text.removeAdminFromCampaign -> {
+                        resetMenu(upd.message, text.msgRemoveAdminFromCampaign)
+                        userStates[upd.message.from.id] =
+                            UserData(REMOVE_ADMIN_FROM_CAMPAIGN, upd.message.from)
+                    }
+                    text.removeGroupFromCampaign -> {
+                        resetMenu(upd.message, text.msgRemoveGroupFromCampaign)
+                        userStates[upd.message.from.id] =
+                            UserData(REMOVE_GROUP_FROM_CAMPAIGN, upd.message.from)
+                    }
+                    text.addAdminToCampaign -> {
+                        resetMenu(upd.message, text.msgAdminToCampaign)
+                        userStates[upd.message.from.id] =
+                            UserData(ADD_ADMIN_TO_CAMPAIGN, upd.message.from)
+                    }
+                    text.addGroupToCampaign -> {
+                        resetMenu(upd.message, text.msgGroupToCampaign)
+                        userStates[upd.message.from.id] =
+                            UserData(ADD_GROUP_TO_CAMPAIGN, upd.message.from)
+                    }
+                    text.createCampaign -> {
+                        resetMenu(upd.message, text.msgCreateCampaign)
+                        userStates[upd.message.from.id] =
+                            UserData(CREATE_CAMPAIGN, upd.message.from)
+                    }
+                    text.sendToEveryUser -> {
+                        resetMenu(upd.message, text.msgSendToEveryUser)
+
+                        val availableCampaigns = service.getAllCampaigns().toList()
+
+                        if (availableCampaigns.isNotEmpty()) {
+                            sendAvailableCampaignsList(
+                                text.adminAvailableCampaigns,
+                                CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
+                                upd.message.chatId,
+                                availableCampaigns
+                            )
+                            userStates[upd.message.from.id] =
+                                UserData(CAMPAIGN_FOR_SEND_USERS_MSG, upd.message.from)
+                        }
+                    }
+                    text.sendToEveryGroup -> {
+                        resetMenu(upd.message, text.msgSendToEveryGroup)
+
+                        val availableCampaigns = service.getAllCampaigns().toList()
+
+                        if (availableCampaigns.isNotEmpty()) {
+                            sendAvailableCampaignsList(
+                                text.adminAvailableCampaigns,
+                                CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
+                                upd.message.chatId,
+                                availableCampaigns
+                            )
+                            userStates[upd.message.from.id] =
+                                UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, upd.message.from)
+                        }
+                    }
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superAdminMenu(upd.message)
+                    }
+                    else -> {
+                        superAdminMenu(upd.message)
                     }
                 }
             }
