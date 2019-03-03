@@ -40,7 +40,7 @@ open class AdminServiceImpl(
     @Transactional
     override fun saveSuperAdmin(superAdmin: SuperAdmin) : SuperAdmin = superAdminRepository.save(superAdmin)
     @Transactional
-    override fun deleteSuperAdminById(userId: Int) = superAdminRepository.deleteById(userId.toLong())
+    override fun deleteSuperAdminById(userId: Int) = superAdminRepository.deleteByUserId(userId)
 
 
     @Transactional
@@ -63,7 +63,7 @@ open class AdminServiceImpl(
     override fun getUserById(userId: Int): UserInGroup? = groupUserRepository.findUserInGroupByUserId(userId)
 
     @Transactional
-    override fun deleteAdminById(userId: Int) = adminRepository.deleteById(userId.toLong())
+    override fun deleteAdminById(userId: Int) = adminRepository.deleteByUserId(userId)
 
     @Transactional
     override fun deleteGroupById(id: Long) = groupRepository.deleteById(id)

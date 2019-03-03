@@ -70,6 +70,9 @@ data class Text(
     val sucAddSuperAdmin: String,
     val errCampaignNotFound: String,
     val errAddSuperAdmin: String,
+    val removeSuperAdmin: String,
+    val sucRemoveSuperAdmin: String,
+    val errRemoveSuperAdmin: String,
     val errAddSuperAdminAlreadyExist: String,
     val errClbCommon: String,
     val reset: String

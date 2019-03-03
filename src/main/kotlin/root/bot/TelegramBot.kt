@@ -205,6 +205,21 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                 }
             }
+            REMOVE_SUPER_ADMIN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        mainAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        service.deleteSuperAdminById(upd.message.text.toInt())
+                        end(upd, text.sucRemoveSuperAdmin) { msg: Message -> mainAdminMenu(msg) }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveSuperAdmin, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
+                }
+            }
             ADD_GROUP_TO_CAMPAIGN -> {
 
                 when (upd.message.text) {
@@ -357,6 +372,11 @@ class TelegramBot : TelegramLongPollingBot {
                         resetMenu(upd.message, text.msgAddSuperAdmin)
                         userStates[upd.message.from.id] =
                             UserData(ADD_SUPER_ADMIN, upd.message.from)
+                    }
+                    text.removeSuperAdmin -> {
+                        resetMenu(upd.message, text.msgAddSuperAdmin)
+                        userStates[upd.message.from.id] =
+                            UserData(REMOVE_SUPER_ADMIN, upd.message.from)
                     }
                     text.createCampaign -> {
                         resetMenu(upd.message, text.msgCreateCampaign)
@@ -772,9 +792,12 @@ class TelegramBot : TelegramLongPollingBot {
             markup.oneTimeKeyboard = false
             markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
                 keyboard.add(KeyboardRow().also {
-                    it.add(text.addSuperAdmin)
                     it.add(text.sendToEveryUser)
                     it.add(text.sendToEveryGroup)
+                })
+                keyboard.add(KeyboardRow().also {
+                    it.add(text.addSuperAdmin)
+                    it.add(text.removeSuperAdmin)
                 })
                 keyboard.add(KeyboardRow().also {
                     it.add(text.addGroupToCampaign)

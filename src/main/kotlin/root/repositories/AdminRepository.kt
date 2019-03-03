@@ -5,4 +5,5 @@ import root.data.entity.Admin
 
 interface AdminRepository : CrudRepository<Admin, Long> {
     fun findAdminByUserId(id: Int): Admin?
+    fun deleteByUserId(userId: Int)
 }

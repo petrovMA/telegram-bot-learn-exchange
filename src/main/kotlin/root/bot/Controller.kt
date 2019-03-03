@@ -165,6 +165,9 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         errCampaignNotFound = conf.getString("err-campaign-not-found"),
         errAddSuperAdmin = conf.getString("err-add-super-admin"),
         errAddSuperAdminAlreadyExist = conf.getString("err-add-super-admin-already-exist"),
+        removeSuperAdmin = conf.getString("remove-super-admin"),
+        sucRemoveSuperAdmin = conf.getString("suc-remove-super-admin"),
+        errRemoveSuperAdmin = conf.getString("err-remove-super-admin"),
         errClbCommon = conf.getString("err-clb-common"),
         reset = conf.getString("reset")
     )

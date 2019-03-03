@@ -15,6 +15,7 @@ data class UserData(
 enum class UserState {
     // main admin commands
     ADD_SUPER_ADMIN,
+    REMOVE_SUPER_ADMIN,
 
     // super admin commands
     CREATE_CAMPAIGN,
