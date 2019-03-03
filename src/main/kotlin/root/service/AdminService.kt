@@ -1,9 +1,6 @@
 package root.service
 
-import root.data.entity.Admin
-import root.data.entity.Campaign
-import root.data.entity.Group
-import root.data.entity.UserInGroup
+import root.data.entity.*
 
 interface AdminService {
     fun createCampaign(campaign: Campaign) : Campaign
@@ -14,6 +11,10 @@ interface AdminService {
     fun getAllCampaignByUserId(userId: Int): Iterable<Campaign>
     fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign>
     fun deleteCampaignByName(name: String)
+
+    fun getSuperAdminById(userId: Int) : SuperAdmin?
+    fun saveSuperAdmin(superAdmin: SuperAdmin) : SuperAdmin?
+    fun deleteSuperAdminById(userId: Int)
 
     fun getAdminById(userId: Int) : Admin?
     fun saveAdmin(admin: Admin) : Admin?

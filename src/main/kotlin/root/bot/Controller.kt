@@ -159,6 +159,12 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         sucSendMessageToEveryUsers = conf.getString("suc-send-message-to-every-users"),
         errClbSendMessageToEveryUsers = conf.getString("err-clb-send-message-to-every-users"),
         errCommon = conf.getString("err-common"),
+        addSuperAdmin = conf.getString("add-super-admin"),
+        msgAddSuperAdmin = conf.getString("msg-add-super-admin"),
+        sucAddSuperAdmin = conf.getString("suc-add-super-admin"),
+        errCampaignNotFound = conf.getString("err-campaign-not-found"),
+        errAddSuperAdmin = conf.getString("err-add-super-admin"),
+        errAddSuperAdminAlreadyExist = conf.getString("err-add-super-admin-already-exist"),
         errClbCommon = conf.getString("err-clb-common"),
         reset = conf.getString("reset")
     )

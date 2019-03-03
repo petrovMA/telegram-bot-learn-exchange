@@ -65,6 +65,12 @@ data class Text(
     val sucSendMessageToEveryUsers: String,
     val errClbSendMessageToEveryUsers: String,
     val errCommon: String,
+    val addSuperAdmin: String,
+    val msgAddSuperAdmin: String,
+    val sucAddSuperAdmin: String,
+    val errCampaignNotFound: String,
+    val errAddSuperAdmin: String,
+    val errAddSuperAdminAlreadyExist: String,
     val errClbCommon: String,
     val reset: String
 )
