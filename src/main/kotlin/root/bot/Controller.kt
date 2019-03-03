@@ -105,7 +105,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         sendToEveryUser = conf.getString("send-to-every-user"),
         sendToEveryGroup = conf.getString("send-to-every-group"),
         msgSendToEveryUser = conf.getString("msg-send-to-every-user"),
-        msgSendToEveryCampaign = conf.getString("msg-send-to-every-campaign"),
+        msgSendToEveryGroup = conf.getString("msg-send-to-every-group"),
         msgNotAdmin = conf.getString("msg-not-admin"),
         addAdminToCampaign = conf.getString("add-admin-to-campaign"),
         msgAdminToCampaign = conf.getString("msg-admin-to-campaign"),
@@ -150,6 +150,16 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         sucMsgToCampaign = conf.getString("suc-msg-to-campaign"),
         errMsgToCampaignNotFound = conf.getString("err-msg-to-campaign-not-found"),
         errMsgToCampaign = conf.getString("err-msg-to-campaign"),
+        adminAvailableCampaigns = conf.getString("admin-available-campaigns"),
+        errClbSendMessageToEveryGroup = conf.getString("err-clb-send-message-to-every-group"),
+        clbSendMessageToEveryGroup = conf.getString("clb-send-message-to-every-group"),
+        sucSendMessageToEveryGroup = conf.getString("suc-send-message-to-every-group"),
+        errSendMessageToEveryGroup = conf.getString("err-send-message-to-every-group"),
+        clbSendMessageToEveryUsers = conf.getString("clb-send-message-to-every-users"),
+        sucSendMessageToEveryUsers = conf.getString("suc-send-message-to-every-users"),
+        errClbSendMessageToEveryUsers = conf.getString("err-clb-send-message-to-every-users"),
+        errCommon = conf.getString("err-common"),
+        errClbCommon = conf.getString("err-clb-common"),
         reset = conf.getString("reset")
     )
 }

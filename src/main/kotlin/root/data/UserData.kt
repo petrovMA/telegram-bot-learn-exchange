@@ -1,8 +1,16 @@
 package root.data
 
 import org.telegram.telegrambots.meta.api.objects.User
+import root.data.entity.Group
+import root.data.entity.UserInGroup
 
-data class UserData(var state: UserState = UserState.NONE, val user: User, val taskName: String? = null)
+data class UserData(
+    var state: UserState = UserState.NONE,
+    val user: User,
+    val taskName: String? = null,
+    val groups: Set<Group>? = null,
+    val users: Iterable<UserInGroup>? = null
+)
 
 enum class UserState {
     // super admin commands
@@ -16,6 +24,8 @@ enum class UserState {
     // admin commands
     MSG_TO_CAMPAIGN,
     MSG_TO_USERS,
+    CAMPAIGN_FOR_SEND_GROUP_MSG,
+    CAMPAIGN_FOR_SEND_USERS_MSG,
 
     // user commands
     JOIN_TO_CAMPAIGN,
