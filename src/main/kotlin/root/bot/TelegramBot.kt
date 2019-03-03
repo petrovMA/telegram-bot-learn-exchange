@@ -91,11 +91,10 @@ class TelegramBot : TelegramLongPollingBot {
             val sender = update.callbackQuery.from
             try {
 //            if (update.message.isGroupMessage || update.message.isChannelMessage || update.message.isSuperGroupMessage) {
-                val admin = service.getAdminById(sender.id)
                 when {
                     mainAdmins.contains(MainAdmin(sender.id, sender.userName)) -> doMainAdminCallback(update)
-                    admin != null -> doAdminCallback(update)
-                    else -> doUserCallback(update)
+                    else -> service.getSuperAdminById(sender.id)?.let { doSuperAdminCallback(update) }
+                        ?: service.getAdminById(sender.id)?.let { doAdminCallback(update) } ?: doUserCallback(update)
                 }
 
             } catch (t: Throwable) {
@@ -107,7 +106,6 @@ class TelegramBot : TelegramLongPollingBot {
             val sender = update.message.from
             try {
 //            if (update.message.isGroupMessage || update.message.isChannelMessage || update.message.isSuperGroupMessage) {
-                val admin = service.getAdminById(sender.id)
                 when {
                     mainAdmins.contains(MainAdmin(sender.id, sender.userName)) -> doMainAdminUpdate(update)
                     else -> service.getSuperAdminById(sender.id)?.let { doSuperAdminUpdate(update, it) }
@@ -832,6 +830,69 @@ class TelegramBot : TelegramLongPollingBot {
     }
 
     private fun doMainAdminCallback(upd: Update) {
+        val params = upd.callbackQuery.data.split("\\s+".toRegex(), 2)
+        val callbackAnswer = AnswerCallbackQuery().also { it.callbackQueryId = upd.callbackQuery.id }
+        val callBackCommand: UserState
+
+        try {
+            callBackCommand = UserState.valueOf(params[0])
+        } catch (e: Exception) {
+            log.error("UserState = \"${upd.callbackQuery.data}\", not found", e)
+            execute(callbackAnswer.also { it.text = text.errClbCommon })
+            throw e
+        }
+
+        when {
+            CAMPAIGN_FOR_SEND_GROUP_MSG == callBackCommand &&
+                    userStates[upd.callbackQuery.from.id]?.state == CAMPAIGN_FOR_SEND_GROUP_MSG -> try {
+
+                val campaign = service.getCampaignById(params[1].toLong()) ?: throw CampaignNotFoundException()
+                val groups = campaign.groups
+
+                userStates[upd.callbackQuery.from.id] =
+                    UserData(MSG_TO_CAMPAIGN, upd.callbackQuery.from, groups = groups)
+                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryGroup })
+                setTextToMessage(
+                    resourceText(text.sucSendMessageToEveryGroup, "campaign.name" to campaign.name),
+                    upd.callbackQuery.message.messageId,
+                    upd.callbackQuery.message.chatId
+                )
+            } catch (t: Throwable) {
+                log.error("CAMPAIGN_FOR_SEND_GROUP_MSG execute error", t)
+                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
+                throw t
+            }
+            CAMPAIGN_FOR_SEND_USERS_MSG == callBackCommand &&
+                    userStates[upd.callbackQuery.from.id]?.state == CAMPAIGN_FOR_SEND_USERS_MSG -> try {
+
+                val users = service.getUsersByCampaignId(params[1].toLong())
+
+                userStates[upd.callbackQuery.from.id] =
+                    UserData(MSG_TO_USERS, upd.callbackQuery.from, users = users)
+                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryUsers })
+                setTextToMessage(
+                    resourceText("${text.sucSendMessageToEveryUsers} id = ", "campaign.name" to params[1]),
+                    upd.callbackQuery.message.messageId,
+                    upd.callbackQuery.message.chatId
+                )
+            } catch (t: Throwable) {
+                log.error("CAMPAIGN_FOR_SEND_USERS_MSG execute error", t)
+                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
+                throw t
+            }
+            else -> {
+                setTextToMessage(
+                    resourceText(text.errCommon),
+                    upd.callbackQuery.message.messageId,
+                    upd.callbackQuery.message.chatId
+                )
+                userStates.remove(upd.callbackQuery.from.id)
+                execute(callbackAnswer.also { it.text = text.errClbCommon })
+            }
+        }
+    }
+
+    private fun doSuperAdminCallback(upd: Update) {
         val params = upd.callbackQuery.data.split("\\s+".toRegex(), 2)
         val callbackAnswer = AnswerCallbackQuery().also { it.callbackQueryId = upd.callbackQuery.id }
         val callBackCommand: UserState
