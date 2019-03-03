@@ -1,6 +1,9 @@
 package root.bot
 
 import com.typesafe.config.Config
+import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.parse
 import notificator.libs.readConf
 import org.apache.http.HttpHost
 import org.apache.http.client.config.RequestConfig
@@ -16,6 +19,7 @@ import org.telegram.telegrambots.meta.TelegramBotsApi
 import root.data.MainAdmin
 import root.data.Text
 import root.service.AdminService
+import java.io.File
 import javax.annotation.PostConstruct
 
 /**
@@ -28,6 +32,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
     private val log = Logger.getLogger(Controller::class.java)
     private var bot: TelegramLongPollingBot? = null
 
+    @ImplicitReflectionSerializer
     @PostConstruct
     fun telegram() {
         PropertyConfigurator.configure("log4j.properties")
@@ -46,6 +51,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         }
 
         ApiContextInitializer.init()
+        val text = serialize(File(conf.getString("bot-settings.texts")))
         try {
             if (useProxy) {
                 val portHost = conf.getString("bot-settings.telegram.proxy.port-host")?.split(':')
@@ -69,7 +75,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
                     botUsername = botUsername,
                     botToken = botToken,
                     tasks = tasks,
-                    text = readTexts(conf.getConfig("bot-settings.tesxs")),
+                    text = text,
                     service = accountService,
                     mainAdmins = mainAdmins,
                     options = botOptions
@@ -80,7 +86,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
                     botUsername = botUsername,
                     botToken = botToken,
                     tasks = tasks,
-                    text = readTexts(conf.getConfig("bot-settings.tesxs")),
+                    text = text,
                     service = accountService,
                     mainAdmins = mainAdmins
                 )
@@ -94,81 +100,6 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         }
     }
 
-    private fun readTexts(conf: Config) = Text(
-        mainMenu = conf.getString("main-menu"),
-        msgAddAdmin = conf.getString("msg-add-admin"),
-        msgAddGroup = conf.getString("msg-add-group"),
-        msgNoAdmin = conf.getString("msg-no-admin"),
-        msgNoCampaign = conf.getString("msg-no-campaign"),
-        addAdmin = conf.getString("add-admin"),
-        addGroup = conf.getString("add-group"),
-        sendToEveryUser = conf.getString("send-to-every-user"),
-        sendToEveryGroup = conf.getString("send-to-every-group"),
-        msgSendToEveryUser = conf.getString("msg-send-to-every-user"),
-        msgSendToEveryGroup = conf.getString("msg-send-to-every-group"),
-        msgNotAdmin = conf.getString("msg-not-admin"),
-        addAdminToCampaign = conf.getString("add-admin-to-campaign"),
-        msgAdminToCampaign = conf.getString("msg-admin-to-campaign"),
-        errAdminToCampaign = conf.getString("err-admin-to-campaign"),
-        addGroupToCampaign = conf.getString("add-group-to-campaign"),
-        errGroupToCampaign = conf.getString("err-group-to-campaign"),
-        msgGroupToCampaign = conf.getString("msg-group-to-campaign"),
-        createCampaign = conf.getString("add-create-campaign"),
-        errCreateCampaign = conf.getString("err-create-campaign"),
-        msgCreateCampaign = conf.getString("msg-create-campaign"),
-        removeCampaign = conf.getString("remove-campaign"),
-        errRemoveCampaign = conf.getString("err-remove-campaign"),
-        msgRemoveCampaign = conf.getString("msg-remove-campaign"),
-        timeOutTask = conf.getString("task-time-out"),
-        showTasksList = conf.getString("task-time-out"),
-        taskNotFound = conf.getString("task-time-out"),
-        inviteText = conf.getString("invite-text"),
-        removeAdminFromCampaign = conf.getString("remove-admin-from-campaign"),
-        msgRemoveAdminFromCampaign = conf.getString("err-remove-admin-from-campaign"),
-        errRemoveAdminFromCampaign = conf.getString("msg-remove-admin-from-campaign"),
-        removeGroupFromCampaign = conf.getString("remove-group-from-campaign"),
-        msgRemoveGroupFromCampaign = conf.getString("msg-remove-group-from-campaign"),
-        errRemoveGroupFromCampaign = conf.getString("err-remove-group-from-campaign"),
-        joinToCampaign = conf.getString("join-to-campaign"),
-        showUserCampaigns = conf.getString("show-user-campaigns"),
-        userAvailableCampaigns = conf.getString("user-available-campaigns"),
-        msgUserAvailableCampaignsNotFound = conf.getString("msg-user-available-campaigns-not-found"),
-        userMainMenu = conf.getString("user-main-menu"),
-        errClbUserAddedToCampaign = conf.getString("err-clb-user-added-to-campaign"),
-        clbUserAddedToCampaign = conf.getString("clb-user-added-to-campaign"),
-        userAddedToCampaign = conf.getString("user-added-to-campaign"),
-        errUserAddedToCampaign = conf.getString("err-user-added-to-campaign"),
-        sucCreateCampaign = conf.getString("suc-create-campaign"),
-        sucAdminToCampaign = conf.getString("suc-admin-to-campaign"),
-        sucGroupToCampaign = conf.getString("suc-group-to-campaign"),
-        sucRemoveCampaign = conf.getString("suc-remove-campaign"),
-        sucRemoveAdminFromCampaign = conf.getString("suc-remove-admin-from-campaign"),
-        sucRemoveGroupFromCampaign = conf.getString("suc-remove-group-from-campaign"),
-        sucMsgToUsers = conf.getString("suc-msg-to-users"),
-        errMsgToUsersNotFound = conf.getString("err-msg-to-users-not-found"),
-        errMsgToUsers = conf.getString("err-msg-to-users"),
-        sucMsgToCampaign = conf.getString("suc-msg-to-campaign"),
-        errMsgToCampaignNotFound = conf.getString("err-msg-to-campaign-not-found"),
-        errMsgToCampaign = conf.getString("err-msg-to-campaign"),
-        adminAvailableCampaigns = conf.getString("admin-available-campaigns"),
-        errClbSendMessageToEveryGroup = conf.getString("err-clb-send-message-to-every-group"),
-        clbSendMessageToEveryGroup = conf.getString("clb-send-message-to-every-group"),
-        sucSendMessageToEveryGroup = conf.getString("suc-send-message-to-every-group"),
-        errSendMessageToEveryGroup = conf.getString("err-send-message-to-every-group"),
-        clbSendMessageToEveryUsers = conf.getString("clb-send-message-to-every-users"),
-        sucSendMessageToEveryUsers = conf.getString("suc-send-message-to-every-users"),
-        errClbSendMessageToEveryUsers = conf.getString("err-clb-send-message-to-every-users"),
-        errCommon = conf.getString("err-common"),
-        addSuperAdmin = conf.getString("add-super-admin"),
-        msgAddSuperAdmin = conf.getString("msg-add-super-admin"),
-        sucAddSuperAdmin = conf.getString("suc-add-super-admin"),
-        errCampaignNotFound = conf.getString("err-campaign-not-found"),
-        errAddSuperAdmin = conf.getString("err-add-super-admin"),
-        errAddSuperAdminAlreadyExist = conf.getString("err-add-super-admin-already-exist"),
-        removeSuperAdmin = conf.getString("remove-super-admin"),
-        sucRemoveSuperAdmin = conf.getString("suc-remove-super-admin"),
-        errRemoveSuperAdmin = conf.getString("err-remove-super-admin"),
-        errClbCommon = conf.getString("err-clb-common"),
-        reset = conf.getString("reset")
-    )
+    @ImplicitReflectionSerializer
+    private fun serialize(file: File) = Json.parse<Text>(file.readText())
 }

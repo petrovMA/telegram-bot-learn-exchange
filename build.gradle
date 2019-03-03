@@ -5,11 +5,13 @@ buildscript {
     }
     repositories {
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-noarg:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
     }
 }
 
@@ -18,6 +20,7 @@ apply plugin: "kotlin-jpa"
 apply plugin: 'application'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'kotlinx-serialization'
 
 group 'telegram-bot'
 version '1.0-SNAPSHOT'
@@ -27,6 +30,8 @@ mainClassName = "root.MainKt"
 
 repositories {
     mavenCentral()
+    jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
 dependencies {
@@ -37,6 +42,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
     compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.1'
+
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-runtime
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime', version: '0.10.0'
 
     // https://mvnrepository.com/artifact/org.telegram/telegrambots
     compile group: 'org.telegram', name: 'telegrambots', version: '4.1.2'
