@@ -1,10 +1,18 @@
 package root.repositories
 
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import root.data.entity.Campaign
+import root.data.entity.UserInGroup
 
 interface CampaignRepository : CrudRepository<Campaign, Long> {
     fun findCampaignById(id: Long): Campaign
     fun findCampaignByName(name: String): Campaign?
     fun deleteByName(name: String)
+
+    @Query(value = "SELECT * from campaign where id in (SELECT campaign_id from user_in_group_campaigns where user_in_group_user_id = ?1)", nativeQuery = true)
+    fun findAllCampaignByUserId(userId: Int): Iterable<Campaign>
+
+    @Query(value = "SELECT * from campaign where id in (SELECT campaign_id from campaign_groups where groups_group_id in( ?1 )) and id not in (SELECT campaigns_id from user_in_group_campaigns where user_in_group_user_id = ?2)", nativeQuery = true)
+    fun findAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign>
 }

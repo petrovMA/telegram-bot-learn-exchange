@@ -12,7 +12,7 @@ import javax.persistence.*
 @Entity
 @Table(name = "user_in_group")
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-data class UserInGroup (
+data class UserInGroup(
     @Id
     var userId: Int,
 
@@ -22,7 +22,10 @@ data class UserInGroup (
 
     var userName: String? = null,
 
-    var createDate: OffsetDateTime
+    var createDate: OffsetDateTime,
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    var campaigns: Set<Campaign>
 ) {
     override fun equals(other: Any?): Boolean = when (other) {
         is User -> {

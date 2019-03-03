@@ -19,8 +19,5 @@ data class Campaign(
     var createDate: OffsetDateTime,
 
     @OneToMany(fetch = FetchType.LAZY)
-    var groups: Set<Group>,
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    var users: Set<UserInGroup>
+    var groups: Set<Group>
 )

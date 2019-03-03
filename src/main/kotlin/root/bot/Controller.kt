@@ -113,7 +113,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         addGroupToCampaign = conf.getString("add-group-to-campaign"),
         errGroupToCampaign = conf.getString("err-group-to-campaign"),
         msgGroupToCampaign = conf.getString("msg-group-to-campaign"),
-        addCreateCampaign = conf.getString("add-create-campaign"),
+        createCampaign = conf.getString("add-create-campaign"),
         errCreateCampaign = conf.getString("err-create-campaign"),
         msgCreateCampaign = conf.getString("msg-create-campaign"),
         removeCampaign = conf.getString("remove-campaign"),
@@ -127,8 +127,17 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         msgRemoveAdminFromCampaign = conf.getString("err-remove-admin-from-campaign"),
         errRemoveAdminFromCampaign = conf.getString("msg-remove-admin-from-campaign"),
         removeGroupFromCampaign = conf.getString("remove-group-from-campaign"),
-        msgRemoveGroupFromCampaign = conf.getString("err-remove-group-from-campaign"),
-        errRemoveGroupFromCampaign = conf.getString("msg-remove-group-from-campaign"),
+        msgRemoveGroupFromCampaign = conf.getString("msg-remove-group-from-campaign"),
+        errRemoveGroupFromCampaign = conf.getString("err-remove-group-from-campaign"),
+        joinToCampaign = conf.getString("join-to-campaign"),
+        showUserCampaigns = conf.getString("show-user-campaigns"),
+        userAvailableCampaigns = conf.getString("user-available-campaigns"),
+        msgUserAvailableCampaignsNotFound = conf.getString("msg-user-available-campaigns-not-found"),
+        userMainMenu = conf.getString("user-main-menu"),
+        errClbUserAddedToCampaign  = conf.getString("err-clb-user-added-to-campaign"),
+        clbUserAddedToCampaign = conf.getString("clb-user-added-to-campaign"),
+        userAddedToCampaign = conf.getString("user-added-to-campaign"),
+        errUserAddedToCampaign = conf.getString("err-user-added-to-campaign"),
         reset = conf.getString("reset")
     )
 }
