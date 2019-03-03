@@ -1,12 +1,10 @@
 package root.bot
 
-import notificator.libs.resourceText
 import org.apache.log4j.Logger
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage
-import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
@@ -17,7 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
-import root.data.SuperUser
+import root.data.MainAdmin
 import root.data.Text
 import root.data.UserData
 import root.data.UserState
@@ -45,7 +43,7 @@ class TelegramBot : TelegramLongPollingBot {
     private val botToken: String
     private val tasks: Map<String, String>
     private val text: Text
-    private val superUsers: List<SuperUser>
+    private val mainAdmins: List<MainAdmin>
     private val service: AdminService
 
 
@@ -55,7 +53,7 @@ class TelegramBot : TelegramLongPollingBot {
         tasks: Map<String, String>,
         text: Text,
         service: AdminService,
-        superUsers: List<SuperUser>,
+        mainAdmins: List<MainAdmin>,
         options: DefaultBotOptions?
     ) : super(options) {
         this.botUsername = botUsername
@@ -63,7 +61,7 @@ class TelegramBot : TelegramLongPollingBot {
         this.tasks = tasks
         this.text = text
         this.service = service
-        this.superUsers = superUsers
+        this.mainAdmins = mainAdmins
     }
 
     constructor(
@@ -72,14 +70,14 @@ class TelegramBot : TelegramLongPollingBot {
         tasks: Map<String, String>,
         text: Text,
         service: AdminService,
-        superUsers: List<SuperUser>
+        mainAdmins: List<MainAdmin>
     ) : super() {
         this.botUsername = botUsername
         this.botToken = botToken
         this.tasks = tasks
         this.text = text
         this.service = service
-        this.superUsers = superUsers
+        this.mainAdmins = mainAdmins
     }
 
     override fun onUpdateReceived(update: Update) {
@@ -97,7 +95,7 @@ class TelegramBot : TelegramLongPollingBot {
 //            if (update.message.isGroupMessage || update.message.isChannelMessage || update.message.isSuperGroupMessage) {
                 val admin = service.getAdminById(sender.id)
                 when {
-                    superUsers.contains(SuperUser(sender.id, sender.userName)) -> doSuperUserUpdate(update)
+                    mainAdmins.contains(MainAdmin(sender.id, sender.userName)) -> doSuperUserUpdate(update)
                     admin != null -> doAdminUpdate(update, admin)
                     else -> doUserCallback(update)
                 }
@@ -113,7 +111,7 @@ class TelegramBot : TelegramLongPollingBot {
 //            if (update.message.isGroupMessage || update.message.isChannelMessage || update.message.isSuperGroupMessage) {
                 val admin = service.getAdminById(sender.id)
                 when {
-                    superUsers.contains(SuperUser(sender.id, sender.userName)) -> doSuperUserUpdate(update)
+                    mainAdmins.contains(MainAdmin(sender.id, sender.userName)) -> doSuperUserUpdate(update)
                     admin != null -> doAdminUpdate(update, admin)
                     else -> doUserUpdate(update)
                 }
@@ -129,167 +127,227 @@ class TelegramBot : TelegramLongPollingBot {
     private fun doSuperUserUpdate(upd: Update) {
         when (userStates[upd.message.from.id]?.state) {
             CREATE_CAMPAIGN -> {
-                try {
-                    val name = upd.message.text
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        val name = upd.message.text
 
-                    service.createCampaign(
-                        Campaign(
-                            name = name,
-                            createDate = now(),
-                            groups = emptySet()
-                        )
-                    )
-                } catch (t: Throwable) {
-                    sendMessage(text.errCreateCampaign, upd.message.chatId)
-                    log.error("Campaign creating err.", t)
-                }
-
-                userStates[upd.message.from.id]!!.state = NONE
-            }
-            ADD_ADMIN_TO_CAMPAIGN -> {
-                try {
-                    val ids = upd.message.text.split("\\s+".toRegex(), 2)
-                    val adminId = ids[0].toInt()
-                    val name = ids[1]
-
-                    service.getCampaignByName(name)?.let { camp ->
-                        service.getAdminById(adminId)?.let { admin ->
-                            admin.campaigns =
-                                admin.campaigns.toHashSet().also { gr -> gr.add(camp) }
-                            service.saveAdmin(admin)
-                        } ?: service.saveAdmin(
-                            Admin(
-                                userId = adminId,
+                        service.createCampaign(
+                            Campaign(
+                                name = name,
                                 createDate = now(),
-                                campaigns = setOf(camp)
+                                groups = emptySet()
                             )
                         )
-                    } ?: {
-                        sendMessage("кампания не найдена", upd.message.chatId)
-                    }.invoke()
 
-                } catch (t: Throwable) {
-                    sendMessage(text.errAdminToCampaign, upd.message.chatId)
-                    log.error("AdminGroup creating err.", t)
+                        successEnd(upd, text.sucCreateCampaign)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errCreateCampaign, upd.message.chatId)
+                        log.error("Campaign creating err.", t)
+                    }
                 }
+            }
+            ADD_ADMIN_TO_CAMPAIGN -> {
 
-                userStates[upd.message.from.id]!!.state = NONE
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        val ids = upd.message.text.split("\\s+".toRegex(), 2)
+                        val adminId = ids[0].toInt()
+                        val name = ids[1]
+
+                        service.getCampaignByName(name)?.let { camp ->
+                            service.getAdminById(adminId)?.let { admin ->
+                                admin.campaigns =
+                                    admin.campaigns.toHashSet().also { gr -> gr.add(camp) }
+                                service.saveAdmin(admin)
+                            } ?: service.saveAdmin(
+                                Admin(
+                                    userId = adminId,
+                                    createDate = now(),
+                                    campaigns = setOf(camp)
+                                )
+                            )
+
+                            successEnd(upd, text.sucAdminToCampaign)
+                        } ?: {
+                            sendMessage("кампания не найдена", upd.message.chatId)
+                        }.invoke()
+
+                    } catch (t: Throwable) {
+                        sendMessage(text.errAdminToCampaign, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
+                }
             }
             ADD_GROUP_TO_CAMPAIGN -> {
-                try {
-                    val ids = upd.message.text.split("\\s+".toRegex(), 2)
-                    val groupId = ids[0].toLong()
-                    val name = ids[1]
 
-                    service.getCampaignByName(name)?.let {
-                        val group = service.createGroup(Group(groupId, now()))
-                        it.groups = it.groups.toHashSet().also { gr -> gr.add(group) }
-                        service.updateCampaign(it)
-                    } ?: {
-                        sendMessage("кампания не найдена", upd.message.chatId)
-                    }.invoke()
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        val ids = upd.message.text.split("\\s+".toRegex(), 2)
+                        val groupId = ids[0].toLong()
+                        val name = ids[1]
 
-                } catch (t: Throwable) {
-                    sendMessage(text.errGroupToCampaign, upd.message.chatId)
-                    log.error("AdminGroup creating err.", t)
+                        service.getCampaignByName(name)?.let {
+                            val group = service.createGroup(Group(groupId, now()))
+                            it.groups = it.groups.toHashSet().also { gr -> gr.add(group) }
+                            service.updateCampaign(it)
+                        } ?: {
+                            sendMessage("кампания не найдена", upd.message.chatId)
+                        }.invoke()
+
+                        successEnd(upd, text.sucGroupToCampaign)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errGroupToCampaign, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
                 }
-
-                userStates[upd.message.from.id]!!.state = NONE
             }
             REMOVE_CAMPAIGN -> {
-                try {
-                    service.deleteCampaignByName(upd.message.text)
-                } catch (t: Throwable) {
-                    sendMessage(text.errRemoveCampaign, upd.message.chatId)
-                    log.error("Campaign creating err.", t)
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        service.deleteCampaignByName(upd.message.text)
+                        successEnd(upd, text.sucRemoveCampaign)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveCampaign, upd.message.chatId)
+                        log.error("Campaign creating err.", t)
+                    }
                 }
-
-                userStates[upd.message.from.id]!!.state = NONE
             }
             REMOVE_ADMIN_FROM_CAMPAIGN -> {
-                try {
-                    val params = upd.message.text.split("\\s+".toRegex(), 2)
-                    val adminForDelete = service.getAdminById(params[0].toInt())
-                    adminForDelete!!.campaigns =
-                        adminForDelete.campaigns.filter { it.name != params[1] }.toHashSet()
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex(), 2)
+                        val adminForDelete = service.getAdminById(params[0].toInt())
+                        adminForDelete!!.campaigns =
+                            adminForDelete.campaigns.filter { it.name != params[1] }.toHashSet()
 
-                    service.saveAdmin(adminForDelete)
-                } catch (t: Throwable) {
-                    sendMessage(text.errRemoveAdminFromCampaign, upd.message.chatId)
-                    log.error("AdminGroup deleting err.", t)
+                        service.saveAdmin(adminForDelete)
+                        successEnd(upd, text.sucRemoveAdminFromCampaign)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveAdminFromCampaign, upd.message.chatId)
+                        log.error("AdminGroup deleting err.", t)
+                    }
                 }
-
-                userStates[upd.message.from.id]!!.state = NONE
             }
             REMOVE_GROUP_FROM_CAMPAIGN -> {
-                try {
-                    val params = upd.message.text.split("\\s+".toRegex(), 2)
-                    val groupId = params[0].toLong()
-                    val campaign = service.getCampaignByName(params[1])
-                    campaign!!.groups = campaign.groups.filter { it.groupId != groupId }.toHashSet()
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex(), 2)
+                        val groupId = params[0].toLong()
+                        val campaign = service.getCampaignByName(params[1])
+                        campaign!!.groups = campaign.groups.filter { it.groupId != groupId }.toHashSet()
 
-                    service.updateCampaign(campaign)
-                } catch (t: Throwable) {
-                    sendMessage(text.errRemoveGroupFromCampaign, upd.message.chatId)
-                    log.error("AdminGroup creating err.", t)
+                        service.updateCampaign(campaign)
+                        successEnd(upd, text.sucRemoveGroupFromCampaign)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveGroupFromCampaign, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
                 }
-
-                userStates[upd.message.from.id]!!.state = NONE
             }
             MSG_TO_USERS -> {
                 // todo and add "choose which campaign for SUPERUSER"
-                msgToUsers(service.getAllUsers(), upd)
-                userStates[upd.message.from.id]!!.state = NONE
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        val users = service.getAllUsers()
+                        if (users.count() > 0) {
+                            msgToUsers(users, upd)
+                            successEnd(upd, text.sucMsgToUsers)
+                        } else
+                            successEnd(upd, text.errMsgToUsersNotFound)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errMsgToUsers, upd.message.chatId)
+                        log.error("error msgToUsers", t)
+                    }
+                }
             }
             MSG_TO_CAMPAIGN -> {
 
                 // todo and add "choose campaign for SUPERUSER"
-                val groups =
-                    service.getAllCampaigns().firstOrNull()?.groups ?: TODO("campaign not found")
-
-                msgToCampaign(groups, upd)
-
-                userStates[upd.message.from.id]!!.state = NONE
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        superMenu(upd.message)
+                    }
+                    else -> try {
+                        service.getAllCampaigns().firstOrNull()?.groups?.let{
+                            msgToCampaign(it, upd)
+                            successEnd(upd, text.sucMsgToCampaign)
+                        } ?: {
+                            successEnd(upd, text.errMsgToCampaignNotFound)
+                        }.invoke()
+                    } catch (t: Throwable) {
+                        sendMessage(text.errMsgToCampaign, upd.message.chatId)
+                        log.error("error msgToUsers", t)
+                    }
+                }
             }
             else -> {
                 when (upd.message.text) {
                     text.removeCampaign -> {
-                        sendMessage(text.msgRemoveCampaign, upd.message.chatId)
+                        resetMenu(upd.message, text.msgRemoveCampaign)
                         userStates[upd.message.from.id] =
                             UserData(REMOVE_CAMPAIGN, upd.message.from)
                     }
                     text.removeAdminFromCampaign -> {
-                        sendMessage(text.msgRemoveAdminFromCampaign, upd.message.chatId)
+                        resetMenu(upd.message, text.msgRemoveAdminFromCampaign)
                         userStates[upd.message.from.id] =
                             UserData(REMOVE_ADMIN_FROM_CAMPAIGN, upd.message.from)
                     }
                     text.removeGroupFromCampaign -> {
-                        sendMessage(text.msgRemoveGroupFromCampaign, upd.message.chatId)
+                        resetMenu(upd.message, text.msgRemoveGroupFromCampaign)
                         userStates[upd.message.from.id] =
                             UserData(REMOVE_GROUP_FROM_CAMPAIGN, upd.message.from)
                     }
                     text.addAdminToCampaign -> {
-                        sendMessage(text.msgAdminToCampaign, upd.message.chatId)
+                        resetMenu(upd.message, text.msgAdminToCampaign)
                         userStates[upd.message.from.id] =
                             UserData(ADD_ADMIN_TO_CAMPAIGN, upd.message.from)
                     }
                     text.addGroupToCampaign -> {
-                        sendMessage(text.msgGroupToCampaign, upd.message.chatId)
+                        resetMenu(upd.message, text.msgGroupToCampaign)
                         userStates[upd.message.from.id] =
                             UserData(ADD_GROUP_TO_CAMPAIGN, upd.message.from)
                     }
                     text.createCampaign -> {
-                        sendMessage(text.msgCreateCampaign, upd.message.chatId)
+                        resetMenu(upd.message, text.msgCreateCampaign)
                         userStates[upd.message.from.id] =
                             UserData(CREATE_CAMPAIGN, upd.message.from)
                     }
                     text.sendToEveryUser -> {
-                        sendMessage(text.msgSendToEveryUser, upd.message.chatId)
+                        resetMenu(upd.message, text.msgSendToEveryUser)
                         userStates[upd.message.from.id] =
                             UserData(MSG_TO_USERS, upd.message.from)
                     }
                     text.sendToEveryGroup -> {
-                        sendMessage(text.msgSendToEveryCampaign, upd.message.chatId)
+                        resetMenu(upd.message, text.msgSendToEveryCampaign)
                         userStates[upd.message.from.id] =
                             UserData(MSG_TO_CAMPAIGN, upd.message.from)
                     }
@@ -546,6 +604,21 @@ class TelegramBot : TelegramLongPollingBot {
         }
     }, message.chatId)
 
+    private fun resetMenu(message: Message, text: String) = sendMessage(SendMessage().also { msg ->
+        msg.text = text
+        msg.enableMarkdown(true)
+        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+            markup.selective = true
+            markup.resizeKeyboard = true
+            markup.oneTimeKeyboard = false
+            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+                keyboard.add(KeyboardRow().also {
+                    it.add(this.text.reset)
+                })
+            }
+        }
+    }, message.chatId)
+
     private fun sendMessage(messageText: String, chatId: Long) = try {
         val message = SendMessage().setChatId(chatId)
         log.debug("Send to chatId = $chatId\nMessage: \"$messageText\"")
@@ -566,7 +639,7 @@ class TelegramBot : TelegramLongPollingBot {
     private fun getAllUserChats(chats: List<Group>, userId: Int) = chats.filter {
         try {
             // fixme check other user statuses (NOT ONLY MEMBER)
-            getUser(it.groupId, userId).status == "member"
+            listOf("creator", "administrator", "member", "restricted").contains(getUser(it.groupId, userId).status)
         } catch (e: TelegramApiRequestException) {
             log.info("User: $userId not found in chat ${it.groupId}")
             false
@@ -623,6 +696,12 @@ class TelegramBot : TelegramLongPollingBot {
         )
     } catch (e: Exception) {
         log.error(e.message, e)
+    }
+
+    private fun successEnd(upd: Update, msgTest: String) {
+        sendMessage(msgTest, upd.message.chatId)
+        userStates[upd.message.from.id]!!.state = NONE
+        superMenu(upd.message)
     }
 
 

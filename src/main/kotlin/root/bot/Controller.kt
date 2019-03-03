@@ -13,7 +13,7 @@ import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
-import root.data.SuperUser
+import root.data.MainAdmin
 import root.data.Text
 import root.service.AdminService
 import javax.annotation.PostConstruct
@@ -41,8 +41,8 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         val useProxy = conf.getBoolean("bot-settings.telegram.proxy.enable")
         val botUsername = conf.getString("bot-settings.telegram.bot-name")!!
         val botToken = conf.getString("bot-settings.telegram.bot-token")!!
-        val superUsers = conf.getConfigList("bot-settings.super-admins")!!.map {
-            SuperUser(it.getInt("user-id"), it.getString("user-name"))
+        val mainAdmins = conf.getConfigList("bot-settings.super-admins")!!.map {
+            MainAdmin(it.getInt("user-id"), it.getString("user-name"))
         }
 
         ApiContextInitializer.init()
@@ -71,7 +71,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
                     tasks = tasks,
                     text = readTexts(conf.getConfig("bot-settings.tesxs")),
                     service = accountService,
-                    superUsers = superUsers,
+                    mainAdmins = mainAdmins,
                     options = botOptions
                 )
                 TelegramBotsApi().registerBot(bot)
@@ -82,7 +82,7 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
                     tasks = tasks,
                     text = readTexts(conf.getConfig("bot-settings.tesxs")),
                     service = accountService,
-                    superUsers = superUsers
+                    mainAdmins = mainAdmins
                 )
                 TelegramBotsApi().registerBot(bot)
             }
@@ -134,10 +134,22 @@ open class Controller @Autowired constructor(open val accountService: AdminServi
         userAvailableCampaigns = conf.getString("user-available-campaigns"),
         msgUserAvailableCampaignsNotFound = conf.getString("msg-user-available-campaigns-not-found"),
         userMainMenu = conf.getString("user-main-menu"),
-        errClbUserAddedToCampaign  = conf.getString("err-clb-user-added-to-campaign"),
+        errClbUserAddedToCampaign = conf.getString("err-clb-user-added-to-campaign"),
         clbUserAddedToCampaign = conf.getString("clb-user-added-to-campaign"),
         userAddedToCampaign = conf.getString("user-added-to-campaign"),
         errUserAddedToCampaign = conf.getString("err-user-added-to-campaign"),
+        sucCreateCampaign = conf.getString("suc-create-campaign"),
+        sucAdminToCampaign = conf.getString("suc-admin-to-campaign"),
+        sucGroupToCampaign = conf.getString("suc-group-to-campaign"),
+        sucRemoveCampaign = conf.getString("suc-remove-campaign"),
+        sucRemoveAdminFromCampaign = conf.getString("suc-remove-admin-from-campaign"),
+        sucRemoveGroupFromCampaign = conf.getString("suc-remove-group-from-campaign"),
+        sucMsgToUsers = conf.getString("suc-msg-to-users"),
+        errMsgToUsersNotFound = conf.getString("err-msg-to-users-not-found"),
+        errMsgToUsers = conf.getString("err-msg-to-users"),
+        sucMsgToCampaign = conf.getString("suc-msg-to-campaign"),
+        errMsgToCampaignNotFound = conf.getString("err-msg-to-campaign-not-found"),
+        errMsgToCampaign = conf.getString("err-msg-to-campaign"),
         reset = conf.getString("reset")
     )
 }
