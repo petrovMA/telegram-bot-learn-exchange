@@ -1,10 +1,8 @@
 package root.bot
 
-import com.typesafe.config.Config
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.parse
-import notificator.libs.readConf
 import org.apache.http.HttpHost
 import org.apache.http.client.config.RequestConfig
 import org.apache.log4j.Logger
@@ -18,6 +16,7 @@ import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import root.data.MainAdmin
 import root.data.Text
+import root.libs.readConf
 import root.service.AdminService
 import java.io.File
 import javax.annotation.PostConstruct

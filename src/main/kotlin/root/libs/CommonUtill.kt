@@ -1,6 +1,5 @@
-package notificator.libs
+package root.libs
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import org.apache.log4j.Logger
@@ -9,22 +8,16 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.Duration
 import java.util.Date
-import java.io.IOException
-import java.nio.file.Files
-import java.util.HashMap
-import java.util.regex.Pattern
-
 
 val format = SimpleDateFormat("yyyy.MM.dd HH:mm:ss")
 val formatWithoutSeconds = SimpleDateFormat("yyyy.MM.dd HH:mm")
 val fileFormat = SimpleDateFormat("yyyy_MM_dd HH_mm_ss")
 private val formatMinutes = SimpleDateFormat("mm:ss")
-private val LOGGER = Logger.getLogger(Utill::class.java)!!
 typealias ResourceParameter = Pair<String, String>
 
-class Utill
+class CommonUtill
 
-private val log = Logger.getLogger(Utill::class.java)
+private val log = Logger.getLogger(CommonUtill::class.java)
 
 fun Int.ms(): Duration = Duration.ofMillis(this.toLong())
 fun Long.ms(): Duration = Duration.ofMillis(this)
@@ -93,3 +86,5 @@ fun resourceText(text: String, vararg params: ResourceParameter = emptyArray()):
 
     return resourceText
 }
+
+fun <E> ArrayList<E>.addElements(vararg elements:E) = this.addAll(elements)

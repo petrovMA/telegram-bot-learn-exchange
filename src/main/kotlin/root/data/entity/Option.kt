@@ -13,9 +13,9 @@ data class Option(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
 
+    var sortPoints: Int? = null,
+
     var value: Int,
 
-    var text: String,
-
-    var createDate: OffsetDateTime
+    var text: String
 )

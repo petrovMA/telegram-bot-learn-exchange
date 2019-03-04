@@ -15,7 +15,7 @@ data class Survey(
 
     var name: String,
 
-    var description: String,
+    var description: String? = null,
 
     var createDate: OffsetDateTime,
 

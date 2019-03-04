@@ -13,9 +13,9 @@ data class Question(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
 
-    var text: String,
+    var sortPoints: Int? = null,
 
-    var createDate: OffsetDateTime,
+    var text: String,
 
     @OneToMany(fetch = FetchType.LAZY)
     var options: Set<Option>

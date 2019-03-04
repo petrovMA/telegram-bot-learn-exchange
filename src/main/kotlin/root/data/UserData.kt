@@ -1,9 +1,7 @@
 package root.data
 
 import org.telegram.telegrambots.meta.api.objects.User
-import root.data.entity.Campaign
-import root.data.entity.Group
-import root.data.entity.UserInGroup
+import root.data.entity.*
 
 data class UserData(
     var state: UserState = UserState.NONE,
@@ -11,7 +9,10 @@ data class UserData(
     val taskName: String? = null,
     val groups: Set<Group>? = null,
     val campaign: Campaign? = null,
-    val users: Iterable<UserInGroup>? = null
+    val users: Iterable<UserInGroup>? = null,
+    var survey: Survey? = null,
+    var question: Question? = null,
+    var option: Option? = null
 )
 
 enum class UserState {
@@ -33,12 +34,32 @@ enum class UserState {
     CAMPAIGN_FOR_SEND_GROUP_MSG,
     CAMPAIGN_FOR_SEND_USERS_MSG,
     CAMPAIGN_FOR_SURVEY,
-    SURVEY_CREATE,
-    SURVEY_DELETE,
 
     // user commands
+    SURVEY_DESCRIPTION,
+    SURVEY_OPTION_EDIT_TEXT,
+    SURVEY_OPTION_EDIT_SORT,
+    SURVEY_OPTION_EDIT_VALUE,
+    SURVEY_OPTION_DELETE,
+    SURVEY_QUESTION_EDIT_TEXT,
+    SURVEY_QUESTION_EDIT_SORT,
+    SURVEY_OPTION_SELECT,
+    SURVEY_QUESTION_SELECT,
+    SURVEY_QUESTION_DELETE,
+    SURVEY_QUESTIONS,
+    SURVEY_NAME,
+    SURVEY_SAVE,
+    SURVEY_BACK,
+    SURVEY_EDIT,
+    SURVEY_OPTION_BACK,
+    SURVEY_QUESTION_BACK,
+    SURVEY_OPTION_SELECT_BACK,
+    SURVEY_QUESTION_SELECT_BACK,
+    SURVEY_ACTIONS,
     JOIN_TO_CAMPAIGN,
     USER_CAMPAIGN_MENU,
+    SURVEY_CREATE,
+    SURVEY_DELETE,
     USER_MENU,
 
     // common commands
