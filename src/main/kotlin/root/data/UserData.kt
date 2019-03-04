@@ -1,6 +1,7 @@
 package root.data
 
 import org.telegram.telegrambots.meta.api.objects.User
+import root.data.entity.Campaign
 import root.data.entity.Group
 import root.data.entity.UserInGroup
 
@@ -9,6 +10,7 @@ data class UserData(
     val user: User,
     val taskName: String? = null,
     val groups: Set<Group>? = null,
+    val campaign: Campaign? = null,
     val users: Iterable<UserInGroup>? = null
 )
 
@@ -30,6 +32,9 @@ enum class UserState {
     MSG_TO_USERS,
     CAMPAIGN_FOR_SEND_GROUP_MSG,
     CAMPAIGN_FOR_SEND_USERS_MSG,
+    CAMPAIGN_FOR_SURVEY,
+    SURVEY_CREATE,
+    SURVEY_DELETE,
 
     // user commands
     JOIN_TO_CAMPAIGN,

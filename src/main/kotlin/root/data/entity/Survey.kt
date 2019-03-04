@@ -6,21 +6,19 @@ import java.time.OffsetDateTime
 import javax.persistence.*
 
 @Entity
-@Table(name = "campaign")
+@Table(name = "surveys")
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-data class Campaign(
+data class Survey(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
 
-    @Column(unique = true)
     var name: String,
+
+    var description: String,
 
     var createDate: OffsetDateTime,
 
     @OneToMany(fetch = FetchType.LAZY)
-    var groups: Set<Group>,
-
-    @OneToMany(fetch = FetchType.LAZY)
-    var surveys: Set<Survey>
+    var questions: Set<Question>
 )

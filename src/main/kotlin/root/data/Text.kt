@@ -81,6 +81,11 @@ data class Text(
     @SerialName("survey-options") val surveyOptions: String,
     @SerialName("survey-option-create") val surveyOptionCreate: String,
     @SerialName("survey-option-delete") val surveyOptionDelete: String,
+    @SerialName("survey-deleted") val surveyDeleted: String,
+    @SerialName("err-not-found-survey") val errNotFoundSurvey: String,
+    @SerialName("err-survey-delete") val errSurveyDelete: String,
+    @SerialName("admin-available-campaigns-surveys") val adminAvailableCampaignsSurveys: String,
+    @SerialName("msg-survey") val msgSurvey: String,
     @SerialName("survey") val survey: String,
     @SerialName("reset") val reset: String
 )

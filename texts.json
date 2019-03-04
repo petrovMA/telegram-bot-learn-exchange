@@ -1,5 +1,5 @@
 {
-  "main-menu": "mainMenu",
+  "main-menu": "Главное меню",
   "add-admin": "Добавить админа",
   "add-group": "Добавить группу",
   "msg-add-admin": "msg-add-admin",
@@ -52,7 +52,7 @@
   "err-msg-to-campaign-not-found": "не удалось отправить сообщения в групппы, ни найдено ни одной групппы",
   "err-campaign-not-found": "кампания не найдена",
   "err-msg-to-campaign": "не удалось отправить сообщения в групппы, ошибка",
-  "admin-available-campaigns": "Выберите кампанию в группы которой будет отправлено сообщение",
+  "admin-available-campaigns": "Выберите кампанию в группы которые будет отправлено сообщение",
   "err-clb-send-message-to-every-group": "ошибка (выбор кампании для отправки сообщений)",
   "clb-send-message-to-every-group": "введите сообщение для отправки в группы",
   "suc-send-message-to-every-group": "введите сообщение для отправки в группы кампании: $campaign.name",
@@ -72,10 +72,15 @@
   "err-clb-send-message-to-every-users": "ошибка (выбор кампании для отправки сообщений)",
   "invite-text": " ** Здесь будет приглашение пользователя в кампанию ** ",
   "survey-options": "Действие над опросами",
-  "survey-option-create": "Действие над опросами",
-  "survey-option-delete": "Действие над опросами",
+  "survey-option-create": "Создать опрос",
+  "survey-option-delete": "Удалить опрос",
   "show-tasks-list": "Список заданий",
   "task-not-found": "Задания не найдены",
+  "err-not-found-survey": "Ни одного опроса не найдено",
+  "err-survey-delete": "Ошибка (удаление опроса)",
+  "admin-available-campaigns-surveys": "Доступные кампании с опросами",
+  "survey-deleted": "Опрос успешно удалём",
   "survey": "Опросы",
+  "msg-survey": "редактирование опросов",
   "reset": "В начало"
 }

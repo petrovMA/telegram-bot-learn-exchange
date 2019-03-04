@@ -16,6 +16,10 @@ interface AdminService {
     fun saveSuperAdmin(superAdmin: SuperAdmin) : SuperAdmin?
     fun deleteSuperAdminById(userId: Int)
 
+    fun getSurveyById(id: Long) : Survey?
+    fun saveSurvey(survey: Survey) : Survey
+    fun deleteSurveyById(id: Long)
+
     fun getAdminById(userId: Int) : Admin?
     fun saveAdmin(admin: Admin) : Admin?
     fun deleteAdminById(userId: Int)

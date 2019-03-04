@@ -10,6 +10,9 @@ import root.repositories.*
 @Service
 open class AdminServiceImpl(
     @Autowired open val adminRepository: AdminRepository,
+    @Autowired open val optionRepository: OptionRepository,
+    @Autowired open val questionRepository: QuestionRepository,
+    @Autowired open val surveyRepository: SurveyRepository,
     @Autowired open val superAdminRepository: SuperAdminRepository,
     @Autowired open val groupUserRepository: GroupUserRepository,
     @Autowired open val groupRepository: GroupRepository,
@@ -41,6 +44,14 @@ open class AdminServiceImpl(
     override fun saveSuperAdmin(superAdmin: SuperAdmin) : SuperAdmin = superAdminRepository.save(superAdmin)
     @Transactional
     override fun deleteSuperAdminById(userId: Int) = superAdminRepository.deleteByUserId(userId)
+
+
+    @Transactional
+    override fun getSurveyById(id: Long) : Survey? = surveyRepository.findById(id).orElse(null)
+    @Transactional
+    override fun saveSurvey(survey: Survey) : Survey = surveyRepository.save(survey)
+    @Transactional
+    override fun deleteSurveyById(id: Long) = surveyRepository.deleteById(id)
 
 
     @Transactional
