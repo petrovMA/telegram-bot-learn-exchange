@@ -1009,10 +1009,14 @@ class TelegramBot : TelegramLongPollingBot {
                 showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
             }
+            SURVEY_OPTIONS == callBackCommand -> {
+                showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
+                execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+            }
             SURVEY_OPTION_SELECT == callBackCommand -> {
                 userStates[upd.callbackQuery.from.id]!!.option =
                     userStates[upd.callbackQuery.from.id]!!.question!!.options.first { it.text == params[1] }
-                showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
+                editOption(userStates[upd.callbackQuery.from.id]!!.option!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
             }
             CAMPAIGN_FOR_SEND_GROUP_MSG == callBackCommand &&
@@ -1084,7 +1088,7 @@ class TelegramBot : TelegramLongPollingBot {
                                                     .setCallbackData("$SURVEY_EDIT")
                                             ),
                                             listOf(
-                                                InlineKeyboardButton().setText(text.surveyOptionDelete)
+                                                InlineKeyboardButton().setText(text.surveyDelete)
                                                     .setCallbackData("$CAMPAIGN_FOR_SURVEY delete")
                                             )
                                         )
@@ -1548,7 +1552,7 @@ class TelegramBot : TelegramLongPollingBot {
     private fun showSurvey(survey: Survey, upd: Update) = editMessage(EditMessageText().also { msg ->
         msg.chatId = upd.callbackQuery.message.chatId.toString()
         msg.messageId = upd.callbackQuery.message.messageId
-        msg.text = "${survey.name}\n${survey.description}\n${printQuestions(survey.questions)}"
+        msg.text = "$survey\n${printQuestions(survey.questions)}"
         msg.replyMarkup = surveyMarkup(survey)
     })
 
@@ -1579,24 +1583,24 @@ class TelegramBot : TelegramLongPollingBot {
     private fun editQuestion(question: Question, upd: Update) = editMessage(EditMessageText().also { msg ->
         msg.chatId = upd.callbackQuery.message.chatId.toString()
         msg.messageId = upd.callbackQuery.message.messageId
-        msg.text = printQuestions(setOf(question))
+        msg.text = "$question\n${printOptions(question.options)}"
         msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
             markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
                 keyboard.addElements(
                     listOf(
-                        InlineKeyboardButton().setText(question.text)
+                        InlineKeyboardButton().setText(text.surveyQuestionEditText)
                             .setCallbackData("$SURVEY_QUESTION_EDIT_TEXT ${question.text}")
                     ),
                     listOf(
-                        InlineKeyboardButton().setText(question.text)
+                        InlineKeyboardButton().setText(text.surveyQuestionEditSort)
                             .setCallbackData("$SURVEY_QUESTION_EDIT_SORT ${question.text}")
                     ),
                     listOf(
-                        InlineKeyboardButton().setText(question.text)
-                            .setCallbackData("$SURVEY_OPTION_SELECT ${question.text}")
+                        InlineKeyboardButton().setText(text.surveyQuestionEditOptions)
+                            .setCallbackData("$SURVEY_OPTIONS ${question.text}")
                     ),
                     listOf(
-                        InlineKeyboardButton().setText(question.text)
+                        InlineKeyboardButton().setText(text.surveyQuestionDelete)
                             .setCallbackData("$SURVEY_QUESTION_DELETE ${question.text}")
                     ),
                     listOf(
@@ -1640,19 +1644,19 @@ class TelegramBot : TelegramLongPollingBot {
             markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
                 keyboard.addElements(
                     listOf(
-                        InlineKeyboardButton().setText(option.text)
+                        InlineKeyboardButton().setText(text.surveyOptionEditText)
                             .setCallbackData("$SURVEY_OPTION_EDIT_TEXT ${option.text}")
                     ),
                     listOf(
-                        InlineKeyboardButton().setText(option.text)
+                        InlineKeyboardButton().setText(text.surveyOptionEditSort)
                             .setCallbackData("$SURVEY_OPTION_EDIT_SORT ${option.text}")
                     ),
                     listOf(
-                        InlineKeyboardButton().setText(option.text)
+                        InlineKeyboardButton().setText(text.surveyOptionEditValue)
                             .setCallbackData("$SURVEY_OPTION_EDIT_VALUE ${option.text}")
                     ),
                     listOf(
-                        InlineKeyboardButton().setText(option.text)
+                        InlineKeyboardButton().setText(text.surveyOptionDelete)
                             .setCallbackData("$SURVEY_OPTION_DELETE ${option.text}")
                     ),
                     listOf(
@@ -1709,11 +1713,11 @@ class TelegramBot : TelegramLongPollingBot {
                         .setCallbackData("$SURVEY_DESCRIPTION")
                 ),
                 listOf(
-                    InlineKeyboardButton().setText(text.editSurveyDescription)
+                    InlineKeyboardButton().setText(text.saveSurvey)
                         .setCallbackData("$SURVEY_SAVE")
                 ),
                 listOf(
-                    InlineKeyboardButton().setText(text.editSurveyDescription)
+                    InlineKeyboardButton().setText(text.backSurvey)
                         .setCallbackData("$SURVEY_BACK")
                 )
             )

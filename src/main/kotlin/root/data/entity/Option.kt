@@ -18,4 +18,6 @@ data class Option(
     var value: Int,
 
     var text: String
-)
+) {
+    override fun toString(): String = "Option text:\n$text\nvalue:\n$value\nsort_point:\n$sortPoints"
+}

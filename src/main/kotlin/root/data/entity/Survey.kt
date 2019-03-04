@@ -21,4 +21,7 @@ data class Survey(
 
     @OneToMany(fetch = FetchType.LAZY)
     var questions: Set<Question>
-)
+) {
+    override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
+
+}

@@ -19,4 +19,6 @@ data class Question(
 
     @OneToMany(fetch = FetchType.LAZY)
     var options: Set<Option>
-)
+) {
+    override fun toString(): String = "Question text:\n$text\nsort_point:\n$sortPoints"
+}

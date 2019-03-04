@@ -11,9 +11,9 @@ private val log = Logger.getLogger(ProjectUtill::class.java)
 fun printQuestions(questions: Set<Question>) = questions
     .toList()
     .sortedBy { it.sortPoints }
-    .joinToString { "\n\t${it.text}\n${printOptions(it.options)}" }
+    .joinToString("\n\n", "\n") { "$it" }
 
-fun printOptions(questions: Set<Option>) = questions
+fun printOptions(options: Set<Option>) = options
     .toList()
     .sortedBy { it.sortPoints }
-    .joinToString { "\n\t\t${it.text}\n\t\t${it.value}" }
+    .joinToString("\n\n", "\n") { "$it" }
