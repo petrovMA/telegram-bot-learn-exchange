@@ -19,7 +19,7 @@ data class Survey(
 
     var createDate: OffsetDateTime,
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     var questions: Set<Question>
 ) {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"

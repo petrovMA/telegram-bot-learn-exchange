@@ -21,6 +21,6 @@ data class Campaign(
     @OneToMany(fetch = FetchType.LAZY)
     var groups: Set<Group>,
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     var surveys: Set<Survey>
 )

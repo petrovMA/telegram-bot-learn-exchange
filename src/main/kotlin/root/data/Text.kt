@@ -126,6 +126,9 @@ data class Text(
     @SerialName("back-to-survey-option-menu") val backToSurveyOptionMenu: String,
     @SerialName("msg-survey-option-actions-sort") val msgSurveyOptionActionsSort: String,
     @SerialName("msg-survey-option-actions-value") val msgSurveyOptionActionsValue: String,
+    @SerialName("survey-create") val surveyCreate: String,
+    @SerialName("clb-survey-option-deleted") val clbSurveyOptionDeleted: String,
+    @SerialName("clb-survey-question-deleted") val clbSurveyQuestionDeleted: String,
     @SerialName("survey") val survey: String,
     @SerialName("reset") val reset: String
 )

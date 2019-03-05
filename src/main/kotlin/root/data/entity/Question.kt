@@ -17,7 +17,7 @@ data class Question(
 
     var sortPoints: Int? = null,
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     var options: Set<Option>
 ) {
     override fun toString(): String = "Question text:\n$text\nsort_point:\n$sortPoints"

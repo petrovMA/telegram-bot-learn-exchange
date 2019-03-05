@@ -17,3 +17,6 @@ fun printOptions(options: Set<Option>) = options
     .toList()
     .sortedBy { it.sortPoints }
     .joinToString("\n\n", "\n") { "$it" }
+
+fun String.subStr(max: Int, endPart: String = "") =
+    if (this.length < max) this else this.substring(0 until max) + endPart

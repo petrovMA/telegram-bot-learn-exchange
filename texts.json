@@ -73,7 +73,8 @@
   "err-clb-send-message-to-every-users": "ошибка (выбор кампании для отправки сообщений)",
   "invite-text": " ** Здесь будет приглашение пользователя в кампанию ** ",
   "survey-options": "Действие над опросами",
-  "survey-option-create": "Создать опрос",
+  "survey-create": "Создать опрос",
+  "survey-option-create": "Добавить вариант ответа",
   "survey-delete": "Удалить опрос",
   "show-tasks-list": "Список заданий",
   "task-not-found": "Задания не найдены",
@@ -120,6 +121,8 @@
   "back-to-survey-questions-list-menu": "Назад, к списку вопросов",
   "err-survey-enter-number": "Ошибка, невалидное значение. Введите число!",
   "back-to-survey-option-menu": "Назад, к варианту ответа",
+  "clb-survey-question-deleted": "Вопрос удалён",
+  "clb-survey-option-deleted": "Вариант удалён",
   "survey": "Опросы",
   "msg-survey": "редактирование опросов",
   "reset": "В начало"

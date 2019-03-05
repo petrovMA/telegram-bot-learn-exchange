@@ -1044,9 +1044,11 @@ class TelegramBot : TelegramLongPollingBot {
 //                enterText(upd.callbackQuery.message, text.backToSurveyCRUDMenu, SURVEY_BACK)
             }
             SURVEY_SAVE == callBackCommand -> {
-                service.saveSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!)
-                execute(callbackAnswer.also { it.text = text.clbSurveySave })
-                mainAdminMenu(upd.callbackQuery.message)
+                val camp = userStates[upd.callbackQuery.from.id]!!.campaign!!
+                camp.surveys =
+                    camp.surveys.toHashSet().also { it.add(userStates[upd.callbackQuery.from.id]!!.survey!!) }
+                service.updateCampaign(camp)
+                mainAdminMenu(upd.callbackQuery.message, text.clbSurveySave)
             }
             SURVEY_EDIT == callBackCommand -> {
                 //todo TEST SURVEY
@@ -1227,13 +1229,27 @@ class TelegramBot : TelegramLongPollingBot {
             }
             SURVEY_QUESTION_SELECT == callBackCommand -> {
                 userStates[upd.callbackQuery.from.id]!!.question =
-                    userStates[upd.callbackQuery.from.id]!!.survey!!.questions.first { it.text == params[1] }
+                    userStates[upd.callbackQuery.from.id]!!.survey!!.questions.first { it.text.hashCode() == params[1].toInt() }
                 editQuestion(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurveyQuestionEdit })
             }
-            SURVEY_OPTION_BACK == callBackCommand -> {
+            SURVEY_QUESTION_DELETE == callBackCommand -> {
+                val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
+                survey.questions =
+                    survey.questions.toHashSet().also { it.remove(userStates[upd.callbackQuery.from.id]!!.question) }
+                userStates[upd.callbackQuery.from.id]!!.question = null
+
+                showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
+                execute(callbackAnswer.also { it.text = text.clbSurveyQuestionDeleted })
+            }
+            SURVEY_OPTION_DELETE == callBackCommand -> {
+                val question = userStates[upd.callbackQuery.from.id]!!.question!!
+                question.options =
+                    question.options.toHashSet().also { it.remove(userStates[upd.callbackQuery.from.id]!!.option) }
+                userStates[upd.callbackQuery.from.id]!!.option = null
+
                 showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+                execute(callbackAnswer.also { it.text = text.clbSurveyOptionDeleted })
             }
             SURVEY_OPTIONS == callBackCommand -> {
                 showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
@@ -1241,7 +1257,7 @@ class TelegramBot : TelegramLongPollingBot {
             }
             SURVEY_OPTION_SELECT == callBackCommand -> {
                 userStates[upd.callbackQuery.from.id]!!.option =
-                    userStates[upd.callbackQuery.from.id]!!.question!!.options.first { it.text == params[1] }
+                    userStates[upd.callbackQuery.from.id]!!.question!!.options.first { it.text.hashCode() == params[1].toInt() }
                 editOption(userStates[upd.callbackQuery.from.id]!!.option!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
             }
@@ -1288,46 +1304,36 @@ class TelegramBot : TelegramLongPollingBot {
             }
             CAMPAIGN_FOR_SURVEY == callBackCommand &&
                     userStates[upd.callbackQuery.from.id]?.state == CAMPAIGN_FOR_SURVEY -> try {
-                when (params[1]) {
-                    "create" -> {
-                        surveyCreate(upd, params) { msg: Message, text: String -> mainAdminMenu(msg, text) }
-                    }
-                    "delete" -> {
-                        surveyDelete(upd, params) { msg: Message, text: String -> mainAdminMenu(msg, text) }
-                    }
-                    else -> {
-                        val campaign = service.getCampaignById(params[1].toLong())
-                            ?: throw CampaignNotFoundException()
+                val campaign = service.getCampaignById(params[1].toLong())
+                    ?: throw CampaignNotFoundException()
 
-                        userStates[upd.callbackQuery.from.id] =
-                            UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, campaign = campaign)
-                        editMessage(
-                            EditMessageText().also { editMessage ->
-                                editMessage.chatId = upd.callbackQuery.message.chatId.toString()
-                                editMessage.messageId = upd.callbackQuery.message.messageId
-                                editMessage.text = text.surveyOptions
-                                editMessage.replyMarkup = InlineKeyboardMarkup().also { markup ->
-                                    markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
-                                        keyboard.addElements(
-                                            listOf(
-                                                InlineKeyboardButton().setText(text.surveyOptionCreate)
-                                                    .setCallbackData("$SURVEY_CREATE")
-                                            ),
-                                            listOf(
-                                                InlineKeyboardButton().setText(text.editSurvey)
-                                                    .setCallbackData("$SURVEY_EDIT")
-                                            ),
-                                            listOf(
-                                                InlineKeyboardButton().setText(text.surveyDelete)
-                                                    .setCallbackData("$SURVEY_DELETE")
-                                            )
-                                        )
-                                    }
-                                }
+                userStates[upd.callbackQuery.from.id] =
+                    UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, campaign = campaign)
+                editMessage(
+                    EditMessageText().also { editMessage ->
+                        editMessage.chatId = upd.callbackQuery.message.chatId.toString()
+                        editMessage.messageId = upd.callbackQuery.message.messageId
+                        editMessage.text = text.surveyOptions
+                        editMessage.replyMarkup = InlineKeyboardMarkup().also { markup ->
+                            markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+                                keyboard.addElements(
+                                    listOf(
+                                        InlineKeyboardButton().setText(text.surveyCreate)
+                                            .setCallbackData("$SURVEY_CREATE")
+                                    ),
+                                    listOf(
+                                        InlineKeyboardButton().setText(text.editSurvey)
+                                            .setCallbackData("$SURVEY_EDIT")
+                                    ),
+                                    listOf(
+                                        InlineKeyboardButton().setText(text.surveyDelete)
+                                            .setCallbackData("$SURVEY_DELETE")
+                                    )
+                                )
                             }
-                        )
+                        }
                     }
-                }
+                )
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SURVEY execute error", t)
                 execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
@@ -1787,8 +1793,8 @@ class TelegramBot : TelegramLongPollingBot {
                 survey.questions.toList().sortedBy { it.sortPoints }.forEach {
                     keyboard.add(
                         listOf(
-                            InlineKeyboardButton().setText(it.text)
-                                .setCallbackData("$SURVEY_QUESTION_SELECT ${it.text}")
+                            InlineKeyboardButton().setText(it.text.subStr(25, "..."))
+                                .setCallbackData("$SURVEY_QUESTION_SELECT ${it.text.hashCode()}")
                         )
                     )
                 }
@@ -1815,23 +1821,23 @@ class TelegramBot : TelegramLongPollingBot {
                 keyboard.addElements(
                     listOf(
                         InlineKeyboardButton().setText(text.surveyQuestionEditText)
-                            .setCallbackData("$SURVEY_QUESTION_EDIT_TEXT ${question.text}")
+                            .setCallbackData("$SURVEY_QUESTION_EDIT_TEXT")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyQuestionEditSort)
-                            .setCallbackData("$SURVEY_QUESTION_EDIT_SORT ${question.text}")
+                            .setCallbackData("$SURVEY_QUESTION_EDIT_SORT")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyQuestionEditOptions)
-                            .setCallbackData("$SURVEY_OPTIONS ${question.text}")
+                            .setCallbackData("$SURVEY_OPTIONS")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyQuestionDelete)
-                            .setCallbackData("$SURVEY_QUESTION_DELETE ${question.text}")
+                            .setCallbackData("$SURVEY_QUESTION_DELETE")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyQuestionBack)
-                            .setCallbackData("$SURVEY_QUESTIONS ${question.text}")
+                            .setCallbackData("$SURVEY_QUESTIONS")
                     )
                 )
             }
@@ -1841,14 +1847,17 @@ class TelegramBot : TelegramLongPollingBot {
     private fun showOptions(question: Question, upd: Update) = editMessage(EditMessageText().also { msg ->
         msg.chatId = upd.callbackQuery.message.chatId.toString()
         msg.messageId = upd.callbackQuery.message.messageId
-        msg.text = question.options.let { printOptions(it) }
+        msg.text = if (!question.options.isEmpty())
+            printOptions(question.options)
+        else
+            "NULL"
         msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
             markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
                 question.options.toList().sortedBy { it.sortPoints }.forEach {
                     keyboard.add(
                         listOf(
-                            InlineKeyboardButton().setText(it.text)
-                                .setCallbackData("$SURVEY_OPTION_SELECT ${it.text}")
+                            InlineKeyboardButton().setText(it.text.subStr(25, "..."))
+                                .setCallbackData("$SURVEY_OPTION_SELECT ${it.text.hashCode()}")
                         )
                     )
                 }
@@ -1875,23 +1884,23 @@ class TelegramBot : TelegramLongPollingBot {
                 keyboard.addElements(
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionEditText)
-                            .setCallbackData("$SURVEY_OPTION_EDIT_TEXT ${option.text}")
+                            .setCallbackData("$SURVEY_OPTION_EDIT_TEXT")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionEditSort)
-                            .setCallbackData("$SURVEY_OPTION_EDIT_SORT ${option.text}")
+                            .setCallbackData("$SURVEY_OPTION_EDIT_SORT")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionEditValue)
-                            .setCallbackData("$SURVEY_OPTION_EDIT_VALUE ${option.text}")
+                            .setCallbackData("$SURVEY_OPTION_EDIT_VALUE")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionDelete)
-                            .setCallbackData("$SURVEY_OPTION_DELETE ${option.text}")
+                            .setCallbackData("$SURVEY_OPTION_DELETE ${option.text.hashCode()}")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionBack)
-                            .setCallbackData("$SURVEY_OPTION_BACK ${option.text}")
+                            .setCallbackData("$SURVEY_OPTIONS")
                     )
                 )
             }
