@@ -183,8 +183,7 @@ class TelegramBot : TelegramLongPollingBot {
                             Campaign(
                                 name = name,
                                 createDate = now(),
-                                groups = emptySet(),
-                                surveys = emptySet()
+                                groups = emptySet()
                             )
                         )
 
@@ -325,23 +324,33 @@ class TelegramBot : TelegramLongPollingBot {
             }
             // todo move it to admin
             SURVEY_CREATE -> {
-                val survey = Survey(name = upd.message.text, createDate = now(), questions = emptySet())
+                val survey = Survey(
+                    name = upd.message.text,
+                    createDate = now(),
+                    questions = emptySet(),
+                    campaign = userStates[upd.message.from.id]!!.campaign!!
+                )
 
                 userStates[upd.message.from.id]!!.apply {
                     this.state = NONE
                     this.survey = survey
                 }
-                showSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+                editSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
             }
             SURVEY_NAME -> {
                 val survey = userStates[upd.message.from.id]?.survey?.also { it.name = upd.message.text }
-                    ?: Survey(name = upd.message.text, createDate = now(), questions = emptySet())
+                    ?: Survey(
+                        name = upd.message.text,
+                        createDate = now(),
+                        questions = emptySet(),
+                        campaign = userStates[upd.callbackQuery.from.id]!!.campaign!!
+                    )
 
                 userStates[upd.message.from.id]!!.apply {
                     this.state = NONE
                     this.survey = survey
                 }
-                showSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+                editSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
             }
             SURVEY_DESCRIPTION -> {
                 val survey = userStates[upd.message.from.id]?.survey!!.also { it.description = upd.message.text }
@@ -350,7 +359,7 @@ class TelegramBot : TelegramLongPollingBot {
                     this.state = NONE
                     this.survey = survey
                 }
-                showSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+                editSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
             }
             SURVEY_QUESTION_CREATE -> {
                 val question = Question(text = upd.message.text, options = emptySet())
@@ -593,7 +602,8 @@ class TelegramBot : TelegramLongPollingBot {
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SURVEY, upd.message.from)
-                        }
+                        } else
+                            mainAdminMenu(upd.message, text.msgNoCampaign)
                     }
                     text.reset -> {
                         userStates.remove(upd.message.from.id)
@@ -626,8 +636,7 @@ class TelegramBot : TelegramLongPollingBot {
                             Campaign(
                                 name = name,
                                 createDate = now(),
-                                groups = emptySet(),
-                                surveys = emptySet()
+                                groups = emptySet()
                             )
                         )
 
@@ -1040,81 +1049,26 @@ class TelegramBot : TelegramLongPollingBot {
                 enterText(upd.callbackQuery.message, text.msgSurveyActionsName, text.backToSurveyCRUDMenu, SURVEY_BACK)
             }
             SURVEY_DELETE == callBackCommand -> {
-                TODO("Survey delete")
-//                enterText(upd.callbackQuery.message, text.backToSurveyCRUDMenu, SURVEY_BACK)
+                service.deleteSurveyById(params[1].toLong())
+
+                showSurveys(
+                    service.getSurveyByCampaign(userStates[upd.callbackQuery.from.id]!!.campaign!!).toList(),
+                    upd
+                )
             }
             SURVEY_SAVE == callBackCommand -> {
-                val camp = userStates[upd.callbackQuery.from.id]!!.campaign!!
-                camp.surveys =
-                    camp.surveys.toHashSet().also { it.add(userStates[upd.callbackQuery.from.id]!!.survey!!) }
-                service.updateCampaign(camp)
+                val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
+                survey.campaign = userStates[upd.callbackQuery.from.id]!!.campaign!!
+                service.saveSurvey(survey)
                 mainAdminMenu(upd.callbackQuery.message, text.clbSurveySave)
             }
             SURVEY_EDIT == callBackCommand -> {
-                //todo TEST SURVEY
-                userStates[upd.callbackQuery.from.id]!!.survey = Survey(
-                    name = "test srv",
-                    description = "test description  test description  test description  test description  test description  test description  test description  test description",
-                    questions = setOf(
-                        Question(
-                            text = "Question_1", sortPoints = 2,
-                            options = setOf(
-                                Option(text = "Option_1", value = 11, sortPoints = 1),
-                                Option(text = "Option_2", value = 12, sortPoints = 2),
-                                Option(text = "Option_3", value = 13, sortPoints = 3),
-                                Option(text = "Option_4", value = 14, sortPoints = 4),
-                                Option(text = "Option_5", value = 15, sortPoints = 5)
-                            )
-                        ),
-                        Question(
-                            text = "Question_2", sortPoints = 23,
-                            options = setOf(
-                                Option(text = "Option_21", value = 21, sortPoints = 1),
-                                Option(text = "Option_22", value = 22, sortPoints = 2),
-                                Option(text = "Option_23", value = 23, sortPoints = 3),
-                                Option(text = "Option_24", value = 24, sortPoints = 4),
-                                Option(text = "Option_25", value = 25, sortPoints = 5)
-                            )
-                        ),
-                        Question(
-                            text = "Question_3", sortPoints = 42,
-                            options = setOf(
-                                Option(text = "Option_31", value = 31, sortPoints = 1),
-                                Option(text = "Option_32", value = 32, sortPoints = 2),
-                                Option(text = "Option_33", value = 33, sortPoints = 3),
-                                Option(text = "Option_34", value = 34, sortPoints = 4),
-                                Option(text = "Option_35", value = 35, sortPoints = 5)
-                            )
-                        ),
-                        Question(
-                            text = "Question_4", sortPoints = 26,
-                            options = setOf(
-                                Option(text = "Option_41", value = 411, sortPoints = 1),
-                                Option(text = "Option_42", value = 412, sortPoints = 2),
-                                Option(text = "Option_43", value = 413, sortPoints = 3),
-                                Option(text = "Option_44", value = 414, sortPoints = 4),
-                                Option(text = "Option_45", value = 415, sortPoints = 5)
-                            )
-                        ),
-                        Question(
-                            text = "Question_5", sortPoints = 92,
-                            options = setOf(
-                                Option(text = "Option_51", value = 511, sortPoints = 15),
-                                Option(text = "Option_52", value = 512, sortPoints = 25),
-                                Option(text = "Option_53", value = 513, sortPoints = 35),
-                                Option(text = "Option_54", value = 514, sortPoints = 45),
-                                Option(text = "Option_55", value = 515, sortPoints = 55)
-                            )
-                        )
-                    ),
-                    createDate = now()
-                )
-
-                showSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
+                userStates[upd.callbackQuery.from.id]!!.survey = service.getSurveyById(params[1].toLong())
+                editSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbEditSurvey })
             }
             SURVEY == callBackCommand -> {
-                showSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
+                editSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbEditSurvey })
             }
             SURVEY_NAME == callBackCommand -> {
@@ -1309,31 +1263,9 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, campaign = campaign)
-                editMessage(
-                    EditMessageText().also { editMessage ->
-                        editMessage.chatId = upd.callbackQuery.message.chatId.toString()
-                        editMessage.messageId = upd.callbackQuery.message.messageId
-                        editMessage.text = text.surveyOptions
-                        editMessage.replyMarkup = InlineKeyboardMarkup().also { markup ->
-                            markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
-                                keyboard.addElements(
-                                    listOf(
-                                        InlineKeyboardButton().setText(text.surveyCreate)
-                                            .setCallbackData("$SURVEY_CREATE")
-                                    ),
-                                    listOf(
-                                        InlineKeyboardButton().setText(text.editSurvey)
-                                            .setCallbackData("$SURVEY_EDIT")
-                                    ),
-                                    listOf(
-                                        InlineKeyboardButton().setText(text.surveyDelete)
-                                            .setCallbackData("$SURVEY_DELETE")
-                                    )
-                                )
-                            }
-                        }
-                    }
-                )
+
+                val surveys = service.getSurveyByCampaign(campaign)
+                showSurveys(surveys.toList(), upd)
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SURVEY execute error", t)
                 execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
@@ -1543,50 +1475,6 @@ class TelegramBot : TelegramLongPollingBot {
         sendMessage(text.msgSurveyActionsName, upd.callbackQuery.message.chatId)
     }
 
-    private fun surveyDelete(upd: Update, params: List<String>, menu: (msg: Message, text: String) -> Unit) {
-        userStates[upd.callbackQuery.from.id] =
-            UserData(SURVEY_DELETE, upd.callbackQuery.from)
-        when (params[1]) {
-            "delete" -> {
-                val surveys = userStates[upd.callbackQuery.from.id]?.campaign?.surveys
-                if (!surveys.isNullOrEmpty()) {
-                    editMessage(
-                        EditMessageText().also { editMessage ->
-                            editMessage.chatId = upd.callbackQuery.message.chatId.toString()
-                            editMessage.messageId = upd.callbackQuery.message.messageId
-                            editMessage.text = text.surveyOptions
-                            editMessage.replyMarkup = InlineKeyboardMarkup().also { markup ->
-                                markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
-                                    surveys.forEach {
-                                        keyboard.add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("SURVEY_DELETE ${it.id}")))
-                                    }
-                                }
-                            }
-                        }
-                    )
-                } else {
-                    deleteMessage(upd.callbackQuery.message)
-                    end(upd, text.errNotFoundSurvey, menu)
-                }
-            }
-            else -> try {
-                service.deleteSurveyById(params[1].toLong())
-                deleteMessage(upd.callbackQuery.message)
-                end(upd, text.surveyDeleted, menu)
-            } catch (t: Throwable) {
-                editMessage(
-                    EditMessageText().also { editMessage ->
-                        editMessage.chatId = upd.callbackQuery.message.chatId.toString()
-                        editMessage.messageId = upd.callbackQuery.message.messageId
-                        editMessage.text = text.errSurveyDelete
-                    }
-                )
-                log.error("error surveyDelete", t)
-            }
-        }
-        SURVEY_DELETE
-    }
-
     private fun showTaskList(upd: Update) {
         try {
 
@@ -1772,16 +1660,68 @@ class TelegramBot : TelegramLongPollingBot {
             }
         }, chatId)
 
-    private fun sendSurveyMsg(survey: Survey, chatId: Long) = sendMessage(SendMessage().also { msg ->
-        msg.text = "${survey.name}\n${survey.description}\n${printQuestions(survey.questions)}"
-        msg.replyMarkup = surveyMarkup(survey)
-    }, chatId)
+    private fun showSurveys(surveys: List<Survey>, upd: Update) = editMessage(EditMessageText().also { msg ->
+        msg.chatId = upd.callbackQuery.message.chatId.toString()
+        msg.messageId = upd.callbackQuery.message.messageId
+        msg.text = text.editSurveys
+        msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
+            markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+                surveys.sortedBy { it.name }.forEach {
+                    keyboard.add(
+                        listOf(
+                            InlineKeyboardButton().setText(it.name.subStr(25, "..."))
+                                .setCallbackData("$SURVEY_EDIT ${it.id}")
+                        )
+                    )
+                }
+                keyboard.addElements(
+                    listOf(
+                        InlineKeyboardButton().setText(text.surveyCreate)
+                            .setCallbackData("$SURVEY_CREATE")
+                    ),
+                    listOf(
+                        InlineKeyboardButton().setText(text.surveyBack)
+                            .setCallbackData("$SURVEY_BACK")
+                    )
+                )
+            }
+        }
+    })
 
-    private fun showSurvey(survey: Survey, upd: Update) = editMessage(EditMessageText().also { msg ->
+    private fun editSurvey(survey: Survey, upd: Update) = editMessage(EditMessageText().also { msg ->
         msg.chatId = upd.callbackQuery.message.chatId.toString()
         msg.messageId = upd.callbackQuery.message.messageId
         msg.text = "$survey\n${printQuestions(survey.questions)}"
-        msg.replyMarkup = surveyMarkup(survey)
+        msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
+            markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+                keyboard.addElements(
+                    listOf(
+                        InlineKeyboardButton().setText(text.editQuestions)
+                            .setCallbackData("$SURVEY_QUESTIONS")
+                    ),
+                    listOf(
+                        InlineKeyboardButton().setText(text.editSurveyName)
+                            .setCallbackData("$SURVEY_NAME")
+                    ),
+                    listOf(
+                        InlineKeyboardButton().setText(text.editSurveyDescription)
+                            .setCallbackData("$SURVEY_DESCRIPTION")
+                    ),
+                    listOf(
+                        InlineKeyboardButton().setText(text.saveSurvey)
+                            .setCallbackData("$SURVEY_SAVE")
+                    ),
+                    listOf(
+                        InlineKeyboardButton().setText(text.surveyDelete)
+                            .setCallbackData("$SURVEY_DELETE ${survey.id}")
+                    ),
+                    listOf(
+                        InlineKeyboardButton().setText(text.backSurvey)
+                            .setCallbackData("$SURVEY_BACK")
+                    )
+                )
+            }
+        }
     })
 
     private fun showQuestions(survey: Survey, upd: Update) = editMessage(EditMessageText().also { msg ->
@@ -1951,33 +1891,6 @@ class TelegramBot : TelegramLongPollingBot {
     private fun end(upd: Update, msgTest: String = text.mainMenu, menu: (msg: Message, text: String) -> Unit) {
         userStates[upd.message?.from?.id ?: upd.callbackQuery.from.id]!!.state = NONE
         menu.invoke(upd.message ?: upd.callbackQuery.message, msgTest)
-    }
-
-    private fun surveyMarkup(survey: Survey) = InlineKeyboardMarkup().also { markup ->
-        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
-            keyboard.addElements(
-                listOf(
-                    InlineKeyboardButton().setText(text.editQuestions)
-                        .setCallbackData("$SURVEY_QUESTIONS")
-                ),
-                listOf(
-                    InlineKeyboardButton().setText(text.editSurveyName)
-                        .setCallbackData("$SURVEY_NAME")
-                ),
-                listOf(
-                    InlineKeyboardButton().setText(text.editSurveyDescription)
-                        .setCallbackData("$SURVEY_DESCRIPTION")
-                ),
-                listOf(
-                    InlineKeyboardButton().setText(text.saveSurvey)
-                        .setCallbackData("$SURVEY_SAVE")
-                ),
-                listOf(
-                    InlineKeyboardButton().setText(text.backSurvey)
-                        .setCallbackData("$SURVEY_BACK")
-                )
-            )
-        }
     }
 
     private fun getUser(chatId: Long, userId: Int) = execute(GetChatMember().setChatId(chatId).setUserId(userId))

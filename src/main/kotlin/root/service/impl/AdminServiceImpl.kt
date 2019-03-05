@@ -20,36 +20,51 @@ open class AdminServiceImpl(
 ) : AdminService {
     @Transactional
     override fun getCampaignByName(name: String): Campaign? = campaignRepository.findCampaignByName(name)
+
     @Transactional
     override fun getCampaignById(id: Long): Campaign? = campaignRepository.findCampaignById(id)
+
     @Transactional
     override fun getAllCampaignByUserId(userId: Int): Iterable<Campaign> =
         campaignRepository.findAllCampaignByUserId(userId)
+
     @Transactional
     override fun createCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
+
     @Transactional
     override fun updateCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
+
     @Transactional
     override fun deleteCampaignByName(name: String) = campaignRepository.deleteByName(name)
+
     @Transactional
     override fun getAllCampaigns(): Iterable<Campaign> = campaignRepository.findAll()
+
     @Transactional
     override fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign> =
         campaignRepository.findAllCampaignsByChatListNotContainsUser(chats, userId)
 
 
     @Transactional
-    override fun getSuperAdminById(userId: Int) : SuperAdmin? = superAdminRepository.findSuperAdminByUserId(userId)
+    override fun getSuperAdminById(userId: Int): SuperAdmin? = superAdminRepository.findSuperAdminByUserId(userId)
+
     @Transactional
-    override fun saveSuperAdmin(superAdmin: SuperAdmin) : SuperAdmin = superAdminRepository.save(superAdmin)
+    override fun saveSuperAdmin(superAdmin: SuperAdmin): SuperAdmin = superAdminRepository.save(superAdmin)
+
     @Transactional
     override fun deleteSuperAdminById(userId: Int) = superAdminRepository.deleteByUserId(userId)
 
 
     @Transactional
-    override fun getSurveyById(id: Long) : Survey? = surveyRepository.findById(id).orElse(null)
+    override fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey> =
+        surveyRepository.findAllByCampaign(campaign)
+
     @Transactional
-    override fun saveSurvey(survey: Survey) : Survey = surveyRepository.save(survey)
+    override fun getSurveyById(id: Long): Survey? = surveyRepository.findById(id).orElse(null)
+
+    @Transactional
+    override fun saveSurvey(survey: Survey): Survey = surveyRepository.save(survey)
+
     @Transactional
     override fun deleteSurveyById(id: Long) = surveyRepository.deleteById(id)
 

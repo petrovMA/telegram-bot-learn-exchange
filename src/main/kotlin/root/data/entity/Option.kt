@@ -13,10 +13,12 @@ data class Option(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
 
+    @Column(nullable = false)
     var text: String,
 
     var sortPoints: Int? = null,
 
+    @Column(nullable = false)
     var value: Int = Int.MAX_VALUE
 ) {
     override fun toString(): String = "Option text:\n$text\nvalue:\n$value\nsort_point:\n$sortPoints"

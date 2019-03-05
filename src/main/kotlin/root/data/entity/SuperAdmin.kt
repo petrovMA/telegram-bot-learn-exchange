@@ -22,6 +22,7 @@ data class SuperAdmin(
 
     var userName: String? = null,
 
+    @Column(nullable = false)
     var createDate: OffsetDateTime
 ) {
     override fun equals(other: Any?): Boolean = when (other) {

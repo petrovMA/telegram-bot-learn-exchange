@@ -13,11 +13,17 @@ data class Question(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
 
+    @Column(nullable = false)
     var text: String,
 
     var sortPoints: Int? = null,
 
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    @JoinTable(
+        name="questions_to_options",
+        joinColumns = [JoinColumn(name="questions_id")],
+        inverseJoinColumns = [JoinColumn(name="options_id")]
+    )
     var options: Set<Option>
 ) {
     override fun toString(): String = "Question text:\n$text\nsort_point:\n$sortPoints"

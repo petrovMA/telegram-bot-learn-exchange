@@ -10,9 +10,9 @@ interface CampaignRepository : CrudRepository<Campaign, Long> {
     fun findCampaignByName(name: String): Campaign?
     fun deleteByName(name: String)
 
-    @Query(value = "SELECT * from campaign where id in (SELECT campaign_id from user_in_group_campaigns where user_in_group_user_id = ?1)", nativeQuery = true)
+    @Query(value = "SELECT * from campaign where id in (SELECT campaign_id from campaign_to_user_in_group where user_in_group_id = ?1)", nativeQuery = true)
     fun findAllCampaignByUserId(userId: Int): Iterable<Campaign>
 
-    @Query(value = "SELECT * from campaign where id in (SELECT campaign_id from campaign_groups where groups_group_id in( ?1 )) and id not in (SELECT campaigns_id from user_in_group_campaigns where user_in_group_user_id = ?2)", nativeQuery = true)
+    @Query(value = "SELECT * from campaign where id in (SELECT campaign_id from campaign_to_exchange_group where exchange_group_id in( ?1 )) and id not in (SELECT campaigns_id from campaign_to_user_in_group where user_in_group_id = ?2)", nativeQuery = true)
     fun findAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign>
 }

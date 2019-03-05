@@ -12,5 +12,6 @@ data class Group(
     @Id
     var groupId: Long,
 
+    @Column(nullable = false)
     var createDate: OffsetDateTime
 )

@@ -22,9 +22,15 @@ data class Admin(
 
     var userName: String? = null,
 
+    @Column(nullable = false)
     var createDate: OffsetDateTime,
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name="campaign_to_admin_for_camp",
+        joinColumns = [JoinColumn(name="admin_for_camp_id")],
+        inverseJoinColumns = [JoinColumn(name="campaign_id")]
+    )
     var campaigns: Set<Campaign>
 ) {
     override fun equals(other: Any?): Boolean = when (other) {

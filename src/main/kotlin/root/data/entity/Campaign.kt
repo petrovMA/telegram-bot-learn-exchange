@@ -13,14 +13,17 @@ data class Campaign(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     var name: String,
 
+    @Column(nullable = false)
     var createDate: OffsetDateTime,
 
     @OneToMany(fetch = FetchType.LAZY)
-    var groups: Set<Group>,
-
-    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
-    var surveys: Set<Survey>
+    @JoinTable(
+        name="campaign_to_exchange_group",
+        joinColumns = [JoinColumn(name="campaign_id")],
+        inverseJoinColumns = [JoinColumn(name="exchange_group_id")]
+    )
+    var groups: Set<Group>
 )

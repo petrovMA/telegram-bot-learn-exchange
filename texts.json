@@ -123,7 +123,9 @@
   "back-to-survey-option-menu": "Назад, к варианту ответа",
   "clb-survey-question-deleted": "Вопрос удалён",
   "clb-survey-option-deleted": "Вариант удалён",
+  "edit-surveys": "Редактирование опроса или создание нового",
   "survey": "Опросы",
   "msg-survey": "редактирование опросов",
+  "survey-back": "Отмена (в главное меню)",
   "reset": "В начало"
 }
