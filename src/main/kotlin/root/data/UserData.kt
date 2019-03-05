@@ -1,5 +1,6 @@
 package root.data
 
+import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
 import root.data.entity.*
 
@@ -12,7 +13,8 @@ data class UserData(
     val users: Iterable<UserInGroup>? = null,
     var survey: Survey? = null,
     var question: Question? = null,
-    var option: Option? = null
+    var option: Option? = null,
+    var updCallback: Update? = null
 )
 
 enum class UserState {
@@ -36,6 +38,7 @@ enum class UserState {
     CAMPAIGN_FOR_SURVEY,
 
     // user commands
+    SURVEY,
     SURVEY_DESCRIPTION,
     SURVEY_OPTION_EDIT_TEXT,
     SURVEY_OPTION_EDIT_SORT,

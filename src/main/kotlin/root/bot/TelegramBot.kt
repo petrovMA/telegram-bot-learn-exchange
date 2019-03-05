@@ -104,6 +104,7 @@ class TelegramBot : TelegramLongPollingBot {
                     it.callbackQueryId = update.callbackQuery.id
                     it.text = text.errCallback
                 })
+                deleteMessage(update.callbackQuery.message)
                 userStates.remove(sender.id)
             }
         } else if (update.message.isUserMessage) {
@@ -125,71 +126,6 @@ class TelegramBot : TelegramLongPollingBot {
 
     private fun doMainAdminUpdate(upd: Update) {
         when (userStates[upd.message.from.id]?.state) {
-            CREATE_CAMPAIGN -> {
-                when (upd.message.text) {
-                    text.reset -> {
-                        userStates.remove(upd.message.from.id)
-                        mainAdminMenu(upd.message)
-                    }
-                    else -> try {
-                        val name = upd.message.text
-
-                        service.createCampaign(
-                            Campaign(
-                                name = name,
-                                createDate = now(),
-                                groups = emptySet(),
-                                surveys = emptySet()
-                            )
-                        )
-
-                        end(upd, text.sucCreateCampaign) { msg: Message, text: String ->
-                            mainAdminMenu(msg, text)
-                        }
-                    } catch (t: Throwable) {
-                        sendMessage(text.errCreateCampaign, upd.message.chatId)
-                        log.error("Campaign creating err.", t)
-                    }
-                }
-            }
-            ADD_ADMIN_TO_CAMPAIGN -> {
-
-                when (upd.message.text) {
-                    text.reset -> {
-                        userStates.remove(upd.message.from.id)
-                        mainAdminMenu(upd.message)
-                    }
-                    else -> try {
-                        val ids = upd.message.text.split("\\s+".toRegex(), 2)
-                        val adminId = ids[0].toInt()
-                        val name = ids[1]
-
-                        service.getCampaignByName(name)?.let { camp ->
-                            service.getAdminById(adminId)?.let { admin ->
-                                admin.campaigns =
-                                    admin.campaigns.toHashSet().also { gr -> gr.add(camp) }
-                                service.saveAdmin(admin)
-                            } ?: service.saveAdmin(
-                                Admin(
-                                    userId = adminId,
-                                    createDate = now(),
-                                    campaigns = setOf(camp)
-                                )
-                            )
-
-                            end(upd, text.sucAdminToCampaign) { msg: Message, text: String ->
-                                mainAdminMenu(msg, text)
-                            }
-                        } ?: {
-                            sendMessage(text.errCampaignNotFound, upd.message.chatId)
-                        }.invoke()
-
-                    } catch (t: Throwable) {
-                        sendMessage(text.errAdminToCampaign, upd.message.chatId)
-                        log.error("AdminGroup creating err.", t)
-                    }
-                }
-            }
             ADD_SUPER_ADMIN -> {
                 when (upd.message.text) {
                     text.reset -> {
@@ -233,8 +169,72 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                 }
             }
-            ADD_GROUP_TO_CAMPAIGN -> {
+            // todo move it to super admin
+            CREATE_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        mainAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val name = upd.message.text
 
+                        service.createCampaign(
+                            Campaign(
+                                name = name,
+                                createDate = now(),
+                                groups = emptySet(),
+                                surveys = emptySet()
+                            )
+                        )
+
+                        end(upd, text.sucCreateCampaign) { msg: Message, text: String ->
+                            mainAdminMenu(msg, text)
+                        }
+                    } catch (t: Throwable) {
+                        sendMessage(text.errCreateCampaign, upd.message.chatId)
+                        log.error("Campaign creating err.", t)
+                    }
+                }
+            }
+            ADD_ADMIN_TO_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.reset -> {
+                        userStates.remove(upd.message.from.id)
+                        mainAdminMenu(upd.message)
+                    }
+                    else -> try {
+                        val ids = upd.message.text.split("\\s+".toRegex(), 2)
+                        val adminId = ids[0].toInt()
+                        val name = ids[1]
+
+                        service.getCampaignByName(name)?.let { camp ->
+                            service.getAdminById(adminId)?.let { admin ->
+                                admin.campaigns =
+                                    admin.campaigns.toHashSet().also { gr -> gr.add(camp) }
+                                service.saveAdmin(admin)
+                            } ?: service.saveAdmin(
+                                Admin(
+                                    userId = adminId,
+                                    createDate = now(),
+                                    campaigns = setOf(camp)
+                                )
+                            )
+
+                            end(upd, text.sucAdminToCampaign) { msg: Message, text: String ->
+                                mainAdminMenu(msg, text)
+                            }
+                        } ?: {
+                            sendMessage(text.errCampaignNotFound, upd.message.chatId)
+                        }.invoke()
+
+                    } catch (t: Throwable) {
+                        sendMessage(text.errAdminToCampaign, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
+                }
+            }
+            ADD_GROUP_TO_CAMPAIGN -> {
                 when (upd.message.text) {
                     text.reset -> {
                         userStates.remove(upd.message.from.id)
@@ -323,11 +323,34 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                 }
             }
-            SURVEY_NAME -> {
+            // todo move it to admin
+            SURVEY_CREATE -> {
                 val survey = Survey(name = upd.message.text, createDate = now(), questions = emptySet())
-                userStates[upd.message.from.id] =
-                    UserData(SURVEY_ACTIONS, upd.message.from, survey = survey)
-                sendSurveyMsg(survey, upd.message.chatId)
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey = survey
+                }
+                showSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_NAME -> {
+                val survey = userStates[upd.message.from.id]?.survey?.also { it.name = upd.message.text }
+                    ?: Survey(name = upd.message.text, createDate = now(), questions = emptySet())
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey = survey
+                }
+                showSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_DESCRIPTION -> {
+                val survey = userStates[upd.message.from.id]?.survey!!.also { it.description = upd.message.text }
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey = survey
+                }
+                showSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
             }
             MSG_TO_USERS -> {
                 when (upd.message.text) {
@@ -904,13 +927,29 @@ class TelegramBot : TelegramLongPollingBot {
 
         when {
             SURVEY_CREATE == callBackCommand -> {
-                TODO("Survey create")
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(upd.callbackQuery.message, text.msgSurveyActionsName, text.backToSurveyCRUDMenu, SURVEY_BACK)
             }
             SURVEY_DELETE == callBackCommand -> {
                 TODO("Survey delete")
+//                enterText(upd.callbackQuery.message, text.backToSurveyCRUDMenu, SURVEY_BACK)
             }
             SURVEY_NAME == callBackCommand -> {
-                TODO("Survey name")
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(upd.callbackQuery.message, text.msgSurveyActionsName, text.backToSurveyMenu, SURVEY_BACK)
+            }
+            SURVEY_DESCRIPTION == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(upd.callbackQuery.message, text.msgSurveyActionsDesc, text.backToSurveyMenu, SURVEY_BACK)
             }
             SURVEY_SAVE == callBackCommand -> {
                 mainAdminMenu(upd.callbackQuery.message)
@@ -976,6 +1015,10 @@ class TelegramBot : TelegramLongPollingBot {
                     createDate = now()
                 )
 
+                showSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
+                execute(callbackAnswer.also { it.text = text.clbEditSurvey })
+            }
+            SURVEY == callBackCommand -> {
                 showSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbEditSurvey })
             }
@@ -1081,7 +1124,7 @@ class TelegramBot : TelegramLongPollingBot {
                                         keyboard.addElements(
                                             listOf(
                                                 InlineKeyboardButton().setText(text.surveyOptionCreate)
-                                                    .setCallbackData("$CAMPAIGN_FOR_SURVEY create")
+                                                    .setCallbackData("$SURVEY_CREATE")
                                             ),
                                             listOf(
                                                 InlineKeyboardButton().setText(text.editSurvey)
@@ -1089,7 +1132,7 @@ class TelegramBot : TelegramLongPollingBot {
                                             ),
                                             listOf(
                                                 InlineKeyboardButton().setText(text.surveyDelete)
-                                                    .setCallbackData("$CAMPAIGN_FOR_SURVEY delete")
+                                                    .setCallbackData("$SURVEY_DELETE")
                                             )
                                         )
                                     }
@@ -1103,7 +1146,15 @@ class TelegramBot : TelegramLongPollingBot {
                 execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
                 throw t
             }
-            else -> surveyActions(callBackCommand, upd, callbackAnswer)
+            else -> {
+                setTextToMessage(
+                    resourceText(text.errCommon),
+                    upd.callbackQuery.message.messageId,
+                    upd.callbackQuery.message.chatId
+                )
+                userStates.remove(upd.callbackQuery.from.id)
+                execute(callbackAnswer.also { it.text = text.errClbCommon })
+            }
         }
     }
 
@@ -1289,22 +1340,6 @@ class TelegramBot : TelegramLongPollingBot {
                 )
                 userStates.remove(upd.callbackQuery.from.id)
                 execute(callbackAnswer.also { it.text = text.clbUserAddedToCampaign })
-            }
-        }
-    }
-
-    private fun surveyActions(command: UserState, upd: Update, callbackAnswer: AnswerCallbackQuery) {
-        when (command) {
-            SURVEY_DESCRIPTION -> {
-            }
-            else -> {
-                setTextToMessage(
-                    resourceText(text.errCommon),
-                    upd.callbackQuery.message.messageId,
-                    upd.callbackQuery.message.chatId
-                )
-                userStates.remove(upd.callbackQuery.from.id)
-                execute(callbackAnswer.also { it.text = text.errClbCommon })
             }
         }
     }
@@ -1667,6 +1702,23 @@ class TelegramBot : TelegramLongPollingBot {
             }
         }
     })
+
+    private fun enterText(message: Message, text: String, textBack: String, stateBack: UserState) =
+        editMessage(EditMessageText().also { msg ->
+            msg.chatId = message.chatId.toString()
+            msg.messageId = message.messageId
+            msg.text = text
+            msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
+                markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+                    keyboard.addElements(
+                        listOf(
+                            InlineKeyboardButton().setText(textBack)
+                                .setCallbackData("$stateBack")
+                        )
+                    )
+                }
+            }
+        })
 
     private fun editMessage(msg: EditMessageText) = try {
         execute(msg)

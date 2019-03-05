@@ -111,6 +111,10 @@ data class Text(
     @SerialName("msg-survey") val msgSurvey: String,
     @SerialName("save-survey") val saveSurvey: String,
     @SerialName("back-survey") val backSurvey: String,
+    @SerialName("enter-text-back") val enterTextBack: String,
+    @SerialName("back-to-survey-crud-menu") val backToSurveyCRUDMenu: String,
+    @SerialName("back-to-survey-menu") val backToSurveyMenu: String,
+    @SerialName("msg-survey-actions-desc") val msgSurveyActionsDesc: String,
     @SerialName("survey") val survey: String,
     @SerialName("reset") val reset: String
 )
