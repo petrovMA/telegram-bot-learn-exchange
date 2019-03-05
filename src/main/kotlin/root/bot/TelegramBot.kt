@@ -352,6 +352,112 @@ class TelegramBot : TelegramLongPollingBot {
                 }
                 showSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
             }
+            SURVEY_QUESTION_CREATE -> {
+                val question = Question(text = upd.message.text, options = emptySet())
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey!!.questions = this.survey!!.questions.toHashSet().also { it.add(question) }
+                    this.question = question
+                }
+                editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_QUESTION_EDIT_TEXT -> {
+                val question = userStates[upd.message.from.id]?.question!!.also { it.text = upd.message.text }
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey!!.questions.toHashSet().add(question)
+                    this.question = question
+                }
+                editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_QUESTION_EDIT_SORT -> {
+                try {
+                    val question =
+                        userStates[upd.message.from.id]?.question!!.also { it.sortPoints = upd.message.text.toInt() }
+
+                    userStates[upd.message.from.id]!!.apply {
+                        this.state = NONE
+                        this.survey!!.questions.toHashSet().add(question)
+                        this.question = question
+                    }
+                    editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
+                } catch (t: Throwable) {
+                    log.warn("error read sortPoints", t)
+
+                    enterText(
+                        userStates[upd.message.from.id]!!.updCallback!!.callbackQuery!!.message,
+                        text.errSurveyEnterNumber,
+                        text.backToSurveyQuestionMenu,
+                        SURVEY_QUESTION_SELECT
+                    )
+                }
+            }
+            SURVEY_OPTION_CREATE -> {
+                val option = Option(text = upd.message.text)
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.question!!.options = this.question!!.options.toHashSet().also { it.add(option) }
+                    this.option = option
+                }
+                editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_OPTION_EDIT_TEXT -> {
+                val option = userStates[upd.message.from.id]?.option!!.also { it.text = upd.message.text }
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+//                    this.survey!!.questions.toHashSet().add(question)
+                    this.option = option
+                }
+                editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_OPTION_EDIT_VALUE -> {
+                try {
+                    val option =
+                        userStates[upd.message.from.id]?.option!!.also { it.value = upd.message.text.toInt() }
+
+                    userStates[upd.message.from.id]!!.apply {
+                        this.state = NONE
+//                        this.survey!!.questions.toHashSet().add(question)
+                        this.option = option
+                    }
+                    editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+                } catch (t: Throwable) {
+                    log.warn("error read sortPoints", t)
+
+                    enterText(
+                        userStates[upd.message.from.id]!!.updCallback!!.callbackQuery!!.message,
+                        text.errSurveyEnterNumber,
+                        text.backToSurveyQuestionMenu,
+                        SURVEY_QUESTION_SELECT
+                    )
+                }
+            }
+            SURVEY_OPTION_EDIT_SORT -> {
+                try {
+                    val option =
+                        userStates[upd.message.from.id]?.option!!.also { it.sortPoints = upd.message.text.toInt() }
+
+                    userStates[upd.message.from.id]!!.apply {
+                        this.state = NONE
+//                        this.survey!!.questions.toHashSet().add(question)
+                        this.option = option
+                    }
+                    editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+                } catch (t: Throwable) {
+                    log.warn("error read sortPoints", t)
+
+                    enterText(
+                        userStates[upd.message.from.id]!!.updCallback!!.callbackQuery!!.message,
+                        text.errSurveyEnterNumber,
+                        text.backToSurveyQuestionMenu,
+                        SURVEY_QUESTION_SELECT
+                    )
+                }
+            }
             MSG_TO_USERS -> {
                 when (upd.message.text) {
                     text.reset -> {
@@ -937,23 +1043,10 @@ class TelegramBot : TelegramLongPollingBot {
                 TODO("Survey delete")
 //                enterText(upd.callbackQuery.message, text.backToSurveyCRUDMenu, SURVEY_BACK)
             }
-            SURVEY_NAME == callBackCommand -> {
-                userStates[upd.callbackQuery.from.id]!!.apply {
-                    this.state = callBackCommand
-                    this.updCallback = upd
-                }
-                enterText(upd.callbackQuery.message, text.msgSurveyActionsName, text.backToSurveyMenu, SURVEY_BACK)
-            }
-            SURVEY_DESCRIPTION == callBackCommand -> {
-                userStates[upd.callbackQuery.from.id]!!.apply {
-                    this.state = callBackCommand
-                    this.updCallback = upd
-                }
-                enterText(upd.callbackQuery.message, text.msgSurveyActionsDesc, text.backToSurveyMenu, SURVEY_BACK)
-            }
             SURVEY_SAVE == callBackCommand -> {
+                service.saveSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!)
+                execute(callbackAnswer.also { it.text = text.clbSurveySave })
                 mainAdminMenu(upd.callbackQuery.message)
-                TODO("Save survey")
             }
             SURVEY_EDIT == callBackCommand -> {
                 //todo TEST SURVEY
@@ -1022,23 +1115,113 @@ class TelegramBot : TelegramLongPollingBot {
                 showSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbEditSurvey })
             }
+            SURVEY_NAME == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(upd.callbackQuery.message, text.msgSurveyActionsName, text.backToSurveyMenu, SURVEY)
+            }
+            SURVEY_DESCRIPTION == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(upd.callbackQuery.message, text.msgSurveyActionsDesc, text.backToSurveyMenu, SURVEY)
+            }
+            SURVEY_QUESTION_CREATE == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(
+                    upd.callbackQuery.message,
+                    text.msgSurveyQuestionActionsText,
+                    text.backToSurveyQuestionsListMenu,
+                    SURVEY_QUESTIONS
+                )
+            }
+            SURVEY_QUESTION_EDIT_TEXT == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(
+                    upd.callbackQuery.message,
+                    text.msgSurveyQuestionActionsText,
+                    text.backToSurveyQuestionMenu,
+                    SURVEY_QUESTION_SELECT
+                )
+            }
+            SURVEY_QUESTION_EDIT_SORT == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(
+                    upd.callbackQuery.message,
+                    text.msgSurveyQuestionActionsSort,
+                    text.backToSurveyQuestionMenu,
+                    SURVEY_QUESTION_SELECT
+                )
+            }
+            SURVEY_OPTION_CREATE == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(
+                    upd.callbackQuery.message,
+                    text.msgSurveyOptionActionsText,
+                    text.backToSurveyQuestionMenu,
+                    SURVEY_OPTION_SELECT_BACK
+                )
+            }
+            SURVEY_OPTION_EDIT_TEXT == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(
+                    upd.callbackQuery.message,
+                    text.msgSurveyOptionActionsText,
+                    text.backToSurveyOptionMenu,
+                    SURVEY_OPTION_EDIT_BACK
+                )
+            }
+            SURVEY_OPTION_EDIT_VALUE == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(
+                    upd.callbackQuery.message,
+                    text.msgSurveyOptionActionsValue,
+                    text.backToSurveyOptionMenu,
+                    SURVEY_OPTION_EDIT_BACK
+                )
+            }
+            SURVEY_OPTION_EDIT_SORT == callBackCommand -> {
+                userStates[upd.callbackQuery.from.id]!!.apply {
+                    this.state = callBackCommand
+                    this.updCallback = upd
+                }
+                enterText(
+                    upd.callbackQuery.message,
+                    text.msgSurveyOptionActionsSort,
+                    text.backToSurveyOptionMenu,
+                    SURVEY_OPTION_EDIT_BACK
+                )
+            }
             SURVEY_BACK == callBackCommand -> {
                 end(upd) { msg: Message, text: String -> mainAdminMenu(msg, text) }
                 deleteMessage(upd.callbackQuery.message)
-            }
-            SURVEY_QUESTION_SELECT_BACK == callBackCommand -> {
-                showSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurvey })
             }
             SURVEY_OPTION_SELECT_BACK == callBackCommand -> {
                 editQuestion(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurvey })
             }
             SURVEY_QUESTIONS == callBackCommand -> {
-                showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyQuestions })
-            }
-            SURVEY_QUESTION_BACK == callBackCommand -> {
                 showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurveyQuestions })
             }
@@ -1059,6 +1242,10 @@ class TelegramBot : TelegramLongPollingBot {
             SURVEY_OPTION_SELECT == callBackCommand -> {
                 userStates[upd.callbackQuery.from.id]!!.option =
                     userStates[upd.callbackQuery.from.id]!!.question!!.options.first { it.text == params[1] }
+                editOption(userStates[upd.callbackQuery.from.id]!!.option!!, upd)
+                execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+            }
+            SURVEY_OPTION_EDIT_BACK == callBackCommand -> {
                 editOption(userStates[upd.callbackQuery.from.id]!!.option!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
             }
@@ -1605,10 +1792,14 @@ class TelegramBot : TelegramLongPollingBot {
                         )
                     )
                 }
-                keyboard.add(
+                keyboard.addElements(
+                    listOf(
+                        InlineKeyboardButton().setText(text.surveyQuestionCreate)
+                            .setCallbackData("$SURVEY_QUESTION_CREATE")
+                    ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyQuestionSelectBack)
-                            .setCallbackData("$SURVEY_QUESTION_SELECT_BACK")
+                            .setCallbackData("$SURVEY")
                     )
                 )
             }
@@ -1640,7 +1831,7 @@ class TelegramBot : TelegramLongPollingBot {
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyQuestionBack)
-                            .setCallbackData("$SURVEY_QUESTION_BACK ${question.text}")
+                            .setCallbackData("$SURVEY_QUESTIONS ${question.text}")
                     )
                 )
             }
@@ -1661,7 +1852,11 @@ class TelegramBot : TelegramLongPollingBot {
                         )
                     )
                 }
-                keyboard.add(
+                keyboard.addElements(
+                    listOf(
+                        InlineKeyboardButton().setText(text.surveyOptionCreate)
+                            .setCallbackData("$SURVEY_OPTION_CREATE")
+                    ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionSelectBack)
                             .setCallbackData("$SURVEY_OPTION_SELECT_BACK")

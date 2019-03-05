@@ -13,12 +13,20 @@ data class Question(
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
 
-    var sortPoints: Int? = null,
-
     var text: String,
+
+    var sortPoints: Int? = null,
 
     @OneToMany(fetch = FetchType.LAZY)
     var options: Set<Option>
 ) {
     override fun toString(): String = "Question text:\n$text\nsort_point:\n$sortPoints"
+    override fun hashCode(): Int = 31 + text.hashCode()
+    override fun equals(other: Any?): Boolean =
+        this.javaClass == other?.javaClass && let {
+            other is Question && (id == other.id)
+                    && (text == other.text)
+                    && (sortPoints == other.sortPoints)
+                    && (options == other.options)
+        }
 }
