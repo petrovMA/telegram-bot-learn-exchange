@@ -31,7 +31,7 @@ data class Survey(
 
     @ManyToOne(fetch = FetchType.LAZY)
     var campaign: Campaign
-) {
+):EntityData() {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 
     override fun hashCode(): Int {
@@ -60,4 +60,5 @@ data class Survey(
         return true
     }
 
+    override fun toRow() = arrayOf("$id", name, "$description", "$createDate", "$questions", "${this.campaign.id}")
 }
