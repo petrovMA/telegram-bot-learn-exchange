@@ -24,7 +24,7 @@ data class SuperAdmin(
 
     @Column(nullable = false)
     var createDate: OffsetDateTime
-) {
+) : ExcelEntity() {
     override fun equals(other: Any?): Boolean = when (other) {
         is User -> {
             other.id == this.userId && other.firstName == this.firstName && other.lastName == this.lastName && other.userName == this.userName
@@ -59,4 +59,16 @@ data class SuperAdmin(
         result = 31 * result + createDate.hashCode()
         return result
     }
+
+    override fun toHead(): Array<String> =
+        arrayOf("user_Id", "user_Name", "first_Name", "last_Name", "create_date", "campaigns")
+
+    override fun toRow(): Array<String> =
+        arrayOf(
+            "${userId.toLong()}",
+            "$userName",
+            "$firstName",
+            "$lastName",
+            "$createDate"
+        )
 }

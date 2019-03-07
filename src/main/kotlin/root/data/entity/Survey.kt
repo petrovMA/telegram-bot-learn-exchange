@@ -23,15 +23,15 @@ data class Survey(
 
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinTable(
-        name="questions_to_questions",
-        joinColumns = [JoinColumn(name="surveys_id")],
-        inverseJoinColumns = [JoinColumn(name="questions_id")]
+        name = "questions_to_questions",
+        joinColumns = [JoinColumn(name = "surveys_id")],
+        inverseJoinColumns = [JoinColumn(name = "questions_id")]
     )
     var questions: Set<Question>,
 
     @ManyToOne(fetch = FetchType.LAZY)
     var campaign: Campaign
-):EntityData() {
+) : ExcelEntity() {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 
     override fun hashCode(): Int {
@@ -60,5 +60,6 @@ data class Survey(
         return true
     }
 
-    override fun toRow() = arrayOf("$id", name, "$description", "$createDate", "$questions", "${this.campaign.id}")
+    override fun toHead() = arrayOf("id", "name", "description", "createDate", "questions", "campaign_name")
+    override fun toRow() = arrayOf("$id", name, "$description", "$createDate", "$questions", this.campaign.name)
 }

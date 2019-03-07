@@ -21,9 +21,14 @@ data class Campaign(
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name="campaign_to_exchange_group",
-        joinColumns = [JoinColumn(name="campaign_id")],
-        inverseJoinColumns = [JoinColumn(name="exchange_group_id")]
+        name = "campaign_to_exchange_group",
+        joinColumns = [JoinColumn(name = "campaign_id")],
+        inverseJoinColumns = [JoinColumn(name = "exchange_group_id")]
     )
     var groups: Set<Group>
-)
+) : ExcelEntity() {
+
+    override fun toHead() = arrayOf("id", "name", "createDate", "groups")
+    override fun toRow() =
+        arrayOf("$id", name, "$createDate", groups.joinToString("\n") { "${it.groupId} ${it.createDate}" })
+}
