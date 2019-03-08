@@ -565,7 +565,7 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     text.sendSurveysTable -> {
                         sendAvailableCampaignsList(
-                            "sendGroupsTable",
+                            text.msgSurveysTable,
                             "$GET_EXCEL_TABLE_SURVEY",
                             upd.message.chatId,
                             service.getAllCampaigns()
@@ -573,7 +573,7 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     text.sendAdminsTable -> {
                         sendAvailableCampaignsList(
-                            "sendAdminsTable",
+                            text.msgAdminsTable,
                             "$GET_EXCEL_TABLE_ADMINS",
                             upd.message.chatId,
                             service.getAllCampaigns()
@@ -581,7 +581,7 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     text.sendUsersInCampaign -> {
                         sendAvailableCampaignsList(
-                            "sendUsersInCampaign",
+                            text.msgUsersInCampaign,
                             "$GET_EXCEL_TABLE_USERS_IN_CAMPAIGN",
                             upd.message.chatId,
                             service.getAllCampaigns()
