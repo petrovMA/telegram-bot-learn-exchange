@@ -1,9 +1,8 @@
 package root.libs
 
 import org.apache.log4j.Logger
-import root.data.entity.Option
-import root.data.entity.Question
-import root.data.entity.Survey
+import root.data.entity.*
+import java.time.OffsetDateTime.now
 
 class ProjectUtill
 
@@ -26,3 +25,6 @@ fun printOptions(options: Set<Option>) = options
 
 fun String.subStr(max: Int, endPart: String = "") =
     if (this.length < max) this else this.substring(0 until max) + endPart
+
+fun stubCampaign(id: Long = 0, name: String = "", groups: Set<Group> = emptySet()) =
+    Campaign(id = id, name = name, createDate = now(), groups = groups)

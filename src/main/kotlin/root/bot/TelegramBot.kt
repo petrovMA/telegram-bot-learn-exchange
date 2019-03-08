@@ -6,6 +6,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
@@ -28,6 +29,10 @@ import java.util.HashMap
 import root.data.UserState.*
 import root.data.entity.*
 import root.libs.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
 
 class TelegramBot : TelegramLongPollingBot {
 
@@ -550,6 +555,37 @@ class TelegramBot : TelegramLongPollingBot {
                         resetMenu(upd.message, text.msgAddSuperAdmin)
                         userStates[upd.message.from.id] =
                             UserData(REMOVE_SUPER_ADMIN, upd.message.from)
+                    }
+                    text.getTableFile -> sendTableSuperAdmin(upd.message)
+                    text.sendCampaignsTable -> {
+                        sendTable(upd.message.chatId, service.getAllCampaigns())
+                    }
+                    text.sendSuperAdminTable -> {
+                        sendTable(upd.message.chatId, service.getAllSuperAdmins())
+                    }
+                    text.sendSurveysTable -> {
+                        sendAvailableCampaignsList(
+                            "sendGroupsTable",
+                            "$GET_EXCEL_TABLE_SURVEY",
+                            upd.message.chatId,
+                            service.getAllCampaigns()
+                        )
+                    }
+                    text.sendAdminsTable -> {
+                        sendAvailableCampaignsList(
+                            "sendAdminsTable",
+                            "$GET_EXCEL_TABLE_ADMINS",
+                            upd.message.chatId,
+                            service.getAllCampaigns()
+                        )
+                    }
+                    text.sendUsersInCampaign -> {
+                        sendAvailableCampaignsList(
+                            "sendUsersInCampaign",
+                            "$GET_EXCEL_TABLE_USERS_IN_CAMPAIGN",
+                            upd.message.chatId,
+                            service.getAllCampaigns()
+                        )
                     }
                     text.createCampaign -> {
                         resetMenu(upd.message, text.msgCreateCampaign)
@@ -1219,6 +1255,29 @@ class TelegramBot : TelegramLongPollingBot {
                 editOption(userStates[upd.callbackQuery.from.id]!!.option!!, upd)
                 execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
             }
+
+            GET_EXCEL_TABLE_SURVEY == callBackCommand -> {
+                deleteMessage(upd.callbackQuery.message)
+                sendTable(
+                    upd.callbackQuery.message.chatId,
+                    service.getSurveyByCampaignId(params[1].toLong())
+                )
+            }
+            GET_EXCEL_TABLE_USERS_IN_CAMPAIGN == callBackCommand -> {
+                deleteMessage(upd.callbackQuery.message)
+                sendTable(
+                    upd.callbackQuery.message.chatId,
+                    service.getUsersByCampaignId(params[1].toLong())
+                )
+            }
+            GET_EXCEL_TABLE_ADMINS == callBackCommand -> {
+                deleteMessage(upd.callbackQuery.message)
+                sendTable(
+                    upd.callbackQuery.message.chatId,
+                    service.getAdminByCampaigns(setOf(stubCampaign(id = params[1].toLong())))
+                )
+            }
+
             CAMPAIGN_FOR_SEND_GROUP_MSG == callBackCommand &&
                     userStates[upd.callbackQuery.from.id]?.state == CAMPAIGN_FOR_SEND_GROUP_MSG -> try {
 
@@ -1429,7 +1488,7 @@ class TelegramBot : TelegramLongPollingBot {
             USER_CAMPAIGN_MENU -> {
                 service.getUserById(upd.callbackQuery.from.id)?.let {
                     service.createOrUpdateGroupUser(
-                        UserInGroup(
+                        UserInCampaign(
                             upd.callbackQuery.from.id,
                             createDate = now(),
                             firstName = upd.callbackQuery.from.firstName,
@@ -1440,7 +1499,7 @@ class TelegramBot : TelegramLongPollingBot {
                     )
                 } ?: {
                     service.createOrUpdateGroupUser(
-                        UserInGroup(
+                        UserInCampaign(
                             upd.callbackQuery.from.id,
                             createDate = now(),
                             firstName = upd.callbackQuery.from.firstName,
@@ -1515,6 +1574,7 @@ class TelegramBot : TelegramLongPollingBot {
                     keyboard.addElements(KeyboardRow().also {
                         it.add(text.addSuperAdmin)
                         it.add(text.removeSuperAdmin)
+                        it.add(text.getTableFile)
                     }, KeyboardRow().also {
                         it.add(text.sendToEveryUser)
                         it.add(text.sendToEveryGroup)
@@ -1551,6 +1611,45 @@ class TelegramBot : TelegramLongPollingBot {
                     it.add(text.removeGroupFromCampaign)
                     it.add(text.removeAdminFromCampaign)
                     it.add(text.removeCampaign)
+                })
+            }
+        }
+    }, message.chatId)
+
+    private fun sendTableSuperAdmin(message: Message) = sendMessage(SendMessage().also { msg ->
+        msg.text = text.mainMenu
+        msg.enableMarkdown(true)
+        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+            markup.selective = true
+            markup.resizeKeyboard = true
+            markup.oneTimeKeyboard = false
+            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+                keyboard.addElements(KeyboardRow().also {
+                    it.add(text.sendCampaignsTable)
+                    it.add(text.sendSuperAdminTable)
+                }, KeyboardRow().also {
+                    it.add(text.sendUsersInCampaign)
+                    it.add(text.sendAdminsTable)
+                    it.add(text.sendSurveysTable)
+                })
+            }
+        }
+    }, message.chatId)
+
+    private fun sendTableAdmin(message: Message) = sendMessage(SendMessage().also { msg ->
+        msg.text = text.mainMenu
+        msg.enableMarkdown(true)
+        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+            markup.selective = true
+            markup.resizeKeyboard = true
+            markup.oneTimeKeyboard = false
+            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+                keyboard.addElements(KeyboardRow().also {
+                    it.add(text.sendCampaignsTable)
+                    it.add(text.sendUsersInCampaign)
+                }, KeyboardRow().also {
+                    it.add(text.sendAdminsTable)
+                    it.add(text.sendSurveysTable)
                 })
             }
         }
@@ -1638,7 +1737,7 @@ class TelegramBot : TelegramLongPollingBot {
         )
     }
 
-    private fun msgToUsers(users: Iterable<UserInGroup>, upd: Update) = users.forEach {
+    private fun msgToUsers(users: Iterable<UserInCampaign>, upd: Update) = users.forEach {
         execute(
             ForwardMessage(
                 it.userId.toLong(),
@@ -1846,6 +1945,46 @@ class TelegramBot : TelegramLongPollingBot {
             }
         }
     })
+
+    private fun sendTable(chatId: Long, excelEntities: Iterable<ExcelEntity>, entityName: String = "") = try {
+        excelEntities.firstOrNull()?.let {
+            val file = File(
+                "tableFiles/${entityName}_" +
+                        convertTime(System.currentTimeMillis(), SimpleDateFormat("yyyy_MM_dd__HH-mm-ss")) + ".xls"
+            )
+
+            writeIntoExcel(file, excelEntities)
+
+            val dir = File("tmpDir")
+
+            dir.listFiles().forEach {
+                if (it.delete()) log.info("Remove file from ${dir.name}")
+                else log.warn("File not remove from ${dir.name}")
+            }
+
+            val src = FileInputStream(file).channel
+            val resultFile = File(
+                "${dir.name}/${resourceText(
+                    text.fileNameTextTmp,
+                    "file.name" to entityName,
+                    "file.time" to convertTime(System.currentTimeMillis(), SimpleDateFormat("yyyy_MM_dd__HH-mm-ss"))
+                )}"
+            )
+
+            FileOutputStream(resultFile).channel.transferFrom(src, 0, src.size())
+
+            val sendDocumentRequest = SendDocument()
+            sendDocumentRequest.setChatId(chatId)
+            sendDocumentRequest.setDocument(resultFile)
+            execute(sendDocumentRequest)
+        } ?: {
+            sendMessage(
+                resourceText(text.msgDataInTableNotExist, "table.name" to entityName), chatId
+            )
+        }.invoke()
+    } catch (e: Exception) {
+        log.warn("Can't send file with list of participants", e)
+    }
 
     private fun enterText(message: Message, text: String, textBack: String, stateBack: UserState) =
         editMessage(EditMessageText().also { msg ->

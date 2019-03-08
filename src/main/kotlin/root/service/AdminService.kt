@@ -12,15 +12,18 @@ interface AdminService {
     fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign>
     fun deleteCampaignByName(name: String)
 
+    fun getAllSuperAdmins() : Iterable<SuperAdmin>
     fun getSuperAdminById(userId: Int) : SuperAdmin?
     fun saveSuperAdmin(superAdmin: SuperAdmin) : SuperAdmin?
     fun deleteSuperAdminById(userId: Int)
 
     fun getSurveyByCampaign(campaign: Campaign) : Iterable<Survey>
+    fun getSurveyByCampaignId(campaignId: Long) : Iterable<Survey>
     fun getSurveyById(id: Long) : Survey?
     fun saveSurvey(survey: Survey) : Survey
     fun deleteSurveyById(id: Long)
 
+    fun getAdminByCampaigns(campaigns: Set<Campaign>) : Iterable<Admin>
     fun getAdminById(userId: Int) : Admin?
     fun saveAdmin(admin: Admin) : Admin?
     fun deleteAdminById(userId: Int)
@@ -30,8 +33,8 @@ interface AdminService {
     fun getGroupsByCampaignId(campaignId: Long) : Iterable<Group>
     fun deleteGroupById(id: Long)
 
-    fun createOrUpdateGroupUser(user: UserInGroup) : UserInGroup
-    fun getAllUsers() : Iterable<UserInGroup>
-    fun getUserById(userId: Int) : UserInGroup?
-    fun getUsersByCampaignId(campaignId: Long) : Iterable<UserInGroup>
+    fun createOrUpdateGroupUser(user: UserInCampaign) : UserInCampaign
+    fun getAllUsers() : Iterable<UserInCampaign>
+    fun getUserById(userId: Int) : UserInCampaign?
+    fun getUsersByCampaignId(campaignId: Long) : Iterable<UserInCampaign>
 }

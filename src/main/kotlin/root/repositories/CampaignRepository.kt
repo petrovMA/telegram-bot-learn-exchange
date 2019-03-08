@@ -3,7 +3,6 @@ package root.repositories
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import root.data.entity.Campaign
-import root.data.entity.UserInGroup
 
 interface CampaignRepository : CrudRepository<Campaign, Long> {
     fun findCampaignById(id: Long): Campaign

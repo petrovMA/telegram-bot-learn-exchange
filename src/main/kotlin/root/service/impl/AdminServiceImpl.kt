@@ -49,6 +49,9 @@ open class AdminServiceImpl(
     override fun getSuperAdminById(userId: Int): SuperAdmin? = superAdminRepository.findSuperAdminByUserId(userId)
 
     @Transactional
+    override fun getAllSuperAdmins(): Iterable<SuperAdmin> = superAdminRepository.findAll()
+
+    @Transactional
     override fun saveSuperAdmin(superAdmin: SuperAdmin): SuperAdmin = superAdminRepository.save(superAdmin)
 
     @Transactional
@@ -58,6 +61,10 @@ open class AdminServiceImpl(
     @Transactional
     override fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey> =
         surveyRepository.findAllByCampaign(campaign)
+
+    @Transactional
+    override fun getSurveyByCampaignId(campaignId: Long): Iterable<Survey> =
+        surveyRepository.findAllByCampaign_Id(campaignId)
 
     @Transactional
     override fun getSurveyById(id: Long): Survey? = surveyRepository.findById(id).orElse(null)
@@ -70,7 +77,7 @@ open class AdminServiceImpl(
 
 
     @Transactional
-    override fun createOrUpdateGroupUser(user: UserInGroup): UserInGroup =
+    override fun createOrUpdateGroupUser(user: UserInCampaign): UserInCampaign =
         groupUserRepository.findUserInGroupByUserId(user.userId).run {
             if (this == user) this
             else groupUserRepository.save(user)
@@ -86,7 +93,10 @@ open class AdminServiceImpl(
     override fun getAdminById(userId: Int): Admin? = adminRepository.findAdminByUserId(userId)
 
     @Transactional
-    override fun getUserById(userId: Int): UserInGroup? = groupUserRepository.findUserInGroupByUserId(userId)
+    override fun getAdminByCampaigns(campaigns: Set<Campaign>): Iterable<Admin> = adminRepository.findAllByCampaigns(campaigns)
+
+    @Transactional
+    override fun getUserById(userId: Int): UserInCampaign? = groupUserRepository.findUserInGroupByUserId(userId)
 
     @Transactional
     override fun deleteAdminById(userId: Int) = adminRepository.deleteByUserId(userId)
@@ -98,13 +108,13 @@ open class AdminServiceImpl(
     override fun getAllGroups(): Iterable<Group> = groupRepository.findAll()
 
     @Transactional
-    override fun getAllUsers(): Iterable<UserInGroup> = groupUserRepository.findAll()
+    override fun getAllUsers(): Iterable<UserInCampaign> = groupUserRepository.findAll()
 
     @Transactional
     override fun getGroupsByCampaignId(campaignId: Long): Iterable<Group> =
         groupRepository.findAllByCampaignId(campaignId)
 
     @Transactional
-    override fun getUsersByCampaignId(campaignId: Long): Iterable<UserInGroup> =
+    override fun getUsersByCampaignId(campaignId: Long): Iterable<UserInCampaign> =
         groupUserRepository.findAllUsersByCampaignId(campaignId)
 }

@@ -3,7 +3,11 @@ package root.libs
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import org.apache.log4j.Logger
+import org.apache.poi.hssf.usermodel.HSSFSheet
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
+import root.data.entity.ExcelEntity
 import java.io.File
+import java.io.FileOutputStream
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.Duration
@@ -87,4 +91,24 @@ fun resourceText(text: String, vararg params: ResourceParameter = emptyArray()):
     return resourceText
 }
 
-fun <E> ArrayList<E>.addElements(vararg elements:E) = this.addAll(elements)
+fun <E> ArrayList<E>.addElements(vararg elements: E) = this.addAll(elements)
+
+fun writeIntoExcel(file: File, lines: Iterable<ExcelEntity>) = HSSFWorkbook().let {
+    it.createSheet("sheet").let { sheet ->
+
+        val writeRov = { array: Array<String>, s: HSSFSheet, rowNum: Int ->
+            val row = s.createRow(rowNum)
+            for (j in 0 until array.size) {
+                row.createCell(j).setCellValue(array[j])
+            }
+        }
+
+        writeRov(lines.first().toHead(), sheet, sheet.lastRowNum)
+
+        for (i in lines.iterator())
+            writeRov(i.toRow(), sheet, sheet.lastRowNum + 1)
+
+        it.write(FileOutputStream(file))
+        it.close()
+    }
+}

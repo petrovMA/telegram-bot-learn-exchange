@@ -10,7 +10,7 @@ data class UserData(
     val taskName: String? = null,
     val groups: Set<Group>? = null,
     val campaign: Campaign? = null,
-    val users: Iterable<UserInGroup>? = null,
+    val users: Iterable<UserInCampaign>? = null,
     var survey: Survey? = null,
     var question: Question? = null,
     var option: Option? = null,
@@ -21,6 +21,7 @@ enum class UserState {
     // main admin commands
     ADD_SUPER_ADMIN,
     REMOVE_SUPER_ADMIN,
+    SEND_TABLE_FILE_MENU,
 
     // super admin commands
     CREATE_CAMPAIGN,
@@ -36,8 +37,9 @@ enum class UserState {
     CAMPAIGN_FOR_SEND_GROUP_MSG,
     CAMPAIGN_FOR_SEND_USERS_MSG,
     CAMPAIGN_FOR_SURVEY,
-
-    // user commands
+    GET_EXCEL_TABLE_SURVEY,
+    GET_EXCEL_TABLE_ADMINS,
+    GET_EXCEL_TABLE_USERS_IN_CAMPAIGN,
     SURVEY,
     SURVEY_DESCRIPTION,
     SURVEY_NAME,
@@ -63,6 +65,8 @@ enum class UserState {
     SURVEY_OPTION_SELECT,
     SURVEY_OPTION_SELECT_BACK,
 
+
+    // user commands
     JOIN_TO_CAMPAIGN,
     USER_CAMPAIGN_MENU,
     USER_MENU,

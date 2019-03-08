@@ -70,7 +70,7 @@ data class Admin(
     }
 
     override fun toHead(): Array<String> =
-        arrayOf("user_Id", "user_Name", "first_Name", "last_Name", "create_date", "campaigns")
+        arrayOf("user_Id", "user_Name", "first_Name", "last_Name", "create_date", "campaign")
 
     override fun toRow(): Array<String> =
         arrayOf(

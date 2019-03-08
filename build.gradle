@@ -40,6 +40,9 @@ dependencies {
     compile 'org.postgresql:postgresql:42.1.1'
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
 
+    // https://mvnrepository.com/artifact/org.apache.poi/poi
+    compile group: 'org.apache.poi', name: 'poi', version: '4.0.1'
+
     // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
     compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.1'
 
