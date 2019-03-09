@@ -28,3 +28,18 @@ fun String.subStr(max: Int, endPart: String = "") =
 
 fun stubCampaign(id: Long = 0, name: String = "", groups: Set<Group> = emptySet()) =
     Campaign(id = id, name = name, createDate = now(), groups = groups)
+
+fun stubUserInCampaign(
+    userId: Int = 0,
+    firstName: String? = null,
+    lastName: String? = null,
+    userName: String? = null,
+    campaigns: Set<Campaign> = emptySet()
+) = UserInCampaign(
+    userId = userId,
+    firstName = firstName,
+    lastName = lastName,
+    userName = userName,
+    createDate = now(),
+    campaigns = campaigns
+)

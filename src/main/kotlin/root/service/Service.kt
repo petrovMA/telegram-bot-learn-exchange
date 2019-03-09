@@ -2,7 +2,7 @@ package root.service
 
 import root.data.entity.*
 
-interface AdminService {
+interface Service {
     fun createCampaign(campaign: Campaign) : Campaign
     fun updateCampaign(campaign: Campaign) : Campaign
     fun getCampaignByName(name: String) : Campaign?
@@ -37,4 +37,6 @@ interface AdminService {
     fun getAllUsers() : Iterable<UserInCampaign>
     fun getUserById(userId: Int) : UserInCampaign?
     fun getUsersByCampaignId(campaignId: Long) : Iterable<UserInCampaign>
+
+    fun getAllPassedSurveysByUser(user:UserInCampaign) : Iterable<PassedSurvey>
 }

@@ -23,7 +23,7 @@ data class Survey(
 
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinTable(
-        name = "questions_to_questions",
+        name = "survey_to_questions",
         joinColumns = [JoinColumn(name = "surveys_id")],
         inverseJoinColumns = [JoinColumn(name = "questions_id")]
     )

@@ -1,6 +1,5 @@
 package root.service.impl
 
-import root.service.AdminService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -8,7 +7,7 @@ import root.data.entity.*
 import root.repositories.*
 
 @Service
-open class AdminServiceImpl(
+open class ServiceImpl(
     @Autowired open val adminRepository: AdminRepository,
     @Autowired open val optionRepository: OptionRepository,
     @Autowired open val questionRepository: QuestionRepository,
@@ -16,8 +15,9 @@ open class AdminServiceImpl(
     @Autowired open val superAdminRepository: SuperAdminRepository,
     @Autowired open val groupUserRepository: GroupUserRepository,
     @Autowired open val groupRepository: GroupRepository,
-    @Autowired open val campaignRepository: CampaignRepository
-) : AdminService {
+    @Autowired open val campaignRepository: CampaignRepository,
+    @Autowired open val passedSurveyRepository: PassedSurveyRepository
+) : root.service.Service {
     @Transactional
     override fun getCampaignByName(name: String): Campaign? = campaignRepository.findCampaignByName(name)
 
@@ -117,4 +117,7 @@ open class AdminServiceImpl(
     @Transactional
     override fun getUsersByCampaignId(campaignId: Long): Iterable<UserInCampaign> =
         groupUserRepository.findAllUsersByCampaignId(campaignId)
+
+    @Transactional
+    override fun getAllPassedSurveysByUser(user:UserInCampaign) = passedSurveyRepository.findAllByUser(user)
 }

@@ -17,7 +17,7 @@ import org.telegram.telegrambots.meta.TelegramBotsApi
 import root.data.MainAdmin
 import root.data.Text
 import root.libs.readConf
-import root.service.AdminService
+import root.service.Service
 import java.io.File
 import javax.annotation.PostConstruct
 
@@ -26,7 +26,7 @@ import javax.annotation.PostConstruct
  */
 
 @Controller
-open class Controller @Autowired constructor(open val accountService: AdminService) {
+open class Controller @Autowired constructor(open val accountService: Service) {
 
     private val log = Logger.getLogger(Controller::class.java)
     private var bot: TelegramLongPollingBot? = null
