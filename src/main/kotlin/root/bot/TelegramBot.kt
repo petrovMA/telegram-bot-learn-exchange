@@ -564,27 +564,30 @@ class TelegramBot : TelegramLongPollingBot {
                         sendTable(upd.message.chatId, service.getAllSuperAdmins())
                     }
                     text.sendSurveysTable -> {
-                        sendAvailableCampaignsList(
-                            text.msgSurveysTable,
-                            "$GET_EXCEL_TABLE_SURVEY",
-                            upd.message.chatId,
-                            service.getAllCampaigns()
+                        sendMessage(
+                            sendAvailableCampaignsList(
+                                text.msgSurveysTable,
+                                "$GET_EXCEL_TABLE_SURVEY",
+                                service.getAllCampaigns()
+                            ), upd.message.chatId
                         )
                     }
                     text.sendAdminsTable -> {
-                        sendAvailableCampaignsList(
-                            text.msgAdminsTable,
-                            "$GET_EXCEL_TABLE_ADMINS",
-                            upd.message.chatId,
-                            service.getAllCampaigns()
+                        sendMessage(
+                            sendAvailableCampaignsList(
+                                text.msgAdminsTable,
+                                "$GET_EXCEL_TABLE_ADMINS",
+                                service.getAllCampaigns()
+                            ), upd.message.chatId
                         )
                     }
                     text.sendUsersInCampaign -> {
-                        sendAvailableCampaignsList(
-                            text.msgUsersInCampaign,
-                            "$GET_EXCEL_TABLE_USERS_IN_CAMPAIGN",
-                            upd.message.chatId,
-                            service.getAllCampaigns()
+                        sendMessage(
+                            sendAvailableCampaignsList(
+                                text.msgUsersInCampaign,
+                                "$GET_EXCEL_TABLE_USERS_IN_CAMPAIGN",
+                                service.getAllCampaigns()
+                            ), upd.message.chatId
                         )
                     }
                     text.createCampaign -> {
@@ -598,11 +601,12 @@ class TelegramBot : TelegramLongPollingBot {
                         val availableCampaigns = service.getAllCampaigns().toList()
 
                         if (availableCampaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.adminAvailableCampaigns,
-                                CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
-                                upd.message.chatId,
-                                availableCampaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.adminAvailableCampaigns,
+                                    CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
+                                    availableCampaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SEND_USERS_MSG, upd.message.from)
@@ -614,11 +618,12 @@ class TelegramBot : TelegramLongPollingBot {
                         val availableCampaigns = service.getAllCampaigns().toList()
 
                         if (availableCampaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.adminAvailableCampaigns,
-                                CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
-                                upd.message.chatId,
-                                availableCampaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.adminAvailableCampaigns,
+                                    CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
+                                    availableCampaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, upd.message.from)
@@ -630,11 +635,12 @@ class TelegramBot : TelegramLongPollingBot {
                         val availableCampaigns = service.getAllCampaigns().toList()
 
                         if (availableCampaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.adminAvailableCampaignsSurveys,
-                                CAMPAIGN_FOR_SURVEY.toString(),
-                                upd.message.chatId,
-                                availableCampaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.adminAvailableCampaignsSurveys,
+                                    CAMPAIGN_FOR_SURVEY.toString(),
+                                    availableCampaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SURVEY, upd.message.from)
@@ -884,11 +890,12 @@ class TelegramBot : TelegramLongPollingBot {
                         val availableCampaigns = service.getAllCampaigns().toList()
 
                         if (availableCampaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.adminAvailableCampaigns,
-                                CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
-                                upd.message.chatId,
-                                availableCampaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.adminAvailableCampaigns,
+                                    CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
+                                    availableCampaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SEND_USERS_MSG, upd.message.from)
@@ -900,11 +907,12 @@ class TelegramBot : TelegramLongPollingBot {
                         val availableCampaigns = service.getAllCampaigns().toList()
 
                         if (availableCampaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.adminAvailableCampaigns,
-                                CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
-                                upd.message.chatId,
-                                availableCampaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.adminAvailableCampaigns,
+                                    CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
+                                    availableCampaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, upd.message.from)
@@ -973,11 +981,12 @@ class TelegramBot : TelegramLongPollingBot {
                         sendMessage(resetMenu(text.msgSendToEveryUser, text.reset), upd.message.chatId)
 
                         if (admin.campaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.adminAvailableCampaigns,
-                                CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
-                                upd.message.chatId,
-                                admin.campaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.adminAvailableCampaigns,
+                                    CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
+                                    admin.campaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SEND_USERS_MSG, upd.message.from)
@@ -987,11 +996,12 @@ class TelegramBot : TelegramLongPollingBot {
                         sendMessage(resetMenu(text.msgSendToEveryGroup, text.reset), upd.message.chatId)
 
                         if (admin.campaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.adminAvailableCampaigns,
-                                CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
-                                upd.message.chatId,
-                                admin.campaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.adminAvailableCampaigns,
+                                    CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
+                                    admin.campaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, upd.message.from)
@@ -1028,11 +1038,12 @@ class TelegramBot : TelegramLongPollingBot {
                         ).toList()
 
                         if (availableCampaigns.isNotEmpty()) {
-                            sendAvailableCampaignsList(
-                                text.userAvailableCampaigns,
-                                USER_CAMPAIGN_MENU.toString(),
-                                upd.message.chatId,
-                                availableCampaigns
+                            sendMessage(
+                                sendAvailableCampaignsList(
+                                    text.userAvailableCampaigns,
+                                    USER_CAMPAIGN_MENU.toString(),
+                                    availableCampaigns
+                                ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] = UserData(USER_CAMPAIGN_MENU, upd.message.from)
                         } else
@@ -1044,11 +1055,19 @@ class TelegramBot : TelegramLongPollingBot {
                     sendMessage(
                         sendUserInfo(
                             service.getAllPassedSurveysByUser(stubUserInCampaign(userId = upd.message.chatId.toInt())),
-                            value = 205, text = text.sendUserInfo
+                            text.sendUserInfo
                         ), upd.message.chatId
                     )
                 }
                 text.showUserCampaigns -> {
+                    sendMessage(
+                        sendAvailableCampaignsList(
+                            text.userCampaignsTask,
+                            USER_CAMPAIGN_FOR_TASK.toString(),
+                            service.getAllCampaignByUserId(upd.message.chatId.toInt())
+                        ), upd.message.chatId
+                    )
+                    userStates[upd.message.from.id] = UserData(USER_CAMPAIGN_FOR_TASK, upd.message.from)
                 }
                 else -> userMenu(upd.message)
             }
@@ -1508,6 +1527,30 @@ class TelegramBot : TelegramLongPollingBot {
                     upd.callbackQuery.message.chatId
                 )
             }
+            USER_CAMPAIGN_FOR_TASK -> {
+                if (userStates[upd.callbackQuery.from.id]?.state == USER_CAMPAIGN_FOR_TASK) {
+                    execute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
+                    val tasks = service.getAllSurveyForUser(params[1].toLong(), upd.callbackQuery.from.id).toList()
+                    if (tasks.isNotEmpty())
+                        sendMessage(
+                            showTaskList(
+                                text.sendChooseTask,
+                                CHOOSE_TASK.toString(),
+                                tasks
+                            ), upd.callbackQuery.message.chatId
+                        )
+                    else
+                        userMenu(upd.callbackQuery.message, text.userTaskNotFound)
+                } else {
+                    execute(callbackAnswer.also { it.text = text.clbSurveyTimeOut })
+                    deleteMessage(upd.callbackQuery.message)
+                }
+            }
+            CHOOSE_TASK -> {
+                if (userStates[upd.callbackQuery.from.id]?.state == USER_CAMPAIGN_FOR_TASK) {
+                    TODO("load task for user")
+                }
+            }
             else -> {
                 setTextToMessage(
                     text.errUserAddedToCampaign,
@@ -1524,34 +1567,6 @@ class TelegramBot : TelegramLongPollingBot {
         userStates[upd.callbackQuery.from.id] =
             UserData(SURVEY_NAME, upd.callbackQuery.from)
         sendMessage(text.msgSurveyActionsName, upd.callbackQuery.message.chatId)
-    }
-
-    private fun showTaskList(upd: Update) {
-        try {
-
-            val message = SendMessage()
-
-            val markupInline = InlineKeyboardMarkup()
-            val rowsInline = ArrayList<List<InlineKeyboardButton>>()
-            val rowInline = ArrayList<InlineKeyboardButton>()
-            tasks.forEach { name, _ ->
-                rowInline.add(
-                    InlineKeyboardButton()
-                        .setText(name)
-                        .setCallbackData(name)
-                )
-            }
-            // Set the keyboard to the markup
-            rowsInline.add(rowInline)
-            // Add it to the message
-            markupInline.keyboard = rowsInline
-            message.replyMarkup = markupInline
-            message.text = "root/groups"
-
-            sendMessage(message, upd.message.chatId)
-        } catch (e: Exception) {
-            log.error(e.message, e)
-        }
     }
 
     private fun mainAdminMenu(message: Message, textMsg: String = text.mainMenu) =
@@ -1655,7 +1670,7 @@ class TelegramBot : TelegramLongPollingBot {
             markup.resizeKeyboard = true
             markup.oneTimeKeyboard = false
             markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-                keyboard.add(KeyboardRow().also {
+                keyboard.addElements(KeyboardRow().also {
                     it.add(text.sendToEveryUser)
                     it.add(text.sendToEveryGroup)
                 })
@@ -1663,21 +1678,24 @@ class TelegramBot : TelegramLongPollingBot {
         }
     }, message.chatId)
 
-    private fun userMenu(message: Message) = sendMessage(SendMessage().also { msg ->
-        msg.text = text.userMainMenu
-        msg.enableMarkdown(true)
-        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-            markup.selective = true
-            markup.resizeKeyboard = true
-            markup.oneTimeKeyboard = false
-            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-                keyboard.add(KeyboardRow().also {
-                    it.add(text.joinToCampaign)
-                    it.add(text.msgUserInfo)
-                })
+    private fun userMenu(message: Message, textMsg: String = text.userMainMenu) =
+        sendMessage(SendMessage().also { msg ->
+            msg.text = textMsg
+            msg.enableMarkdown(true)
+            msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+                markup.selective = true
+                markup.resizeKeyboard = true
+                markup.oneTimeKeyboard = false
+                markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+                    keyboard.addElements(KeyboardRow().also {
+                        it.add(text.joinToCampaign)
+                        it.add(text.msgUserInfo)
+                    }, KeyboardRow().also {
+                        it.add(text.showUserCampaigns)
+                    })
+                }
             }
-        }
-    }, message.chatId)
+        }, message.chatId)
 
     private fun sendMessage(messageText: String, chatId: Long) = try {
         val message = SendMessage().setChatId(chatId)
@@ -1724,18 +1742,6 @@ class TelegramBot : TelegramLongPollingBot {
             )
         )
     }
-
-    private fun sendAvailableCampaignsList(text: String, command: String, chatId: Long, campaigns: Iterable<Campaign>) =
-        sendMessage(SendMessage().also { msg ->
-            msg.text = text
-            msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
-                markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
-                    campaigns.forEach {
-                        keyboard.add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
-                    }
-                }
-            }
-        }, chatId)
 
     private fun showSurveys(surveys: List<Survey>, upd: Update) = editMessage(EditMessageText().also { msg ->
         msg.chatId = upd.callbackQuery.message.chatId.toString()

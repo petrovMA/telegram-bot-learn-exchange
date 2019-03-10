@@ -70,6 +70,10 @@ open class ServiceImpl(
     override fun getSurveyById(id: Long): Survey? = surveyRepository.findById(id).orElse(null)
 
     @Transactional
+    override fun getAllSurveyForUser(campaignId: Long, userId: Int) : Iterable<Survey> =
+        surveyRepository.findAllForUser(campaignId, userId)
+
+    @Transactional
     override fun saveSurvey(survey: Survey): Survey = surveyRepository.save(survey)
 
     @Transactional
@@ -93,7 +97,8 @@ open class ServiceImpl(
     override fun getAdminById(userId: Int): Admin? = adminRepository.findAdminByUserId(userId)
 
     @Transactional
-    override fun getAdminByCampaigns(campaigns: Set<Campaign>): Iterable<Admin> = adminRepository.findAllByCampaigns(campaigns)
+    override fun getAdminByCampaigns(campaigns: Set<Campaign>): Iterable<Admin> =
+        adminRepository.findAllByCampaigns(campaigns)
 
     @Transactional
     override fun getUserById(userId: Int): UserInCampaign? = groupUserRepository.findUserInGroupByUserId(userId)
@@ -119,5 +124,6 @@ open class ServiceImpl(
         groupUserRepository.findAllUsersByCampaignId(campaignId)
 
     @Transactional
-    override fun getAllPassedSurveysByUser(user:UserInCampaign) = passedSurveyRepository.findAllByUser(user)
+    override fun getAllPassedSurveysByUser(user: UserInCampaign) =
+        passedSurveyRepository.findAllByUser(user)
 }

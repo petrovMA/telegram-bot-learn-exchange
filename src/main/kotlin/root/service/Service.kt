@@ -20,6 +20,7 @@ interface Service {
     fun getSurveyByCampaign(campaign: Campaign) : Iterable<Survey>
     fun getSurveyByCampaignId(campaignId: Long) : Iterable<Survey>
     fun getSurveyById(id: Long) : Survey?
+    fun getAllSurveyForUser(campaignId: Long, userId: Int) : Iterable<Survey>
     fun saveSurvey(survey: Survey) : Survey
     fun deleteSurveyById(id: Long)
 
