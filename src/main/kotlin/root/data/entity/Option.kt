@@ -16,10 +16,10 @@ data class Option(
     @Column(nullable = false)
     var text: String,
 
-    var sortPoints: Int? = null,
+    var sortPoints: Int = Int.MAX_VALUE,
 
     @Column(nullable = false)
-    var value: Int = Int.MAX_VALUE
+    var value: Int = 0
 ) {
     override fun toString(): String = "Option text:\n$text\nvalue:\n$value\nsort_point:\n$sortPoints"
     override fun hashCode(): Int = 31 + text.hashCode()

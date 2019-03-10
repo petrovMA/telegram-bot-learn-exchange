@@ -147,6 +147,7 @@ data class Text(
     @SerialName("send-choose-task") val sendChooseTask: String,
     @SerialName("clb-survey-collect-process") val clbSurveyCollectProcess: String,
     @SerialName("user-task-not-found") val userTaskNotFound: String,
+    @SerialName("survey-passed") val surveyPassed: String,
     @SerialName("edit-surveys") val editSurveys: String,
     @SerialName("survey-back") val surveyBack: String,
     @SerialName("survey") val survey: String,

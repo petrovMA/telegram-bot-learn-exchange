@@ -11,6 +11,8 @@ import java.io.FileOutputStream
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.Duration
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 val format = SimpleDateFormat("yyyy.MM.dd HH:mm:ss")
@@ -41,6 +43,10 @@ fun Long.d(): Duration = Duration.ofDays(this)
 fun <T> List<T>.toArrayList(): ArrayList<T> = ArrayList(this)
 
 fun convertTime(time: Long, format_: SimpleDateFormat = format): String = format_.format(Date(time))
+fun convertTime(
+    time: OffsetDateTime,
+    format_: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss")
+): String = format_.format(time)
 
 @Throws(ParseException::class)
 fun convertLongTime(dateTime: String, format: SimpleDateFormat): Long = format.parse(dateTime).time

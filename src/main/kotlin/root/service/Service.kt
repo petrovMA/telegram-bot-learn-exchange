@@ -40,4 +40,5 @@ interface Service {
     fun getUsersByCampaignId(campaignId: Long) : Iterable<UserInCampaign>
 
     fun getAllPassedSurveysByUser(user:UserInCampaign) : Iterable<PassedSurvey>
+    fun savePassedSurvey(passedSurvey: PassedSurvey) : PassedSurvey
 }

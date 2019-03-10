@@ -5,23 +5,25 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import root.data.dao.SurveyDAO
 import root.data.entity.Campaign
 import root.data.entity.PassedSurvey
 import root.data.entity.Survey
+import root.libs.convertTime
 import root.libs.resourceText
 import java.util.ArrayList
 
 
-fun sendUserInfo(passedSurveys: Iterable<PassedSurvey>, text: String) = SendMessage().also { msg ->
+fun msgUserInfo(passedSurveys: Iterable<PassedSurvey>, text: String) = SendMessage().also { msg ->
     val value = passedSurveys.map { survey -> survey.value }.sum()
     msg.text = resourceText(
         text,
         "account.value" to "$value",
-        "pass.surveys" to passedSurveys.toString()
+        "pass.surveys" to passedSurveys.joinToString("\n") { "\n${it.value}\n${it.description}\n${convertTime(it.passDate)}" }
     )
 }
 
-fun sendAvailableCampaignsList(text: String, command: String, campaigns: Iterable<Campaign>) =
+fun msgAvailableCampaignsList(text: String, command: String, campaigns: Iterable<Campaign>) =
     SendMessage().also { msg ->
         msg.text = text
         msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
@@ -33,7 +35,7 @@ fun sendAvailableCampaignsList(text: String, command: String, campaigns: Iterabl
         }
     }
 
-fun showTaskList(text: String, command: String, surveys: Iterable<Survey>) = SendMessage().also { msg ->
+fun msgTaskList(text: String, command: String, surveys: Iterable<Survey>) = SendMessage().also { msg ->
     msg.text = text
     msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
 
@@ -45,7 +47,19 @@ fun showTaskList(text: String, command: String, surveys: Iterable<Survey>) = Sen
     }
 }
 
-fun resetMenu(text: String, textReset: String) = SendMessage().also { msg ->
+fun msgQuestion(survey: SurveyDAO, command: String) = SendMessage().also { msg ->
+    val question = survey.questions[survey.state]
+    msg.text = question.text
+    msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
+        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+            question.options.toList().sortedBy { it.sortPoints }.forEach {
+                keyboard.add(listOf(InlineKeyboardButton().setText(it.text).setCallbackData("$command ${it.id}")))
+            }
+        }
+    }
+}
+
+fun msgResetMenu(text: String, textReset: String) = SendMessage().also { msg ->
     msg.text = text
     msg.enableMarkdown(true)
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->

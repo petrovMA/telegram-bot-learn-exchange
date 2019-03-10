@@ -2,6 +2,7 @@ package root.data
 
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
+import root.data.dao.SurveyDAO
 import root.data.entity.*
 
 data class UserData(
@@ -14,7 +15,8 @@ data class UserData(
     var survey: Survey? = null,
     var question: Question? = null,
     var option: Option? = null,
-    var updCallback: Update? = null
+    var updCallback: Update? = null,
+    var surveyInProgress: SurveyDAO? = null
 )
 
 enum class UserState {
@@ -38,6 +40,7 @@ enum class UserState {
     CAMPAIGN_FOR_SEND_USERS_MSG,
     CAMPAIGN_FOR_SURVEY,
     CHOOSE_TASK,
+    SURVEY_USERS_ANSWER,
     USER_CAMPAIGN_FOR_TASK,
     GET_EXCEL_TABLE_SURVEY,
     GET_EXCEL_TABLE_ADMINS,
