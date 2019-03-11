@@ -1702,6 +1702,8 @@ class TelegramBot : TelegramLongPollingBot {
                 }, KeyboardRow().also {
                     it.add(text.sendAdminsTable)
                     it.add(text.sendSurveysTable)
+                }, KeyboardRow().also {
+                    it.add(text.reset)
                 })
             }
         }
