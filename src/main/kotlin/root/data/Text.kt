@@ -146,6 +146,7 @@ data class Text(
     @SerialName("clb-survey-time-out") val clbSurveyTimeOut: String,
     @SerialName("send-choose-task") val sendChooseTask: String,
     @SerialName("clb-survey-collect-process") val clbSurveyCollectProcess: String,
+    @SerialName("user-campaigns-not-found") val userCampaignsNotFound: String,
     @SerialName("user-task-not-found") val userTaskNotFound: String,
     @SerialName("survey-passed") val surveyPassed: String,
     @SerialName("edit-surveys") val editSurveys: String,

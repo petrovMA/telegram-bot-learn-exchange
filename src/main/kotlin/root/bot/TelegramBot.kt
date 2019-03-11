@@ -1059,14 +1059,18 @@ class TelegramBot : TelegramLongPollingBot {
                     )
                 }
                 text.showUserCampaigns -> {
-                    sendMessage(
-                        msgAvailableCampaignsList(
-                            text.userCampaignsTask,
-                            USER_CAMPAIGN_FOR_TASK.toString(),
-                            service.getAllCampaignByUserId(upd.message.chatId.toInt())
-                        ), upd.message.chatId
-                    )
-                    userStates[upd.message.from.id] = UserData(USER_CAMPAIGN_FOR_TASK, upd.message.from)
+                    val campaigns = service.getAllCampaignByUserId(upd.message.chatId.toInt()).toList()
+                    if(campaigns.isNotEmpty()) {
+                        sendMessage(
+                            msgAvailableCampaignsList(
+                                text.userCampaignsTask,
+                                USER_CAMPAIGN_FOR_TASK.toString(),
+                                campaigns
+
+                            ), upd.message.chatId
+                        )
+                        userStates[upd.message.from.id] = UserData(USER_CAMPAIGN_FOR_TASK, upd.message.from)
+                    } else userMenu(upd.message, text.userCampaignsNotFound)
                 }
                 else -> userMenu(upd.message)
             }
@@ -1683,6 +1687,8 @@ class TelegramBot : TelegramLongPollingBot {
                     it.add(text.sendUsersInCampaign)
                     it.add(text.sendAdminsTable)
                     it.add(text.sendSurveysTable)
+                }, KeyboardRow().also {
+                    it.add(text.reset)
                 })
             }
         }
