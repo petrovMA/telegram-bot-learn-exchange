@@ -1612,12 +1612,6 @@ class TelegramBot : TelegramLongPollingBot {
         }
     }
 
-    private fun surveyCreate(upd: Update, params: List<String>, menu: (msg: Message, text: String) -> Unit) {
-        userStates[upd.callbackQuery.from.id] =
-            UserData(SURVEY_NAME, upd.callbackQuery.from)
-        sendMessage(text.msgSurveyActionsName, upd.callbackQuery.message.chatId)
-    }
-
     private fun mainAdminMenu(message: Message, textMsg: String = text.mainMenu) =
         sendMessage(SendMessage().also { msg ->
             msg.text = textMsg
