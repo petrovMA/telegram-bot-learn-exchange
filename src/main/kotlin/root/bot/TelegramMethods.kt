@@ -96,7 +96,7 @@ fun mainAdminsMenu(text: Text, textMsg: String = text.mainMenu) = SendMessage().
     }
 }
 
-fun mainAdminAddMenu(text: Text, textMsg: String = text.addMenu) = SendMessage().also { msg ->
+fun mainSuperAddMenu(text: Text, textMsg: String = text.addMenu) = SendMessage().also { msg ->
     msg.text = textMsg
     msg.enableMarkdown(true)
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
@@ -117,7 +117,7 @@ fun mainAdminAddMenu(text: Text, textMsg: String = text.addMenu) = SendMessage()
     }
 }
 
-fun mainAdminDeleteMenu(text: Text, textMsg: String = text.deleteMenu) = SendMessage().also { msg ->
+fun mainSuperDeleteMenu(text: Text, textMsg: String = text.deleteMenu) = SendMessage().also { msg ->
     msg.text = textMsg
     msg.enableMarkdown(true)
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
@@ -138,7 +138,45 @@ fun mainAdminDeleteMenu(text: Text, textMsg: String = text.deleteMenu) = SendMes
     }
 }
 
-fun mainAdminMessagesMenu(text: Text, textMsg: String = text.deleteMenu) = SendMessage().also { msg ->
+fun mainAdminAddMenu(text: Text, textMsg: String = text.addMenu) = SendMessage().also { msg ->
+    msg.text = textMsg
+    msg.enableMarkdown(true)
+    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+        markup.selective = true
+        markup.resizeKeyboard = true
+        markup.oneTimeKeyboard = false
+        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+            keyboard.addElements(KeyboardRow().also {
+                it.add(text.addMenuMission)
+                it.add(text.addMenuTask)
+            }, KeyboardRow().also {
+                it.add(text.addMenuAdmin)
+                it.add(text.back)
+            })
+        }
+    }
+}
+
+fun mainAdminDeleteMenu(text: Text, textMsg: String = text.deleteMenu) = SendMessage().also { msg ->
+    msg.text = textMsg
+    msg.enableMarkdown(true)
+    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+        markup.selective = true
+        markup.resizeKeyboard = true
+        markup.oneTimeKeyboard = false
+        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+            keyboard.addElements(KeyboardRow().also {
+                it.add(text.deleteMenuMission)
+                it.add(text.deleteMenuTask)
+            }, KeyboardRow().also {
+                it.add(text.deleteMenuAdmin)
+                it.add(text.back)
+            })
+        }
+    }
+}
+
+fun mainAdminMessageMenu(text: Text, textMsg: String = text.deleteMenu) = SendMessage().also { msg ->
     msg.text = textMsg
     msg.enableMarkdown(true)
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
@@ -153,6 +191,27 @@ fun mainAdminMessagesMenu(text: Text, textMsg: String = text.deleteMenu) = SendM
             }, KeyboardRow().also {
                 it.add(text.deleteMenuSuperAdmin)
                 it.add(text.deleteMenuAdmin)
+                it.add(text.back)
+            })
+        }
+    }
+}
+
+fun mainAdminStatisticMenu(text: Text) = SendMessage().also { msg ->
+    msg.text = text.mainMenu
+    msg.enableMarkdown(true)
+    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+        markup.selective = true
+        markup.resizeKeyboard = true
+        markup.oneTimeKeyboard = false
+        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+            keyboard.addElements(KeyboardRow().also {
+                it.add(text.sendCampaignsTable)
+                it.add(text.sendUsersInCampaign)
+            }, KeyboardRow().also {
+                it.add(text.sendAdminsTable)
+                it.add(text.sendSurveysTable)
+            }, KeyboardRow().also {
                 it.add(text.back)
             })
         }

@@ -175,7 +175,6 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                 }
             }
-            // todo move it to super admin
             CREATE_CAMPAIGN -> {
                 when (upd.message.text) {
                     text.reset -> {
@@ -202,7 +201,7 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                 }
             }
-            ADD_ADMIN_TO_CAMPAIGN -> {
+            MAIN_MENU_ADD_ADMIN -> {
                 when (upd.message.text) {
                     text.reset -> {
                         userStates.remove(upd.message.from.id)
@@ -328,7 +327,6 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                 }
             }
-            // todo move it to admin
             SURVEY_CREATE -> {
                 val survey = Survey(
                     name = upd.message.text,
@@ -540,7 +538,7 @@ class TelegramBot : TelegramLongPollingBot {
                     text.addAdminToCampaign -> {
                         sendMessage(msgResetMenu(text.msgAdminToCampaign, text.reset), upd.message.chatId)
                         userStates[upd.message.from.id] =
-                            UserData(ADD_ADMIN_TO_CAMPAIGN, upd.message.from)
+                            UserData(MAIN_MENU_ADD_ADMIN, upd.message.from)
                     }
                     text.addGroupToCampaign -> {
                         sendMessage(msgResetMenu(text.msgGroupToCampaign, text.reset), upd.message.chatId)
@@ -690,7 +688,7 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                 }
             }
-            ADD_ADMIN_TO_CAMPAIGN -> {
+            MAIN_MENU_ADD_ADMIN -> {
                 when (upd.message.text) {
                     text.reset -> {
                         userStates.remove(upd.message.from.id)
@@ -873,7 +871,7 @@ class TelegramBot : TelegramLongPollingBot {
                     text.addAdminToCampaign -> {
                         sendMessage(msgResetMenu(text.msgAdminToCampaign, text.reset), upd.message.chatId)
                         userStates[upd.message.from.id] =
-                            UserData(ADD_ADMIN_TO_CAMPAIGN, upd.message.from)
+                            UserData(MAIN_MENU_ADD_ADMIN, upd.message.from)
                     }
                     text.addGroupToCampaign -> {
                         sendMessage(msgResetMenu(text.msgGroupToCampaign, text.reset), upd.message.chatId)
@@ -936,64 +934,69 @@ class TelegramBot : TelegramLongPollingBot {
             admin.update(upd.message.from)
             service.saveAdmin(admin)
         }
-        when (userStates[admin.userId]?.state) {
-            MSG_TO_USERS -> {
-                when (upd.message.text) {
-                    text.reset -> {
-                        userStates.remove(upd.message.from.id)
-                        adminMenu(upd.message)
-                    }
-                    else -> try {
-                        val users = userStates[upd.message.from.id]?.users
-                        if (users?.firstOrNull() != null) {
-                            msgToUsers(users, upd)
-                            end(upd, text.sucMsgToUsers) { msg: Message, _: String -> adminMenu(msg) }
-                        } else
-                            end(upd, text.errMsgToUsersNotFound) { msg: Message, _: String -> adminMenu(msg) }
-                    } catch (t: Throwable) {
-                        sendMessage(text.errMsgToUsers, upd.message.chatId)
-                        log.error("error msgToUsers", t)
-                    }
+        val actionBack = {
+            when (userStates[upd.message.from.id]?.state) {
+                MAIN_MENU_ADD_MISSION, MAIN_MENU_ADD_TASK, MAIN_MENU_ADD_ADMIN -> {
+                    userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD, upd.message.from)
+                    mainAdminAddMenu(text)
+                }
+                MAIN_MENU_DELETE_MISSION, MAIN_MENU_DELETE_TASK, MAIN_MENU_DELETE_ADMIN -> {
+                    userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE, upd.message.from)
+                    mainAdminDeleteMenu(text)
+                }
+                else -> {
+                    userStates.remove(upd.message.from.id)
+                    mainAdminsMenu(text, text.infoForAdmin)
                 }
             }
-            MSG_TO_CAMPAIGN -> {
+        }
+
+        when (userStates[admin.userId]?.state) {
+            MAIN_MENU_ADD -> {
                 when (upd.message.text) {
-                    text.reset -> {
-                        userStates.remove(upd.message.from.id)
-                        adminMenu(upd.message)
+                    text.addMenuMission -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_MISSION, upd.message.from)
+                        TODO("MAIN_MENU_ADD_MISSION")
                     }
-                    else -> try {
-                        val groups = userStates[upd.message.from.id]?.groups
-                        if (!groups.isNullOrEmpty()) {
-                            msgToCampaign(groups.toList(), upd)
-                            end(upd, text.sucMsgToCampaign) { msg: Message, _: String -> adminMenu(msg) }
-                        } else {
-                            end(upd, text.errMsgToCampaignNotFound) { msg: Message, _: String -> adminMenu(msg) }
-                        }
-                    } catch (t: Throwable) {
-                        sendMessage(text.errMsgToCampaign, upd.message.chatId)
-                        log.error("error msgToUsers", t)
+                    text.addMenuTask -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_TASK, upd.message.from)
+                        TODO("MAIN_MENU_ADD_TASK")
                     }
+                    text.addMenuAdmin -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_ADMIN, upd.message.from)
+                        TODO("MAIN_MENU_ADD_ADMIN")
+                    }
+                    text.back -> actionBack.invoke()
+                }
+            }
+            MAIN_MENU_DELETE -> {
+                when (upd.message.text) {
+                    text.deleteMenuMission -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_MISSION, upd.message.from)
+                        TODO("MAIN_MENU_DELETE_MISSION")
+                    }
+                    text.deleteMenuTask -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_TASK, upd.message.from)
+                        TODO("MAIN_MENU_DELETE_TASK")
+                    }
+                    text.deleteMenuAdmin -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_ADMIN, upd.message.from)
+                        TODO("MAIN_MENU_DELETE_ADMIN")
+                    }
+                    text.back -> actionBack.invoke()
                 }
             }
             else -> {
                 when (upd.message.text) {
-                    text.sendToEveryUser -> {
-                        sendMessage(msgResetMenu(text.msgSendToEveryUser, text.reset), upd.message.chatId)
-
-                        if (admin.campaigns.isNotEmpty()) {
-                            sendMessage(
-                                msgAvailableCampaignsList(
-                                    text.adminAvailableCampaigns,
-                                    CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
-                                    admin.campaigns
-                                ), upd.message.chatId
-                            )
-                            userStates[upd.message.from.id] =
-                                UserData(CAMPAIGN_FOR_SEND_USERS_MSG, upd.message.from)
-                        }
+                    text.mainMenuAdd -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD, upd.message.from)
+                        mainAdminAddMenu(text)
                     }
-                    text.sendToEveryGroup -> {
+                    text.mainMenuDelete -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE, upd.message.from)
+                        mainAdminDeleteMenu(text)
+                    }
+                    text.mainMenuMessages -> {
                         sendMessage(msgResetMenu(text.msgSendToEveryGroup, text.reset), upd.message.chatId)
 
                         if (admin.campaigns.isNotEmpty()) {
@@ -1008,12 +1011,23 @@ class TelegramBot : TelegramLongPollingBot {
                                 UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, upd.message.from)
                         }
                     }
-                    text.reset -> {
-                        userStates.remove(upd.message.from.id)
-                        adminMenu(upd.message)
+                    text.mainMenuStatistic -> {
+                        userStates[upd.message.from.id] =
+                            UserData(MAIN_MENU_STATISTIC, upd.message.from)
+                        mainAdminStatisticMenu(text)
                     }
+                    text.back -> actionBack.invoke()
                     else -> {
-                        adminMenu(upd.message)
+                        when (userStates[upd.message.from.id]?.state) {
+                            MAIN_MENU_STATISTIC -> mainAdminStatisticMenu(text)
+                            MAIN_MENU_DELETE -> mainAdminDeleteMenu(text)
+                            MAIN_MENU_ADD -> mainAdminAddMenu(text)
+                            CAMPAIGN_FOR_SEND_GROUP_MSG -> mainAdminsMenu(text)
+                            else -> {
+                                mainAdminsMenu(text, text.infoForAdmin)
+                                log.warn("Not supported action!\n${upd.message}")
+                            }
+                        }
                     }
                 }
             }
@@ -1060,7 +1074,7 @@ class TelegramBot : TelegramLongPollingBot {
                 }
                 text.showUserCampaigns -> {
                     val campaigns = service.getAllCampaignByUserId(upd.message.chatId.toInt()).toList()
-                    if(campaigns.isNotEmpty()) {
+                    if (campaigns.isNotEmpty()) {
                         sendMessage(
                             msgAvailableCampaignsList(
                                 text.userCampaignsTask,
@@ -1683,43 +1697,6 @@ class TelegramBot : TelegramLongPollingBot {
                     it.add(text.sendSurveysTable)
                 }, KeyboardRow().also {
                     it.add(text.reset)
-                })
-            }
-        }
-    }, message.chatId)
-
-    private fun sendTableAdmin(message: Message) = sendMessage(SendMessage().also { msg ->
-        msg.text = text.mainMenu
-        msg.enableMarkdown(true)
-        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-            markup.selective = true
-            markup.resizeKeyboard = true
-            markup.oneTimeKeyboard = false
-            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-                keyboard.addElements(KeyboardRow().also {
-                    it.add(text.sendCampaignsTable)
-                    it.add(text.sendUsersInCampaign)
-                }, KeyboardRow().also {
-                    it.add(text.sendAdminsTable)
-                    it.add(text.sendSurveysTable)
-                }, KeyboardRow().also {
-                    it.add(text.reset)
-                })
-            }
-        }
-    }, message.chatId)
-
-    private fun adminMenu(message: Message) = sendMessage(SendMessage().also { msg ->
-        msg.text = text.mainMenu
-        msg.enableMarkdown(true)
-        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-            markup.selective = true
-            markup.resizeKeyboard = true
-            markup.oneTimeKeyboard = false
-            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-                keyboard.addElements(KeyboardRow().also {
-                    it.add(text.sendToEveryUser)
-                    it.add(text.sendToEveryGroup)
                 })
             }
         }
