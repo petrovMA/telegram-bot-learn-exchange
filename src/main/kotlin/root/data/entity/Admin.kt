@@ -31,7 +31,7 @@ data class Admin(
         joinColumns = [JoinColumn(name = "admin_for_camp_id")],
         inverseJoinColumns = [JoinColumn(name = "campaign_id")]
     )
-    var campaigns: Set<Campaign>
+    var campaigns: HashSet<Campaign>
 ) : ExcelEntity() {
     override fun equals(other: Any?): Boolean = when (other) {
         is User -> {

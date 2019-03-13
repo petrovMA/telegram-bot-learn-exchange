@@ -24,7 +24,7 @@ data class Question(
         joinColumns = [JoinColumn(name="questions_id")],
         inverseJoinColumns = [JoinColumn(name="options_id")]
     )
-    var options: Set<Option>
+    var options: HashSet<Option>
 ) {
     override fun toString(): String = "Question text:\n$text\nsort_point:\n$sortPoints"
     override fun hashCode(): Int = 31 + text.hashCode()

@@ -188,7 +188,7 @@ class TelegramBot : TelegramLongPollingBot {
                             Campaign(
                                 name = name,
                                 createDate = now(),
-                                groups = emptySet()
+                                groups = HashSet()
                             )
                         )
 
@@ -214,14 +214,13 @@ class TelegramBot : TelegramLongPollingBot {
 
                         service.getCampaignByName(name)?.let { camp ->
                             service.getAdminById(adminId)?.let { admin ->
-                                admin.campaigns =
-                                    admin.campaigns.toHashSet().also { gr -> gr.add(camp) }
+                                admin.campaigns.add(camp)
                                 service.saveAdmin(admin)
                             } ?: service.saveAdmin(
                                 Admin(
                                     userId = adminId,
                                     createDate = now(),
-                                    campaigns = setOf(camp)
+                                    campaigns = hashSetOf(camp)
                                 )
                             )
 
@@ -251,7 +250,7 @@ class TelegramBot : TelegramLongPollingBot {
 
                         service.getCampaignByName(name)?.let {
                             val group = service.createGroup(Group(groupId, now()))
-                            it.groups = it.groups.toHashSet().also { gr -> gr.add(group) }
+                            it.groups.add(group)
                             service.updateCampaign(it)
                         } ?: {
                             sendMessage(text.errCampaignNotFound, upd.message.chatId)
@@ -331,7 +330,7 @@ class TelegramBot : TelegramLongPollingBot {
                 val survey = Survey(
                     name = upd.message.text,
                     createDate = now(),
-                    questions = emptySet(),
+                    questions = HashSet(),
                     campaign = userStates[upd.message.from.id]!!.campaign!!
                 )
 
@@ -346,7 +345,7 @@ class TelegramBot : TelegramLongPollingBot {
                     ?: Survey(
                         name = upd.message.text,
                         createDate = now(),
-                        questions = emptySet(),
+                        questions = HashSet(),
                         campaign = userStates[upd.callbackQuery.from.id]!!.campaign!!
                     )
 
@@ -366,11 +365,11 @@ class TelegramBot : TelegramLongPollingBot {
                 editSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
             }
             SURVEY_QUESTION_CREATE -> {
-                val question = Question(text = upd.message.text, options = emptySet())
+                val question = Question(text = upd.message.text, options = HashSet())
 
                 userStates[upd.message.from.id]!!.apply {
                     this.state = NONE
-                    this.survey!!.questions = this.survey!!.questions.toHashSet().also { it.add(question) }
+                    this.survey!!.questions.add(question)
                     this.question = question
                 }
                 editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
@@ -392,7 +391,7 @@ class TelegramBot : TelegramLongPollingBot {
 
                     userStates[upd.message.from.id]!!.apply {
                         this.state = NONE
-                        this.survey!!.questions.toHashSet().add(question)
+                        this.survey!!.questions.add(question)
                         this.question = question
                     }
                     editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
@@ -412,7 +411,7 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.message.from.id]!!.apply {
                     this.state = NONE
-                    this.question!!.options = this.question!!.options.toHashSet().also { it.add(option) }
+                    this.question!!.options.add(option)
                     this.option = option
                 }
                 editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
@@ -677,7 +676,7 @@ class TelegramBot : TelegramLongPollingBot {
                             Campaign(
                                 name = name,
                                 createDate = now(),
-                                groups = emptySet()
+                                groups = HashSet()
                             )
                         )
 
@@ -708,7 +707,7 @@ class TelegramBot : TelegramLongPollingBot {
                                 Admin(
                                     userId = adminId,
                                     createDate = now(),
-                                    campaigns = setOf(camp)
+                                    campaigns = hashSetOf(camp)
                                 )
                             )
 
@@ -986,6 +985,77 @@ class TelegramBot : TelegramLongPollingBot {
                     text.back -> actionBack.invoke()
                 }
             }
+            MAIN_MENU_ADD_ADMIN -> {
+                try {
+                    val params = upd.message.text.split("\\s+".toRegex(), 2)
+                    val adminId = params[0].toInt()
+                    val campId = params[1].toLong()
+
+                    val userId = upd.message.chatId
+
+                    val addedAdmin = service.addAdmin(
+                        userId = userId.toInt(),
+                        adminId = adminId,
+                        campId = campId,
+                        maimAdmins = mainAdmins
+                    )
+
+                    sendMessage(
+                        mainAdminAddMenu(
+                            text,
+                            resourceText(
+                                text.msgSuccessAddAdmin,
+                                "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
+                                "camp.id" to "$campId"
+                            )
+                        ), userId
+                    )
+
+                } catch (e: NoAccessException) {
+                    sendMessage(text.errAddAdminAccessDenied, upd.message.chatId)
+                    log.error("AdminGroup creating err.", e)
+                } catch (t: Throwable) {
+                    sendMessage(text.errAddAdmin, upd.message.chatId)
+                    log.error("AdminGroup creating err.", t)
+                }
+            }
+            MAIN_MENU_DELETE_ADMIN -> {
+                try {
+                    val params = upd.message.text.split("\\s+".toRegex(), 2)
+                    val adminId = params[0].toInt()
+                    val campId = params[1].toLong()
+
+                    val userId = upd.message.chatId
+
+                    val deletedAdmin = service.deleteAdmin(
+                        userId = userId.toInt(),
+                        adminId = adminId,
+                        campId = campId,
+                        maimAdmins = mainAdmins
+                    )
+
+                    sendMessage(
+                        mainAdminDeleteMenu(
+                            text,
+                            resourceText(
+                                text.msgSuccessDeleteAdmin,
+                                "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
+                                "camp.id" to "$campId"
+                            )
+                        ), userId
+                    )
+
+                } catch (e: AdminNotFoundException) {
+                    sendMessage(text.errDeleteAdminNotFound, upd.message.chatId)
+                    log.error("AdminGroup creating err.", e)
+                } catch (e: NoAccessException) {
+                    sendMessage(text.errDeleteAdminAccessDenied, upd.message.chatId)
+                    log.error("AdminGroup creating err.", e)
+                } catch (t: Throwable) {
+                    sendMessage(text.errDeleteAdmin, upd.message.chatId)
+                    log.error("AdminGroup creating err.", t)
+                }
+            }
             else -> {
                 when (upd.message.text) {
                     text.mainMenuAdd -> {
@@ -1253,8 +1323,7 @@ class TelegramBot : TelegramLongPollingBot {
             }
             SURVEY_QUESTION_DELETE == callBackCommand -> {
                 val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
-                survey.questions =
-                    survey.questions.toHashSet().also { it.remove(userStates[upd.callbackQuery.from.id]!!.question) }
+                survey.questions.remove(userStates[upd.callbackQuery.from.id]!!.question)
                 userStates[upd.callbackQuery.from.id]!!.question = null
 
                 showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
@@ -1262,8 +1331,7 @@ class TelegramBot : TelegramLongPollingBot {
             }
             SURVEY_OPTION_DELETE == callBackCommand -> {
                 val question = userStates[upd.callbackQuery.from.id]!!.question!!
-                question.options =
-                    question.options.toHashSet().also { it.remove(userStates[upd.callbackQuery.from.id]!!.option) }
+                question.options.remove(userStates[upd.callbackQuery.from.id]!!.option)
                 userStates[upd.callbackQuery.from.id]!!.option = null
 
                 showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
@@ -1302,7 +1370,7 @@ class TelegramBot : TelegramLongPollingBot {
                 deleteMessage(upd.callbackQuery.message)
                 sendTable(
                     upd.callbackQuery.message.chatId,
-                    service.getAdminByCampaigns(setOf(stubCampaign(id = params[1].toLong())))
+                    service.getAdminsByCampaigns(setOf(stubCampaign(id = params[1].toLong())))
                 )
             }
 
@@ -1529,7 +1597,7 @@ class TelegramBot : TelegramLongPollingBot {
                             firstName = upd.callbackQuery.from.firstName,
                             lastName = upd.callbackQuery.from.lastName,
                             userName = upd.callbackQuery.from.userName,
-                            campaigns = it.campaigns + campaignForAdd
+                            campaigns = it.campaigns.apply { this.add(campaignForAdd) }
                         )
                     )
                 } ?: {
@@ -1540,7 +1608,7 @@ class TelegramBot : TelegramLongPollingBot {
                             firstName = upd.callbackQuery.from.firstName,
                             lastName = upd.callbackQuery.from.lastName,
                             userName = upd.callbackQuery.from.userName,
-                            campaigns = setOf(campaignForAdd)
+                            campaigns = hashSetOf(campaignForAdd)
                         )
                     )
                 }.invoke()

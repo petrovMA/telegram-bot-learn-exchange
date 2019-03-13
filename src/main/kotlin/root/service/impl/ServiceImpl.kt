@@ -3,8 +3,14 @@ package root.service.impl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import root.data.MainAdmin
 import root.data.entity.*
+import root.libs.AdminNotFoundException
+import root.libs.NoAccessException
+import root.libs.stubCampaign
 import root.repositories.*
+import java.time.OffsetDateTime
+import java.time.OffsetDateTime.now
 
 @Service
 open class ServiceImpl(
@@ -88,7 +94,7 @@ open class ServiceImpl(
         }
 
     @Transactional
-    override fun saveAdmin(admin: Admin): Admin? = adminRepository.save(admin)
+    override fun saveAdmin(admin: Admin): Admin = adminRepository.save(admin)
 
     @Transactional
     override fun createGroup(group: Group): Group = groupRepository.save(group)
@@ -97,8 +103,24 @@ open class ServiceImpl(
     override fun getAdminById(userId: Int): Admin? = adminRepository.findAdminByUserId(userId)
 
     @Transactional
-    override fun getAdminByCampaigns(campaigns: Set<Campaign>): Iterable<Admin> =
+    override fun getAdminsByCampaigns(campaigns: Set<Campaign>): Iterable<Admin> =
         adminRepository.findAllByCampaigns(campaigns)
+
+    @Transactional
+    override fun addAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>) =
+        if (hasAccessToEditAdmin(userId, adminId, campId, maimAdmins)) {
+            getAdminById(adminId)?.let {
+                saveAdmin(it.also { admin -> admin.campaigns.add(stubCampaign(campId)) })
+            } ?: saveAdmin(Admin(userId = adminId, createDate = now(), campaigns = hashSetOf(stubCampaign(campId))))
+        } else throw NoAccessException()
+
+    @Transactional
+    override fun deleteAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>) =
+        if (hasAccessToEditAdmin(userId, adminId, campId, maimAdmins)) {
+            getAdminById(adminId)?.let {
+                saveAdmin(it.also { admin -> admin.campaigns.remove(stubCampaign(campId)) })
+            } ?: throw AdminNotFoundException()
+        } else throw NoAccessException()
 
     @Transactional
     override fun getUserById(userId: Int): UserInCampaign? = groupUserRepository.findUserInGroupByUserId(userId)
@@ -129,4 +151,9 @@ open class ServiceImpl(
 
     @Transactional
     override fun savePassedSurvey(passedSurvey: PassedSurvey): PassedSurvey = passedSurveyRepository.save(passedSurvey)
+
+    private fun hasAccessToEditAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>) =
+        (maimAdmins.any { it.userId == userId } ||
+                getAdminsByCampaigns(setOf(stubCampaign(campId))).any { it.userId == adminId } ||
+                getAllSuperAdmins().any { it.userId == userId })
 }
