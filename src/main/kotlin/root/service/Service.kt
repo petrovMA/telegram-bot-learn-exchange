@@ -26,8 +26,8 @@ interface Service {
     fun deleteSurveyById(id: Long)
 
     fun getAdminsByCampaigns(campaigns: Set<Campaign>): Iterable<Admin>
-    fun addAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>): Admin
-    fun deleteAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>): Admin
+    fun addAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>): Admin
+    fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>): Admin
     fun getAdminById(userId: Int): Admin?
     fun saveAdmin(admin: Admin): Admin?
     fun deleteAdminById(userId: Int)

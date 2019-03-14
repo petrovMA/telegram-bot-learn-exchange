@@ -107,18 +107,18 @@ open class ServiceImpl(
         adminRepository.findAllByCampaigns(campaigns)
 
     @Transactional
-    override fun addAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>) =
-        if (hasAccessToEditAdmin(userId, adminId, campId, maimAdmins)) {
+    override fun addAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
+        if (hasAccessToEditAdmin(userId, adminId, camp, maimAdmins)) {
             getAdminById(adminId)?.let {
-                saveAdmin(it.also { admin -> admin.campaigns.add(stubCampaign(campId)) })
-            } ?: saveAdmin(Admin(userId = adminId, createDate = now(), campaigns = hashSetOf(stubCampaign(campId))))
+                saveAdmin(it.also { admin -> admin.campaigns.add(camp) })
+            } ?: saveAdmin(Admin(userId = adminId, createDate = now(), campaigns = hashSetOf(camp)))
         } else throw NoAccessException()
 
     @Transactional
-    override fun deleteAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>) =
-        if (hasAccessToEditAdmin(userId, adminId, campId, maimAdmins)) {
+    override fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
+        if (hasAccessToEditAdmin(userId, adminId, camp, maimAdmins)) {
             getAdminById(adminId)?.let {
-                saveAdmin(it.also { admin -> admin.campaigns.remove(stubCampaign(campId)) })
+                saveAdmin(it.also { admin -> admin.campaigns.remove(camp) })
             } ?: throw AdminNotFoundException()
         } else throw NoAccessException()
 
@@ -152,8 +152,8 @@ open class ServiceImpl(
     @Transactional
     override fun savePassedSurvey(passedSurvey: PassedSurvey): PassedSurvey = passedSurveyRepository.save(passedSurvey)
 
-    private fun hasAccessToEditAdmin(userId: Int, adminId: Int, campId: Long, maimAdmins: List<MainAdmin>) =
+    private fun hasAccessToEditAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
         (maimAdmins.any { it.userId == userId } ||
-                getAdminsByCampaigns(setOf(stubCampaign(campId))).any { it.userId == adminId } ||
+                getAdminsByCampaigns(setOf(camp)).any { it.userId == adminId } ||
                 getAllSuperAdmins().any { it.userId == userId })
 }

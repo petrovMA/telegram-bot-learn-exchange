@@ -14,4 +14,6 @@ data class Group(
 
     @Column(nullable = false)
     var createDate: OffsetDateTime
-)
+) {
+    override fun hashCode() = groupId.toInt()
+}

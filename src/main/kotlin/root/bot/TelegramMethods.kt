@@ -1,6 +1,7 @@
 package root.bot
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
@@ -217,3 +218,22 @@ fun mainAdminStatisticMenu(text: Text) = SendMessage().also { msg ->
         }
     }
 }
+
+fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) =
+    SendMessage().also { msg ->
+        msg.text = textMsg
+        msg.enableMarkdown(true)
+        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+            markup.selective = true
+            markup.resizeKeyboard = true
+            markup.oneTimeKeyboard = false
+            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+                keyboard.addElements(KeyboardRow().also {
+                    it.add(text.joinToCampaign)
+                    it.add(text.msgUserInfo)
+                }, KeyboardRow().also {
+                    it.add(text.showUserCampaigns)
+                })
+            }
+        }
+    }

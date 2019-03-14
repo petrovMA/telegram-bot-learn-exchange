@@ -22,7 +22,7 @@ data class Option(
     var value: Int = 0
 ) {
     override fun toString(): String = "Option text:\n$text\nvalue:\n$value\nsort_point:\n$sortPoints"
-    override fun hashCode(): Int = 31 + text.hashCode()
+    override fun hashCode() = id?.toInt() ?: 0
     override fun equals(other: Any?): Boolean =
         this.javaClass == other?.javaClass && let {
             other is Option && (id == other.id)

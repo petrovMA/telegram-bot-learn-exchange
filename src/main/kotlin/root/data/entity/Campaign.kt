@@ -31,4 +31,6 @@ data class Campaign(
     override fun toHead() = arrayOf("id", "name", "createDate", "groups")
     override fun toRow() =
         arrayOf("$id", name, "$createDate", groups.joinToString("\n") { "${it.groupId} ${it.createDate}" })
+
+    override fun hashCode() = id?.toInt() ?: 0
 }

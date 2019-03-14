@@ -27,7 +27,7 @@ data class Question(
     var options: HashSet<Option>
 ) {
     override fun toString(): String = "Question text:\n$text\nsort_point:\n$sortPoints"
-    override fun hashCode(): Int = 31 + text.hashCode()
+    override fun hashCode() = id?.toInt() ?: 0
     override fun equals(other: Any?): Boolean =
         this.javaClass == other?.javaClass && let {
             other is Question && (id == other.id)
