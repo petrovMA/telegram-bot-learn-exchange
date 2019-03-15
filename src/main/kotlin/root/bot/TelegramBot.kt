@@ -943,19 +943,19 @@ class TelegramBot : TelegramLongPollingBot {
             admin.update(upd.message.from)
             service.saveAdmin(admin)
         }
-        val actionBack = {
+        val actionBack : () -> Unit = {
             when (userStates[upd.message.from.id]?.state) {
                 MAIN_MENU_ADD_MISSION, MAIN_MENU_ADD_TASK, MAIN_MENU_ADD_ADMIN -> {
                     userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD, upd.message.from)
-                    mainAdminAddMenu(text)
+                    sendMessage(mainAdminAddMenu(text), upd.message.chatId)
                 }
                 MAIN_MENU_DELETE_MISSION, MAIN_MENU_DELETE_TASK, MAIN_MENU_DELETE_ADMIN -> {
                     userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE, upd.message.from)
-                    mainAdminDeleteMenu(text)
+                    sendMessage(mainAdminDeleteMenu(text), upd.message.chatId)
                 }
                 else -> {
                     userStates.remove(upd.message.from.id)
-                    mainAdminsMenu(text, text.infoForAdmin)
+                    sendMessage(mainAdminsMenu(text, text.infoForAdmin), upd.message.chatId)
                 }
             }
         }
@@ -1075,11 +1075,11 @@ class TelegramBot : TelegramLongPollingBot {
                 when (upd.message.text) {
                     text.mainMenuAdd -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD, upd.message.from)
-                        mainAdminAddMenu(text)
+                        sendMessage(mainAdminAddMenu(text), upd.message.chatId)
                     }
                     text.mainMenuDelete -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE, upd.message.from)
-                        mainAdminDeleteMenu(text)
+                        sendMessage(mainAdminDeleteMenu(text), upd.message.chatId)
                     }
                     text.mainMenuMessages -> {
                         sendMessage(msgResetMenu(text.msgSendToEveryGroup, text.reset), upd.message.chatId)
@@ -1099,17 +1099,17 @@ class TelegramBot : TelegramLongPollingBot {
                     text.mainMenuStatistic -> {
                         userStates[upd.message.from.id] =
                             UserData(MAIN_MENU_STATISTIC, upd.message.from)
-                        mainAdminStatisticMenu(text)
+                        sendMessage(mainAdminStatisticMenu(text), upd.message.chatId)
                     }
                     text.back -> actionBack.invoke()
                     else -> {
                         when (userStates[upd.message.from.id]?.state) {
-                            MAIN_MENU_STATISTIC -> mainAdminStatisticMenu(text)
-                            MAIN_MENU_DELETE -> mainAdminDeleteMenu(text)
-                            MAIN_MENU_ADD -> mainAdminAddMenu(text)
-                            CAMPAIGN_FOR_SEND_GROUP_MSG -> mainAdminsMenu(text)
+                            MAIN_MENU_STATISTIC -> sendMessage(mainAdminStatisticMenu(text), upd.message.chatId)
+                            MAIN_MENU_DELETE -> sendMessage(mainAdminDeleteMenu(text), upd.message.chatId)
+                            MAIN_MENU_ADD -> sendMessage(mainAdminAddMenu(text), upd.message.chatId)
+                            CAMPAIGN_FOR_SEND_GROUP_MSG -> sendMessage(mainAdminsMenu(text), upd.message.chatId)
                             else -> {
-                                mainAdminsMenu(text, text.infoForAdmin)
+                                sendMessage(mainAdminsMenu(text, text.infoForAdmin), upd.message.chatId)
                                 log.warn("Not supported action!\n${upd.message}")
                             }
                         }
@@ -1577,7 +1577,7 @@ class TelegramBot : TelegramLongPollingBot {
                 editMessage(EditMessageText().also { msg ->
                     msg.chatId = upd.callbackQuery.message.chatId.toString()
                     msg.messageId = upd.callbackQuery.message.messageId
-                    msg.text = when(callBackCommand) {
+                    msg.text = when (callBackCommand) {
                         MAIN_MENU_ADD_ADMIN -> text.msgAdminToCampaignAdminId
                         else -> text.msgAdminDeleteFromCampaignAdminId
                     }
