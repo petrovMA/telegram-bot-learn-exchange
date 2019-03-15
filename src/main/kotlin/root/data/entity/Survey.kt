@@ -27,7 +27,7 @@ data class Survey(
         joinColumns = [JoinColumn(name = "surveys_id")],
         inverseJoinColumns = [JoinColumn(name = "questions_id")]
     )
-    var questions: HashSet<Question>,
+    var questions: Set<Question>,
 
     @ManyToOne(fetch = FetchType.LAZY)
     var campaign: Campaign

@@ -25,7 +25,7 @@ data class Campaign(
         joinColumns = [JoinColumn(name = "campaign_id")],
         inverseJoinColumns = [JoinColumn(name = "exchange_group_id")]
     )
-    var groups: HashSet<Group>
+    var groups: Set<Group>
 ) : ExcelEntity() {
 
     override fun toHead() = arrayOf("id", "name", "createDate", "groups")

@@ -62,7 +62,7 @@ fun msgQuestion(survey: SurveyDAO, command: String) = SendMessage().also { msg -
     }
 }
 
-fun msgResetMenu(text: String, textReset: String) = SendMessage().also { msg ->
+fun msgBackMenu(text: String, textBack: String) = SendMessage().also { msg ->
     msg.text = text
     msg.enableMarkdown(true)
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
@@ -71,7 +71,7 @@ fun msgResetMenu(text: String, textReset: String) = SendMessage().also { msg ->
         markup.oneTimeKeyboard = false
         markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
             keyboard.add(KeyboardRow().also {
-                it.add(textReset)
+                it.add(textBack)
             })
         }
     }

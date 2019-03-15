@@ -110,7 +110,7 @@ open class ServiceImpl(
     override fun addAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
         if (hasAccessToEditAdmin(userId, adminId, camp, maimAdmins)) {
             getAdminById(adminId)?.let {
-                saveAdmin(it.also { admin -> admin.campaigns.add(camp) })
+                saveAdmin(it.apply { campaigns = campaigns.toHashSet().apply { add(camp) } })
             } ?: saveAdmin(Admin(userId = adminId, createDate = now(), campaigns = hashSetOf(camp)))
         } else throw NoAccessException()
 
@@ -118,7 +118,7 @@ open class ServiceImpl(
     override fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
         if (hasAccessToEditAdmin(userId, adminId, camp, maimAdmins)) {
             getAdminById(adminId)?.let {
-                saveAdmin(it.also { admin -> admin.campaigns.remove(camp) })
+                saveAdmin(it.apply { campaigns = campaigns.toHashSet().apply { remove(camp) } })
             } ?: throw AdminNotFoundException()
         } else throw NoAccessException()
 

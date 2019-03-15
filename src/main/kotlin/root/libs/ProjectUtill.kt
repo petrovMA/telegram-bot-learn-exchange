@@ -26,7 +26,7 @@ fun printOptions(options: Set<Option>) = options
 fun String.subStr(max: Int, endPart: String = "") =
     if (this.length < max) this else this.substring(0 until max) + endPart
 
-fun stubCampaign(id: Long = 0, name: String = "", groups: Set<Group> = emptySet()) =
+fun stubCampaign(id: Long = 0, name: String = "", groups: HashSet<Group> = HashSet()) =
     Campaign(id = id, name = name, createDate = now(), groups = groups)
 
 fun stubUserInCampaign(
@@ -34,7 +34,7 @@ fun stubUserInCampaign(
     firstName: String? = null,
     lastName: String? = null,
     userName: String? = null,
-    campaigns: Set<Campaign> = emptySet()
+    campaigns: HashSet<Campaign> = HashSet()
 ) = UserInCampaign(
     userId = userId,
     firstName = firstName,
