@@ -195,7 +195,7 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     text.addMenuCommonCampaign -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_COMMON_CAMPAIGN, upd.message.from)
-                        TODO("MAIN_MENU_ADD_COMMON_CAMPAIGN")
+                        sendMessage(msgBackMenu(text.msgCreateCommonCampaign, text.back), upd.message.chatId)
                     }
                     text.addMenuGroup -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_GROUP, upd.message.from)
@@ -233,7 +233,7 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     text.deleteMenuCommonCampaign -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_COMMON_CAMPAIGN, upd.message.from)
-                        TODO("MAIN_MENU_DELETE_COMMON_CAMPAIGN")
+                        sendMessage(msgBackMenu(text.msgRemoveCommonCampaign, text.back), upd.message.chatId)
                     }
                     text.deleteMenuGroup -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_GROUP, upd.message.from)
@@ -287,6 +287,39 @@ class TelegramBot : TelegramLongPollingBot {
                         sendMessage(text.sucRemoveCampaign, upd.message.chatId)
                     } catch (t: Throwable) {
                         sendMessage(text.errRemoveCampaign, upd.message.chatId)
+                        log.error("Campaign remove err.", t)
+                    }
+                }
+            }
+            MAIN_MENU_ADD_COMMON_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val newCampName = upd.message.text
+
+                        service.createCommonCampaign(CommonCampaign(name = newCampName, createDate = now()))
+
+                        sendMessage(text.sucCreateCommonCampaign, upd.message.chatId)
+                    } catch (e: DataIntegrityViolationException) {
+                        sendMessage(text.errCreateCommonCampaignAlreadyExist, upd.message.chatId)
+                        log.error("Campaign creating err.", e)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errCreateCommonCampaign, upd.message.chatId)
+                        log.error("Campaign creating err.", t)
+                    }
+                }
+            }
+            MAIN_MENU_DELETE_COMMON_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val newCampName = upd.message.text
+
+                        service.deleteCommonCampaignByName(newCampName)
+
+                        sendMessage(text.sucRemoveCommonCampaign, upd.message.chatId)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveCommonCampaign, upd.message.chatId)
                         log.error("Campaign remove err.", t)
                     }
                 }

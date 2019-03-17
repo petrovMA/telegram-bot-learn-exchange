@@ -22,6 +22,7 @@ open class ServiceImpl(
     @Autowired open val groupUserRepository: GroupUserRepository,
     @Autowired open val groupRepository: GroupRepository,
     @Autowired open val campaignRepository: CampaignRepository,
+    @Autowired open val commonCampaignRepository: CommonCampaignRepository,
     @Autowired open val passedSurveyRepository: PassedSurveyRepository
 ) : root.service.Service {
     @Transactional
@@ -49,6 +50,14 @@ open class ServiceImpl(
     @Transactional
     override fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign> =
         campaignRepository.findAllCampaignsByChatListNotContainsUser(chats, userId)
+
+
+    @Transactional
+    override fun createCommonCampaign(commonCampaign: CommonCampaign): CommonCampaign =
+        commonCampaignRepository.save(commonCampaign)
+
+    @Transactional
+    override fun deleteCommonCampaignByName(name: String) = commonCampaignRepository.deleteByName(name)
 
 
     @Transactional

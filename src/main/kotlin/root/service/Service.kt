@@ -13,6 +13,9 @@ interface Service {
     fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign>
     fun deleteCampaignByName(name: String)
 
+    fun deleteCommonCampaignByName(name: String)
+    fun createCommonCampaign(commonCampaign: CommonCampaign): CommonCampaign
+
     fun getAllSuperAdmins(): Iterable<SuperAdmin>
     fun getSuperAdminById(userId: Int): SuperAdmin?
     fun saveSuperAdmin(superAdmin: SuperAdmin): SuperAdmin?
