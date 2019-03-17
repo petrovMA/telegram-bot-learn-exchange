@@ -1,6 +1,7 @@
 package root.bot
 
 import org.apache.log4j.Logger
+import org.springframework.dao.DataIntegrityViolationException
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery
@@ -15,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import root.data.MainAdmin
@@ -143,13 +145,39 @@ class TelegramBot : TelegramLongPollingBot {
     private fun doMainAdminUpdate(upd: Update) {
         val actionBack: () -> Unit = {
             when (userStates[upd.message.from.id]?.state) {
-                MAIN_MENU_ADD_MISSION, MAIN_MENU_ADD_TASK, MAIN_MENU_ADD_ADMIN -> {
+                MAIN_MENU_ADD_MISSION, MAIN_MENU_ADD_TASK, MAIN_MENU_ADD_ADMIN, MAIN_MENU_ADD_CAMPAIGN,
+                MAIN_MENU_ADD_COMMON_CAMPAIGN, MAIN_MENU_ADD_GROUP, MAIN_MENU_ADD_SUPER_ADMIN -> {
                     userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD, upd.message.from)
-                    sendMessage(mainAdminAddMenu(text), upd.message.chatId)
+                    sendMessage(mainAdminAddMenu(text).apply {
+                        replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
+                            keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
+                                addElements(
+                                    0,
+                                    KeyboardButton(this@TelegramBot.text.addMenuCampaign),
+                                    KeyboardButton(this@TelegramBot.text.addMenuCommonCampaign),
+                                    KeyboardButton(this@TelegramBot.text.addMenuGroup),
+                                    KeyboardButton(this@TelegramBot.text.addMenuSuperAdmin)
+                                )
+                            })
+                        }
+                    }, upd.message.chatId)
                 }
-                MAIN_MENU_DELETE_MISSION, MAIN_MENU_DELETE_TASK, MAIN_MENU_DELETE_ADMIN -> {
+                MAIN_MENU_DELETE_MISSION, MAIN_MENU_DELETE_TASK, MAIN_MENU_DELETE_ADMIN, MAIN_MENU_DELETE_CAMPAIGN,
+                MAIN_MENU_DELETE_COMMON_CAMPAIGN, MAIN_MENU_DELETE_GROUP, MAIN_MENU_DELETE_SUPER_ADMIN -> {
                     userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE, upd.message.from)
-                    sendMessage(mainAdminDeleteMenu(text), upd.message.chatId)
+                    sendMessage(mainAdminDeleteMenu(text).apply {
+                        replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
+                            keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
+                                addElements(
+                                    0,
+                                    KeyboardButton(this@TelegramBot.text.deleteMenuCampaign),
+                                    KeyboardButton(this@TelegramBot.text.deleteMenuCommonCampaign),
+                                    KeyboardButton(this@TelegramBot.text.deleteMenuGroup),
+                                    KeyboardButton(this@TelegramBot.text.deleteMenuSuperAdmin)
+                                )
+                            })
+                        }
+                    }, upd.message.chatId)
                 }
                 else -> {
                     userStates.remove(upd.message.from.id)
@@ -161,6 +189,22 @@ class TelegramBot : TelegramLongPollingBot {
         when (userStates[upd.message.from.id]?.state) {
             MAIN_MENU_ADD -> {
                 when (upd.message.text) {
+                    text.addMenuCampaign -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_CAMPAIGN, upd.message.from)
+                        sendMessage(msgBackMenu(text.msgCreateCampaign, text.back), upd.message.chatId)
+                    }
+                    text.addMenuCommonCampaign -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_COMMON_CAMPAIGN, upd.message.from)
+                        TODO("MAIN_MENU_ADD_COMMON_CAMPAIGN")
+                    }
+                    text.addMenuGroup -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_GROUP, upd.message.from)
+                        TODO("MAIN_MENU_ADD_GROUP")
+                    }
+                    text.addMenuSuperAdmin -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_SUPER_ADMIN, upd.message.from)
+                        TODO("MAIN_MENU_ADD_SUPER_ADMIN")
+                    }
                     text.addMenuMission -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_MISSION, upd.message.from)
                         TODO("MAIN_MENU_ADD_MISSION")
@@ -183,6 +227,22 @@ class TelegramBot : TelegramLongPollingBot {
             }
             MAIN_MENU_DELETE -> {
                 when (upd.message.text) {
+                    text.deleteMenuCampaign -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_CAMPAIGN, upd.message.from)
+                        TODO("MAIN_MENU_DELETE_CAMPAIGN")
+                    }
+                    text.deleteMenuCommonCampaign -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_COMMON_CAMPAIGN, upd.message.from)
+                        TODO("MAIN_MENU_DELETE_COMMON_CAMPAIGN")
+                    }
+                    text.deleteMenuGroup -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_GROUP, upd.message.from)
+                        TODO("MAIN_MENU_DELETE_GROUP")
+                    }
+                    text.deleteMenuSuperAdmin -> {
+                        userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_SUPER_ADMIN, upd.message.from)
+                        TODO("MAIN_MENU_DELETE_SUPER_ADMIN")
+                    }
                     text.deleteMenuMission -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_MISSION, upd.message.from)
                         TODO("MAIN_MENU_DELETE_MISSION")
@@ -198,75 +258,99 @@ class TelegramBot : TelegramLongPollingBot {
                     text.back -> actionBack.invoke()
                 }
             }
+            MAIN_MENU_ADD_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val newCampName = upd.message.text
+
+                        service.createCampaign(Campaign(name = newCampName, createDate = now(), groups = emptySet()))
+
+                        sendMessage(text.sucCreateCampaign, upd.message.chatId)
+                    } catch (e: DataIntegrityViolationException) {
+                        sendMessage(text.errCreateCampaignAlreadyExist, upd.message.chatId)
+                        log.error("Campaign creating err.", e)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errCreateCampaign, upd.message.chatId)
+                        log.error("Campaign creating err.", t)
+                    }
+                }
+            }
             MAIN_MENU_ADD_ADMIN -> {
-                try {
-                    val params = upd.message.text.split("\\s+".toRegex())
-                    val adminId = params[0].toInt()
-                    val camp = userStates[upd.message.from.id]!!.campaign!!
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex())
+                        val adminId = params[0].toInt()
+                        val camp = userStates[upd.message.from.id]!!.campaign!!
 
-                    val userId = upd.message.chatId
+                        val userId = upd.message.chatId
 
-                    val addedAdmin = service.addAdmin(
-                        userId = userId.toInt(),
-                        adminId = adminId,
-                        camp = camp,
-                        maimAdmins = mainAdmins
-                    )
+                        val addedAdmin = service.addAdmin(
+                            userId = userId.toInt(),
+                            adminId = adminId,
+                            camp = camp,
+                            maimAdmins = mainAdmins
+                        )
 
-                    sendMessage(
-                        mainAdminAddMenu(
-                            text,
-                            resourceText(
-                                text.msgSuccessAddAdmin,
-                                "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
-                                "camp.desc" to "${camp.id} ${camp.name}"
-                            )
-                        ), userId
-                    )
+                        sendMessage(
+                            mainAdminAddMenu(
+                                text,
+                                resourceText(
+                                    text.msgSuccessAddAdmin,
+                                    "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
+                                    "camp.desc" to "${camp.id} ${camp.name}"
+                                )
+                            ), userId
+                        )
 
-                } catch (e: NoAccessException) {
-                    sendMessage(text.errAddAdminAccessDenied, upd.message.chatId)
-                    log.error("AdminGroup creating err (access denied).", e)
-                } catch (t: Throwable) {
-                    sendMessage(text.errAddAdmin, upd.message.chatId)
-                    log.error("AdminGroup creating err.", t)
+                    } catch (e: NoAccessException) {
+                        sendMessage(text.errAddAdminAccessDenied, upd.message.chatId)
+                        log.error("AdminGroup creating err (access denied).", e)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errAddAdmin, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
                 }
             }
             MAIN_MENU_DELETE_ADMIN -> {
-                try {
-                    val params = upd.message.text.split("\\s+".toRegex(), 2)
-                    val adminId = params[0].toInt()
-                    val camp = userStates[upd.message.from.id]!!.campaign!!
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex(), 2)
+                        val adminId = params[0].toInt()
+                        val camp = userStates[upd.message.from.id]!!.campaign!!
 
-                    val userId = upd.message.chatId
+                        val userId = upd.message.chatId
 
-                    val deletedAdmin = service.deleteAdmin(
-                        userId = userId.toInt(),
-                        adminId = adminId,
-                        camp = camp,
-                        maimAdmins = mainAdmins
-                    )
+                        val deletedAdmin = service.deleteAdmin(
+                            userId = userId.toInt(),
+                            adminId = adminId,
+                            camp = camp,
+                            maimAdmins = mainAdmins
+                        )
 
-                    sendMessage(
-                        mainAdminDeleteMenu(
-                            text,
-                            resourceText(
-                                text.msgSuccessDeleteAdmin,
-                                "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
-                                "camp.desc" to "${camp.id} ${camp.name}"
-                            )
-                        ), userId
-                    )
+                        sendMessage(
+                            mainAdminDeleteMenu(
+                                text,
+                                resourceText(
+                                    text.msgSuccessDeleteAdmin,
+                                    "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
+                                    "camp.desc" to "${camp.id} ${camp.name}"
+                                )
+                            ), userId
+                        )
 
-                } catch (e: AdminNotFoundException) {
-                    sendMessage(text.errDeleteAdminNotFound, upd.message.chatId)
-                    log.error("AdminGroup deleting err (not found).", e)
-                } catch (e: NoAccessException) {
-                    sendMessage(text.errDeleteAdminAccessDenied, upd.message.chatId)
-                    log.error("AdminGroup deleting err (access denied).", e)
-                } catch (t: Throwable) {
-                    sendMessage(text.errDeleteAdmin, upd.message.chatId)
-                    log.error("AdminGroup deleting err.", t)
+                    } catch (e: AdminNotFoundException) {
+                        sendMessage(text.errDeleteAdminNotFound, upd.message.chatId)
+                        log.error("AdminGroup deleting err (not found).", e)
+                    } catch (e: NoAccessException) {
+                        sendMessage(text.errDeleteAdminAccessDenied, upd.message.chatId)
+                        log.error("AdminGroup deleting err (access denied).", e)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errDeleteAdmin, upd.message.chatId)
+                        log.error("AdminGroup deleting err.", t)
+                    }
                 }
             }
             else -> {
@@ -274,34 +358,32 @@ class TelegramBot : TelegramLongPollingBot {
                     text.mainMenuAdd -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD, upd.message.from)
                         sendMessage(mainAdminAddMenu(text).apply {
-                            this.replyMarkup = (this.replyMarkup as ReplyKeyboardMarkup).apply {
-                                this.keyboard = ArrayList(keyboard).apply {
-                                    this.add(0, KeyboardRow().also {
-                                        it.add(this@TelegramBot.text.addMenuCampaign)
-                                        it.add(this@TelegramBot.text.addMenuCommonCampaign)
-                                    })
-                                    this.add(0, KeyboardRow().also {
-                                        it.add(this@TelegramBot.text.addMenuGroup)
-                                        it.add(this@TelegramBot.text.addMenuSuperAdmin)
-                                    })
-                                }
+                            replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
+                                keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
+                                    addElements(
+                                        0,
+                                        KeyboardButton(this@TelegramBot.text.addMenuCampaign),
+                                        KeyboardButton(this@TelegramBot.text.addMenuCommonCampaign),
+                                        KeyboardButton(this@TelegramBot.text.addMenuGroup),
+                                        KeyboardButton(this@TelegramBot.text.addMenuSuperAdmin)
+                                    )
+                                })
                             }
                         }, upd.message.chatId)
                     }
                     text.mainMenuDelete -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE, upd.message.from)
                         sendMessage(mainAdminDeleteMenu(text).apply {
-                            this.replyMarkup = (this.replyMarkup as ReplyKeyboardMarkup).apply {
-                                this.keyboard = ArrayList(keyboard).apply {
-                                    this.add(0, KeyboardRow().also {
-                                        it.add(this@TelegramBot.text.deleteMenuCampaign)
-                                        it.add(this@TelegramBot.text.deleteMenuCommonCampaign)
-                                    })
-                                    this.add(0, KeyboardRow().also {
-                                        it.add(this@TelegramBot.text.deleteMenuGroup)
-                                        it.add(this@TelegramBot.text.deleteMenuSuperAdmin)
-                                    })
-                                }
+                            replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
+                                keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
+                                    addElements(
+                                        0,
+                                        KeyboardButton(this@TelegramBot.text.deleteMenuCampaign),
+                                        KeyboardButton(this@TelegramBot.text.deleteMenuCommonCampaign),
+                                        KeyboardButton(this@TelegramBot.text.deleteMenuGroup),
+                                        KeyboardButton(this@TelegramBot.text.deleteMenuSuperAdmin)
+                                    )
+                                })
                             }
                         }, upd.message.chatId)
                     }
@@ -309,7 +391,7 @@ class TelegramBot : TelegramLongPollingBot {
                         sendMessage(msgBackMenu(text.msgSendToEveryGroup, text.reset), upd.message.chatId)
 
                         service.getAllCampaigns().toList().run {
-                            if (this.isNotEmpty()) {
+                            if (isNotEmpty()) {
                                 sendMessage(
                                     msgAvailableCampaignsList(
                                         text.adminAvailableCampaigns,
@@ -335,7 +417,7 @@ class TelegramBot : TelegramLongPollingBot {
                             MAIN_MENU_ADD -> sendMessage(mainAdminAddMenu(text), upd.message.chatId)
                             CAMPAIGN_FOR_SEND_GROUP_MSG -> sendMessage(mainAdminsMenu(text), upd.message.chatId)
                             else -> {
-                                sendMessage(mainAdminsMenu(text, text.infoForAdmin), upd.message.chatId)
+                                sendMessage(mainAdminsMenu(text, text.mainMenu), upd.message.chatId)
                                 log.warn("Not supported action!\n${upd.message}")
                             }
                         }
@@ -679,74 +761,80 @@ class TelegramBot : TelegramLongPollingBot {
                 }
             }
             MAIN_MENU_ADD_ADMIN -> {
-                try {
-                    val params = upd.message.text.split("\\s+".toRegex())
-                    val adminId = params[0].toInt()
-                    val camp = userStates[upd.message.from.id]!!.campaign!!
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex())
+                        val adminId = params[0].toInt()
+                        val camp = userStates[upd.message.from.id]!!.campaign!!
 
-                    val userId = upd.message.chatId
+                        val userId = upd.message.chatId
 
-                    val addedAdmin = service.addAdmin(
-                        userId = userId.toInt(),
-                        adminId = adminId,
-                        camp = camp,
-                        maimAdmins = mainAdmins
-                    )
+                        val addedAdmin = service.addAdmin(
+                            userId = userId.toInt(),
+                            adminId = adminId,
+                            camp = camp,
+                            maimAdmins = mainAdmins
+                        )
 
-                    sendMessage(
-                        mainAdminAddMenu(
-                            text,
-                            resourceText(
-                                text.msgSuccessAddAdmin,
-                                "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
-                                "camp.desc" to "${camp.id} ${camp.name}"
-                            )
-                        ), userId
-                    )
+                        sendMessage(
+                            mainAdminAddMenu(
+                                text,
+                                resourceText(
+                                    text.msgSuccessAddAdmin,
+                                    "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
+                                    "camp.desc" to "${camp.id} ${camp.name}"
+                                )
+                            ), userId
+                        )
 
-                } catch (e: NoAccessException) {
-                    sendMessage(text.errAddAdminAccessDenied, upd.message.chatId)
-                    log.error("AdminGroup creating err (access denied).", e)
-                } catch (t: Throwable) {
-                    sendMessage(text.errAddAdmin, upd.message.chatId)
-                    log.error("AdminGroup creating err.", t)
+                    } catch (e: NoAccessException) {
+                        sendMessage(text.errAddAdminAccessDenied, upd.message.chatId)
+                        log.error("AdminGroup creating err (access denied).", e)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errAddAdmin, upd.message.chatId)
+                        log.error("AdminGroup creating err.", t)
+                    }
                 }
             }
             MAIN_MENU_DELETE_ADMIN -> {
-                try {
-                    val params = upd.message.text.split("\\s+".toRegex(), 2)
-                    val adminId = params[0].toInt()
-                    val camp = userStates[upd.message.from.id]!!.campaign!!
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val params = upd.message.text.split("\\s+".toRegex(), 2)
+                        val adminId = params[0].toInt()
+                        val camp = userStates[upd.message.from.id]!!.campaign!!
 
-                    val userId = upd.message.chatId
+                        val userId = upd.message.chatId
 
-                    val deletedAdmin = service.deleteAdmin(
-                        userId = userId.toInt(),
-                        adminId = adminId,
-                        camp = camp,
-                        maimAdmins = mainAdmins
-                    )
+                        val deletedAdmin = service.deleteAdmin(
+                            userId = userId.toInt(),
+                            adminId = adminId,
+                            camp = camp,
+                            maimAdmins = mainAdmins
+                        )
 
-                    sendMessage(
-                        mainAdminDeleteMenu(
-                            text,
-                            resourceText(
-                                text.msgSuccessDeleteAdmin,
-                                "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
-                                "camp.desc" to "${camp.id} ${camp.name}"
-                            )
-                        ), userId
-                    )
+                        sendMessage(
+                            mainAdminDeleteMenu(
+                                text,
+                                resourceText(
+                                    text.msgSuccessDeleteAdmin,
+                                    "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
+                                    "camp.desc" to "${camp.id} ${camp.name}"
+                                )
+                            ), userId
+                        )
 
-                } catch (e: AdminNotFoundException) {
-                    sendMessage(text.errDeleteAdminNotFound, upd.message.chatId)
-                    log.error("AdminGroup deleting err (not found).", e)
-                } catch (e: NoAccessException) {
-                    sendMessage(text.errDeleteAdminAccessDenied, upd.message.chatId)
-                    log.error("AdminGroup deleting err (access denied).", e)
-                } catch (t: Throwable) {
-                    sendMessage(text.errDeleteAdmin, upd.message.chatId)
-                    log.error("AdminGroup deleting err.", t)
+                    } catch (e: AdminNotFoundException) {
+                        sendMessage(text.errDeleteAdminNotFound, upd.message.chatId)
+                        log.error("AdminGroup deleting err (not found).", e)
+                    } catch (e: NoAccessException) {
+                        sendMessage(text.errDeleteAdminAccessDenied, upd.message.chatId)
+                        log.error("AdminGroup deleting err (access denied).", e)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errDeleteAdmin, upd.message.chatId)
+                        log.error("AdminGroup deleting err.", t)
+                    }
                 }
             }
             else -> {

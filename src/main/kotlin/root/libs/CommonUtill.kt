@@ -98,6 +98,7 @@ fun resourceText(text: String, vararg params: ResourceParameter = emptyArray()):
 }
 
 fun <E> ArrayList<E>.addElements(vararg elements: E) = this.addAll(elements)
+fun <E> ArrayList<E>.addElements(index: Int = 0, vararg elements: E) = elements.reversed().forEach { add(index, it) }
 
 fun writeIntoExcel(file: File, lines: Iterable<ExcelEntity>) = HSSFWorkbook().let {
     it.createSheet("sheet").let { sheet ->

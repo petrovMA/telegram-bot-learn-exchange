@@ -182,6 +182,7 @@ data class Text(
      val errAdminToCampaign: String,
      val errGroupToCampaign: String,
      val errCreateCampaign: String,
+     val errCreateCampaignAlreadyExist: String,
      val errRemoveCampaign: String,
      val errClbUser: String,
      val errUserAddedToCampaign: String,

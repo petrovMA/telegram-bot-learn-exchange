@@ -1,10 +1,10 @@
 package root.bot
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
-import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import root.data.Text
 import root.data.dao.SurveyDAO
@@ -62,8 +62,8 @@ fun msgQuestion(survey: SurveyDAO, command: String) = SendMessage().also { msg -
     }
 }
 
-fun msgBackMenu(text: String, textBack: String) = SendMessage().also { msg ->
-    msg.text = text
+fun msgBackMenu(msgText: String, textBack: String) = SendMessage().also { msg ->
+    msg.text = msgText
     msg.enableMarkdown(true)
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
         markup.selective = true
@@ -219,21 +219,28 @@ fun mainAdminStatisticMenu(text: Text) = SendMessage().also { msg ->
     }
 }
 
-fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) =
-    SendMessage().also { msg ->
-        msg.text = textMsg
-        msg.enableMarkdown(true)
-        msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-            markup.selective = true
-            markup.resizeKeyboard = true
-            markup.oneTimeKeyboard = false
-            markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-                keyboard.addElements(KeyboardRow().also {
-                    it.add(text.joinToCampaign)
-                    it.add(text.msgUserInfo)
-                }, KeyboardRow().also {
-                    it.add(text.showUserCampaigns)
-                })
-            }
+fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) = SendMessage().also { msg ->
+    msg.text = textMsg
+    msg.enableMarkdown(true)
+    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+        markup.selective = true
+        markup.resizeKeyboard = true
+        markup.oneTimeKeyboard = false
+        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+            keyboard.addElements(KeyboardRow().also {
+                it.add(text.joinToCampaign)
+                it.add(text.msgUserInfo)
+            }, KeyboardRow().also {
+                it.add(text.showUserCampaigns)
+            })
         }
     }
+}
+
+fun createKeyboard(buttons: List<KeyboardButton>, buttonsCountInRow: Int = 2) = ArrayList<KeyboardRow>().apply {
+    add(KeyboardRow())
+    buttons.forEach {
+        if (last().size < buttonsCountInRow) last().add(it)
+        else add(KeyboardRow().apply { add(it) })
+    }
+}
