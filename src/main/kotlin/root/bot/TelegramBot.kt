@@ -370,10 +370,10 @@ class TelegramBot : TelegramLongPollingBot {
                         )
 
                     } catch (e: NoAccessException) {
-                        sendMessage(text.errAddGroupAccessDenied, upd.message.chatId) // FIXME TEXT
+                        sendMessage(text.errAddGroupAccessDenied, upd.message.chatId)
                         log.error("Group creating err (access denied).", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errAddGroup, upd.message.chatId) // FIXME TEXT
+                        sendMessage(text.errAddGroup, upd.message.chatId)
                         log.error("Group creating err.", t)
                     }
                 }
