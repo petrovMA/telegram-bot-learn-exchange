@@ -313,7 +313,13 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val newCampName = upd.message.text
 
-                        service.createCommonCampaign(CommonCampaign(name = newCampName, createDate = now()))
+                        service.createCommonCampaign(
+                            CommonCampaign(
+                                name = newCampName,
+                                createDate = now(),
+                                missions = emptySet()
+                            )
+                        )
 
                         sendMessage(text.sucCreateCommonCampaign, upd.message.chatId)
                     } catch (e: DataIntegrityViolationException) {

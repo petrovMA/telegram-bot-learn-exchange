@@ -26,7 +26,7 @@ data class Campaign(
         inverseJoinColumns = [JoinColumn(name = "exchange_group_id")]
     )
     var groups: Set<Group>
-) : ExcelEntity() {
+) : ExcelEntity {
 
     override fun toHead() = arrayOf("id", "name", "createDate", "groups")
     override fun toRow() =

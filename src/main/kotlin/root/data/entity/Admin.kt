@@ -32,7 +32,7 @@ data class Admin(
         inverseJoinColumns = [JoinColumn(name = "campaign_id")]
     )
     var campaigns: Set<Campaign>
-) : ExcelEntity() {
+) : ExcelEntity {
     override fun equals(other: Any?): Boolean = when (other) {
         is User -> {
             other.id == this.userId && other.firstName == this.firstName && other.lastName == this.lastName && other.userName == this.userName

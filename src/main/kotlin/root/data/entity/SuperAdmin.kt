@@ -24,7 +24,7 @@ data class SuperAdmin(
 
     @Column(nullable = false)
     var createDate: OffsetDateTime
-) : ExcelEntity() {
+) : ExcelEntity {
     override fun equals(other: Any?): Boolean = when (other) {
         is User -> {
             other.id == this.userId && other.firstName == this.firstName && other.lastName == this.lastName && other.userName == this.userName

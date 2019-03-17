@@ -31,7 +31,7 @@ data class Survey(
 
     @ManyToOne(fetch = FetchType.LAZY)
     var campaign: Campaign
-) : ExcelEntity() {
+) : ExcelEntity {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 
     override fun hashCode(): Int {

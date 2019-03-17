@@ -17,12 +17,20 @@ data class CommonCampaign(
     var name: String,
 
     @Column(nullable = false)
-    var createDate: OffsetDateTime
-) : ExcelEntity() {
+    var createDate: OffsetDateTime,
 
-    override fun toHead() = arrayOf("id", "name", "createDate")
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "common_campaign_to_missions",
+        joinColumns = [JoinColumn(name = "common_campaign_id")],
+        inverseJoinColumns = [JoinColumn(name = "mission_id")]
+    )
+    var missions: Set<Survey>
+) : ExcelEntity {
+
+    override fun toHead() = arrayOf("id", "name", "createDate", "missions")
     override fun toRow() =
-        arrayOf("$id", name, "$createDate")
+        arrayOf("$id", name, "$createDate", missions.joinToString("\n") { "${it.id} ${it.name}" })
 
     override fun hashCode() = id?.toInt() ?: 0
 }
