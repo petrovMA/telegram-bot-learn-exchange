@@ -253,7 +253,13 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     text.deleteMenuAdmin -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_ADMIN, upd.message.from)
-                        sendMessage(text.msgRemoveAdminFromCampaign, upd.message.chatId)
+                        sendMessage(
+                            msgAvailableCampaignsList(
+                                text.msgRemoveAdminFromCampaign,
+                                MAIN_MENU_DELETE_ADMIN.toString(),
+                                service.getAllCampaigns()
+                            ), upd.message.chatId
+                        )
                     }
                     text.back -> actionBack.invoke()
                 }
@@ -342,13 +348,12 @@ class TelegramBot : TelegramLongPollingBot {
                         )
 
                         sendMessage(
-                            mainAdminAddMenu(
-                                text,
+                            msgBackMenu(
                                 resourceText(
                                     text.msgSuccessAddAdmin,
                                     "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
                                     "camp.desc" to "${camp.id} ${camp.name}"
-                                )
+                                ), text.back
                             ), userId
                         )
 
@@ -379,13 +384,12 @@ class TelegramBot : TelegramLongPollingBot {
                         )
 
                         sendMessage(
-                            mainAdminDeleteMenu(
-                                text,
+                            msgBackMenu(
                                 resourceText(
                                     text.msgSuccessDeleteAdmin,
                                     "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
                                     "camp.desc" to "${camp.id} ${camp.name}"
-                                )
+                                ), text.back
                             ), userId
                         )
 
@@ -529,7 +533,7 @@ class TelegramBot : TelegramLongPollingBot {
                                 )
                             )
 
-                            end(upd, text.sucAdminToCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
+//                            end(upd, text.sucAdminToCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
                         } ?: {
                             sendMessage(text.errCampaignNotFound, upd.message.chatId)
                         }.invoke()
@@ -803,7 +807,13 @@ class TelegramBot : TelegramLongPollingBot {
                     }
                     text.deleteMenuAdmin -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_ADMIN, upd.message.from)
-                        sendMessage(text.msgRemoveAdminFromCampaign, upd.message.chatId)
+                        sendMessage(
+                            msgAvailableCampaignsList(
+                                text.msgRemoveAdminFromCampaign,
+                                MAIN_MENU_DELETE_ADMIN.toString(),
+                                service.getAllCampaigns()
+                            ), upd.message.chatId
+                        )
                     }
                     text.back -> actionBack.invoke()
                 }
@@ -826,13 +836,12 @@ class TelegramBot : TelegramLongPollingBot {
                         )
 
                         sendMessage(
-                            mainAdminAddMenu(
-                                text,
+                            msgBackMenu(
                                 resourceText(
                                     text.msgSuccessAddAdmin,
                                     "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
                                     "camp.desc" to "${camp.id} ${camp.name}"
-                                )
+                                ), text.back
                             ), userId
                         )
 
@@ -863,13 +872,12 @@ class TelegramBot : TelegramLongPollingBot {
                         )
 
                         sendMessage(
-                            mainAdminDeleteMenu(
-                                text,
+                            msgBackMenu(
                                 resourceText(
                                     text.msgSuccessDeleteAdmin,
                                     "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
                                     "camp.desc" to "${camp.id} ${camp.name}"
-                                )
+                                ), text.back
                             ), userId
                         )
 
@@ -1257,6 +1265,37 @@ class TelegramBot : TelegramLongPollingBot {
                 execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
                 throw t
             }
+            MAIN_MENU_ADD_ADMIN == callBackCommand || MAIN_MENU_DELETE_ADMIN == callBackCommand -> try {
+
+                val campaign = service.getCampaignById(params[1].toLong()) ?: throw CampaignNotFoundException()
+
+                userStates[upd.callbackQuery.from.id] =
+                    UserData(callBackCommand, upd.callbackQuery.from, campaign = campaign)
+                execute(callbackAnswer.also {
+                    it.text = when (callBackCommand) {
+                        MAIN_MENU_ADD_ADMIN -> text.clbAddAdminToCampaign
+                        else -> text.clbDeleteAdminFromCampaign
+                    }
+                })
+                deleteMessage(upd.callbackQuery.message)
+                sendMessage(
+                    msgBackMenu(
+                        when (callBackCommand) {
+                            MAIN_MENU_ADD_ADMIN -> text.msgAdminToCampaignAdminId
+                            else -> text.msgAdminDeleteFromCampaignAdminId
+                        }, text.back
+                    ), upd.callbackQuery.message.chatId
+                )
+            } catch (t: Throwable) {
+                log.error("$callBackCommand execute error", t)
+                execute(callbackAnswer.also {
+                    it.text = when (callBackCommand) {
+                        MAIN_MENU_ADD_ADMIN -> text.errClbAddAdminToCampaign
+                        else -> text.errClbDeleteAdminFromCampaign
+                    }
+                })
+                throw t
+            }
             else -> {
                 setTextToMessage(
                     resourceText(text.errCommon),
@@ -1389,18 +1428,29 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(callBackCommand, upd.callbackQuery.from, campaign = campaign)
-                execute(callbackAnswer.also { it.text = text.clbAddAdminToCampaign })
-                editMessage(EditMessageText().also { msg ->
-                    msg.chatId = upd.callbackQuery.message.chatId.toString()
-                    msg.messageId = upd.callbackQuery.message.messageId
-                    msg.text = when (callBackCommand) {
-                        MAIN_MENU_ADD_ADMIN -> text.msgAdminToCampaignAdminId
-                        else -> text.msgAdminDeleteFromCampaignAdminId
+                execute(callbackAnswer.also {
+                    it.text = when (callBackCommand) {
+                        MAIN_MENU_ADD_ADMIN -> text.clbAddAdminToCampaign
+                        else -> text.clbDeleteAdminFromCampaign
                     }
                 })
+                deleteMessage(upd.callbackQuery.message)
+                sendMessage(
+                    msgBackMenu(
+                        when (callBackCommand) {
+                            MAIN_MENU_ADD_ADMIN -> text.msgAdminToCampaignAdminId
+                            else -> text.msgAdminDeleteFromCampaignAdminId
+                        }, text.back
+                    ), upd.callbackQuery.message.chatId
+                )
             } catch (t: Throwable) {
-                log.error("CAMPAIGN_FOR_SEND_GROUP_MSG execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
+                log.error("$callBackCommand execute error", t)
+                execute(callbackAnswer.also {
+                    it.text = when (callBackCommand) {
+                        MAIN_MENU_ADD_ADMIN -> text.errClbAddAdminToCampaign
+                        else -> text.errClbDeleteAdminFromCampaign
+                    }
+                })
                 throw t
             }
             else -> {

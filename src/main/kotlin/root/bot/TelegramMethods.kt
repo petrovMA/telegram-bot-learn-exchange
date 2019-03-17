@@ -26,25 +26,23 @@ fun msgUserInfo(passedSurveys: Iterable<PassedSurvey>, text: String) = SendMessa
     )
 }
 
-fun msgAvailableCampaignsList(text: String, command: String, campaigns: Iterable<Campaign>) =
-    SendMessage().also { msg ->
-        msg.text = text
-        msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
-            markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
-                campaigns.forEach {
-                    keyboard.add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
-                }
+fun msgAvailableCampaignsList(text: String, command: String, campaigns: Iterable<Campaign>) = SendMessage().apply {
+    this.text = text
+    replyMarkup = InlineKeyboardMarkup().apply {
+        keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
+            campaigns.forEach {
+                add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
             }
         }
     }
+}
 
-fun msgTaskList(text: String, command: String, surveys: Iterable<Survey>) = SendMessage().also { msg ->
-    msg.text = text
-    msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
-
-        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+fun msgTaskList(text: String, command: String, surveys: Iterable<Survey>) = SendMessage().apply {
+    this.text = text
+    replyMarkup = InlineKeyboardMarkup().apply {
+        keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
             surveys.forEach {
-                keyboard.add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
+                add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
             }
         }
     }

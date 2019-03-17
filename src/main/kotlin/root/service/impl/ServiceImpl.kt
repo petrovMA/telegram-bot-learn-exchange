@@ -127,7 +127,8 @@ open class ServiceImpl(
     override fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
         if (hasAccessToEditAdmin(userId, adminId, camp, maimAdmins)) {
             getAdminById(adminId)?.let {
-                saveAdmin(it.apply { campaigns = campaigns.toHashSet().apply { remove(camp) } })
+                adminRepository.deleteByUserId(adminId)
+                it
             } ?: throw AdminNotFoundException()
         } else throw NoAccessException()
 
