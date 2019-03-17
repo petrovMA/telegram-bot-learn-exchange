@@ -5,11 +5,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import root.data.MainAdmin
 import root.data.entity.*
-import root.libs.AdminNotFoundException
-import root.libs.NoAccessException
-import root.libs.stubCampaign
+import root.libs.*
 import root.repositories.*
-import java.time.OffsetDateTime
 import java.time.OffsetDateTime.now
 
 @Service
@@ -117,19 +114,51 @@ open class ServiceImpl(
 
     @Transactional
     override fun addAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
-        if (hasAccessToEditAdmin(userId, adminId, camp, maimAdmins)) {
-            getAdminById(adminId)?.let {
-                saveAdmin(it.apply { campaigns = campaigns.toHashSet().apply { add(camp) } })
-            } ?: saveAdmin(Admin(userId = adminId, createDate = now(), campaigns = hashSetOf(camp)))
+        if (isMainAccess(userId, maimAdmins) || isSuperAccess(userId) || isAdminAccess(userId, camp)) {
+            campaignRepository.findById(camp.id!!).orElse(null)?.let { campaign ->
+                getAdminById(adminId)?.let {
+                    saveAdmin(it.apply { campaigns = campaigns.toHashSet().apply { add(campaign) } }) to campaign
+                } ?: saveAdmin(Admin(userId = adminId, createDate = now(), campaigns = hashSetOf(campaign))) to campaign
+            } ?: throw CampaignNotFoundException()
         } else throw NoAccessException()
 
     @Transactional
     override fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
-        if (hasAccessToEditAdmin(userId, adminId, camp, maimAdmins)) {
-            getAdminById(adminId)?.let {
+        if (isMainAccess(userId, maimAdmins) || isSuperAccess(userId) || isAdminAccess(userId, camp)) {
+            getAdminById(adminId)?.also {
                 adminRepository.deleteByUserId(adminId)
-                it
             } ?: throw AdminNotFoundException()
+        } else throw NoAccessException()
+
+    @Transactional
+    override fun addGroup(userId: Int, groupId: Long, camp: Campaign, maimAdmins: List<MainAdmin>) =
+        if (isMainAccess(userId, maimAdmins) || isSuperAccess(userId)) {
+            campaignRepository.findById(camp.id!!).orElse(null)?.let { campaign ->
+
+                (groupRepository.findById(groupId).orElse(null)?.let { group ->
+                    groupRepository.save(group).also {
+                        campaignRepository.save(campaign.apply { groups = groups.toHashSet().apply { add(it) } })
+                    }
+                } ?: {
+                    groupRepository.save(Group(groupId, now())).also {
+                        campaignRepository.save(campaign.apply { groups = groups.toHashSet().apply { add(it) } })
+                    }
+                }.invoke()) to campaign
+
+            } ?: throw CampaignNotFoundException()
+        } else throw NoAccessException()
+
+    @Transactional
+    override fun deleteGroup(userId: Int, groupId: Long, camp: Campaign, maimAdmins: List<MainAdmin>) =
+        if (isMainAccess(userId, maimAdmins) || isSuperAccess(userId)) {
+            campaignRepository.findById(camp.id!!).orElse(null)?.let { campaign ->
+
+                (groupRepository.findById(groupId).orElse(null)?.also { group ->
+                    campaignRepository.save(campaign.apply { groups = groups.toHashSet().apply { remove(group) } })
+                    groupRepository.delete(group)
+                } ?: throw GroupNotFoundException()) to campaign
+
+            } ?: throw CampaignNotFoundException()
         } else throw NoAccessException()
 
     @Transactional
@@ -162,8 +191,8 @@ open class ServiceImpl(
     @Transactional
     override fun savePassedSurvey(passedSurvey: PassedSurvey): PassedSurvey = passedSurveyRepository.save(passedSurvey)
 
-    private fun hasAccessToEditAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
-        (maimAdmins.any { it.userId == userId } ||
-                getAdminsByCampaigns(setOf(camp)).any { it.userId == adminId } ||
-                getAllSuperAdmins().any { it.userId == userId })
+    private fun isMainAccess(userId: Int, maimAdmins: List<MainAdmin>) = maimAdmins.any { it.userId == userId }
+    private fun isSuperAccess(userId: Int) = getAllSuperAdmins().any { it.userId == userId }
+    private fun isAdminAccess(userId: Int, camp: Campaign) =
+        getAdminsByCampaigns(setOf(camp)).any { it.userId == userId }
 }
