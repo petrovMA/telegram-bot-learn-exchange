@@ -51,6 +51,7 @@ data class Text(
      val msgRemoveAdminFromCampaign: String,
      val msgRemoveGroupFromCampaign: String,
      val msgAddSuperAdmin: String,
+     val msgDeleteSuperAdmin: String,
      val msgSurveyActionsName: String,
      val msgSurvey: String,
      val msgSurveysTable: String,

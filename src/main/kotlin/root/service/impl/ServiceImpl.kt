@@ -125,9 +125,20 @@ open class ServiceImpl(
     @Transactional
     override fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>) =
         if (isMainAccess(userId, maimAdmins) || isSuperAccess(userId) || isAdminAccess(userId, camp)) {
-            getAdminById(adminId)?.also {
+            campaignRepository.findById(camp.id!!).orElse(null)?.let { campaign ->
+                getAdminById(adminId)?.let {
+                    it.apply { campaigns = campaigns.toHashSet().apply { remove(campaign) } }
+                    if (it.campaigns.isNotEmpty())
+                        saveAdmin(it) to campaign
+                    else {
+                        adminRepository.deleteByUserId(adminId)
+                        it to campaign
+                    }
+                } ?: throw AdminNotFoundException()
+            } ?: {
                 adminRepository.deleteByUserId(adminId)
-            } ?: throw AdminNotFoundException()
+                Admin(userId = adminId, createDate = now(), campaigns = emptySet()) to camp
+            }.invoke()
         } else throw NoAccessException()
 
     @Transactional
