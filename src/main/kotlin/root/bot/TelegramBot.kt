@@ -229,7 +229,7 @@ class TelegramBot : TelegramLongPollingBot {
                 when (upd.message.text) {
                     text.deleteMenuCampaign -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_CAMPAIGN, upd.message.from)
-                        TODO("MAIN_MENU_DELETE_CAMPAIGN")
+                        sendMessage(msgBackMenu(text.msgRemoveCampaign, text.back), upd.message.chatId)
                     }
                     text.deleteMenuCommonCampaign -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_DELETE_COMMON_CAMPAIGN, upd.message.from)
@@ -273,6 +273,21 @@ class TelegramBot : TelegramLongPollingBot {
                     } catch (t: Throwable) {
                         sendMessage(text.errCreateCampaign, upd.message.chatId)
                         log.error("Campaign creating err.", t)
+                    }
+                }
+            }
+            MAIN_MENU_DELETE_CAMPAIGN -> {
+                when (upd.message.text) {
+                    text.back -> actionBack.invoke()
+                    else -> try {
+                        val newCampName = upd.message.text
+
+                        service.deleteCampaignByName(newCampName)
+
+                        sendMessage(text.sucRemoveCampaign, upd.message.chatId)
+                    } catch (t: Throwable) {
+                        sendMessage(text.errRemoveCampaign, upd.message.chatId)
+                        log.error("Campaign remove err.", t)
                     }
                 }
             }
