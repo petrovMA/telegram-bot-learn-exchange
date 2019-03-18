@@ -19,6 +19,9 @@ data class Campaign(
     @Column(nullable = false)
     var createDate: OffsetDateTime,
 
+    @Column(nullable = false)
+    var common: Boolean = false,
+
     @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "campaign_to_exchange_group",

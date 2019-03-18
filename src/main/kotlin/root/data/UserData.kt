@@ -11,7 +11,6 @@ data class UserData(
     val taskName: String? = null,
     val groups: Set<Group>? = null,
     val campaign: Campaign? = null,
-    val commonCampaign: CommonCampaign? = null,
     val users: Iterable<UserInCampaign>? = null,
     var survey: Survey? = null,
     var question: Question? = null,

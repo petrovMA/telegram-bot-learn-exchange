@@ -218,21 +218,21 @@ class TelegramBot : TelegramLongPollingBot {
                         sendMessage(msgBackMenu(text.msgSurvey, text.back), upd.message.chatId)
 
                         val availableCampaigns = service.getAllCampaigns().toList()
-                        val availableCommonCampaigns = service.getAllCommonCampaigns().toList()
 
                         if (availableCampaigns.isNotEmpty()) {
                             sendMessage(
                                 msgAvailableCampaignsList(
                                     text.adminAvailableCampaignsSurveys,
                                     CAMPAIGN_FOR_SURVEY.toString(),
-                                    availableCampaigns,
-                                    availableCommonCampaigns
+                                    availableCampaigns
                                 ), upd.message.chatId
                             )
                             userStates[upd.message.from.id] =
                                 UserData(CAMPAIGN_FOR_SURVEY, upd.message.from)
-                        } else
+                        } else {
                             sendMessage(mainAdminsMenu(text, text.msgNoCampaign), upd.message.chatId)
+                            userStates.remove(upd.message.from.id)
+                        }
                     }
                     text.addMenuTask -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_TASK, upd.message.from)
@@ -332,11 +332,12 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val newCampName = upd.message.text
 
-                        service.createCommonCampaign(
-                            CommonCampaign(
+                        service.createCampaign(
+                            Campaign(
                                 name = newCampName,
                                 createDate = now(),
-                                missions = emptySet()
+                                common = true,
+                                groups = emptySet()
                             )
                         )
 
@@ -356,7 +357,7 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val newCampName = upd.message.text
 
-                        service.deleteCommonCampaignByName(newCampName)
+                        service.deleteCampaignByName(newCampName)
 
                         sendMessage(text.sucRemoveCommonCampaign, upd.message.chatId)
                     } catch (t: Throwable) {
@@ -554,7 +555,7 @@ class TelegramBot : TelegramLongPollingBot {
                     name = upd.message.text,
                     createDate = now(),
                     questions = HashSet(),
-                    campaign = userStates[upd.message.from.id]!!.campaign
+                    campaign = userStates[upd.message.from.id]!!.campaign!!
                 )
 
                 userStates[upd.message.from.id]!!.apply {
@@ -569,7 +570,7 @@ class TelegramBot : TelegramLongPollingBot {
                         name = upd.message.text,
                         createDate = now(),
                         questions = HashSet(),
-                        campaign = userStates[upd.callbackQuery.from.id]!!.campaign
+                        campaign = userStates[upd.callbackQuery.from.id]!!.campaign!!
                     )
 
                 userStates[upd.message.from.id]!!.apply {
@@ -1315,9 +1316,7 @@ class TelegramBot : TelegramLongPollingBot {
                 service.deleteSurveyById(params[1].toLong())
 
                 showSurveys(
-                    (userStates[upd.callbackQuery.from.id]!!.campaign?.let {
-                        service.getSurveyByCampaign(it)
-                    } ?: userStates[upd.callbackQuery.from.id]!!.commonCampaign!!.missions).toList(),
+                    service.getSurveyByCampaign(userStates[upd.callbackQuery.from.id]!!.campaign!!).toList(),
                     upd
                 )
             }
@@ -1326,11 +1325,9 @@ class TelegramBot : TelegramLongPollingBot {
                     val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
                     survey.campaign = it
                     service.saveSurvey(survey)
-                } ?: service.updateCommonCampaign(userStates[upd.callbackQuery.from.id]!!.commonCampaign!!.apply {
-                    missions = missions.toHashSet().apply { add(userStates[upd.callbackQuery.from.id]!!.survey!!) }
-                })
+                }
 
-                sendMessage(mainAdminsMenu(text, text.clbSurveySave), upd.message.chatId)
+                sendMessage(mainAdminsMenu(text, text.clbSurveySave), upd.callbackQuery.message.chatId)
             }
             SURVEY_EDIT -> {
                 userStates[upd.callbackQuery.from.id]!!.survey = service.getSurveyById(params[1].toLong())
@@ -1448,8 +1445,15 @@ class TelegramBot : TelegramLongPollingBot {
                 execute(callbackAnswer.also { it.text = text.clbSurvey })
             }
             SURVEY_QUESTIONS -> {
-                showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyQuestions })
+                userStates[upd.callbackQuery.from.id]!!.question?.let {
+                    userStates[upd.callbackQuery.from.id]!!.survey!!.questions =
+                        userStates[upd.callbackQuery.from.id]!!.survey!!.questions.toHashSet().apply { add(it) }
+                    userStates[upd.callbackQuery.from.id]!!.question = null
+                    showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
+                } ?: {
+                    showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
+                    execute(callbackAnswer.also { it.text = text.clbSurveyQuestions })
+                }.invoke()
             }
             SURVEY_QUESTION_SELECT -> {
                 userStates[upd.callbackQuery.from.id]!!.question =
@@ -1476,8 +1480,15 @@ class TelegramBot : TelegramLongPollingBot {
                 execute(callbackAnswer.also { it.text = text.clbSurveyOptionDeleted })
             }
             SURVEY_OPTIONS -> {
-                showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+                userStates[upd.callbackQuery.from.id]!!.option?.let {
+                    userStates[upd.callbackQuery.from.id]!!.question!!.options =
+                        userStates[upd.callbackQuery.from.id]!!.question!!.options.toHashSet().apply { add(it) }
+                    userStates[upd.callbackQuery.from.id]!!.option = null
+                    showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
+                } ?: {
+                    showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
+                    execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+                }.invoke()
             }
             SURVEY_OPTION_SELECT -> {
                 userStates[upd.callbackQuery.from.id]!!.option =
@@ -1550,27 +1561,18 @@ class TelegramBot : TelegramLongPollingBot {
             }
             else errorAnswer.invoke()
             CAMPAIGN_FOR_SURVEY -> if (userStates[upd.callbackQuery.from.id]?.state == CAMPAIGN_FOR_SURVEY) try {
-                if (params[1].endsWith("common")) {
-                    val id = params[1].split("\\s+".toRegex())[0].toLong()
-
-                    val campaign = service.getCommonCampaignById(id)
+                val campaign = if (params[1].endsWith("common"))
+                    service.getCampaignById(params[1].split("\\s+".toRegex())[0].toLong())
+                        ?: throw CampaignNotFoundException()
+                else
+                    service.getCampaignById(params[1].toLong())
                         ?: throw CampaignNotFoundException()
 
-                    userStates[upd.callbackQuery.from.id] =
-                        UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, commonCampaign = campaign)
+                userStates[upd.callbackQuery.from.id] =
+                    UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, campaign = campaign)
 
-                    val surveys = campaign.missions
-                    showSurveys(surveys.toList(), upd)
-                } else {
-                    val campaign = service.getCampaignById(params[1].toLong())
-                        ?: throw CampaignNotFoundException()
-
-                    userStates[upd.callbackQuery.from.id] =
-                        UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, campaign = campaign)
-
-                    val surveys = service.getSurveyByCampaign(campaign)
-                    showSurveys(surveys.toList(), upd)
-                }
+                val surveys = service.getSurveyByCampaign(campaign)
+                showSurveys(surveys.toList(), upd)
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SURVEY execute error", t)
                 execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })

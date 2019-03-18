@@ -30,7 +30,7 @@ data class Survey(
     var questions: Set<Question>,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var campaign: Campaign?
+    var campaign: Campaign
 ) : ExcelEntity {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 

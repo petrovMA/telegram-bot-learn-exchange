@@ -19,7 +19,6 @@ open class ServiceImpl(
     @Autowired open val groupUserRepository: GroupUserRepository,
     @Autowired open val groupRepository: GroupRepository,
     @Autowired open val campaignRepository: CampaignRepository,
-    @Autowired open val commonCampaignRepository: CommonCampaignRepository,
     @Autowired open val passedSurveyRepository: PassedSurveyRepository
 ) : root.service.Service {
     @Transactional
@@ -33,7 +32,12 @@ open class ServiceImpl(
         campaignRepository.findAllCampaignByUserId(userId)
 
     @Transactional
-    override fun createCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
+    override fun createCampaign(campaign: Campaign): Campaign = campaign.id?.run {
+        campaignRepository.findCampaignById(this)?.run {
+            throw CampaignAlreadyExistException()
+        }
+        campaignRepository.save(campaign)
+    } ?: campaignRepository.save(campaign)
 
     @Transactional
     override fun updateCampaign(campaign: Campaign): Campaign = campaignRepository.save(campaign)
@@ -47,24 +51,6 @@ open class ServiceImpl(
     @Transactional
     override fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign> =
         campaignRepository.findAllCampaignsByChatListNotContainsUser(chats, userId)
-
-
-    @Transactional
-    override fun createCommonCampaign(commonCampaign: CommonCampaign): CommonCampaign =
-        commonCampaignRepository.save(commonCampaign)
-
-    @Transactional
-    override fun updateCommonCampaign(commonCampaign: CommonCampaign): CommonCampaign =
-        commonCampaignRepository.save(commonCampaign)
-
-    @Transactional
-    override fun deleteCommonCampaignByName(name: String) = commonCampaignRepository.deleteByName(name)
-
-    @Transactional
-    override fun getAllCommonCampaigns(): Iterable<CommonCampaign> = commonCampaignRepository.findAll()
-
-    @Transactional
-    override fun getCommonCampaignById(id: Long): CommonCampaign? = commonCampaignRepository.findById(id).orElse(null)
 
 
     @Transactional
