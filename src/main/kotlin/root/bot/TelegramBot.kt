@@ -645,10 +645,12 @@ class TelegramBot : TelegramLongPollingBot {
                 }
                 editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
             }
-            SURVEY_OPTION_EDIT_VALUE -> {
+            SURVEY_OPTION_EDIT_CORRECT -> {
                 try {
                     val option =
-                        userStates[upd.message.from.id]?.option!!.also { it.value = upd.message.text.toInt() }
+                        userStates[upd.message.from.id]?.option!!.also {
+                            it.correct = upd.message.text.equals("true", ignoreCase = true)
+                        }
 
                     userStates[upd.message.from.id]!!.apply {
                         this.state = NONE
@@ -1324,7 +1326,7 @@ class TelegramBot : TelegramLongPollingBot {
                 userStates[upd.callbackQuery.from.id]!!.campaign?.let {
                     val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
                     survey.campaign = it
-                    service.saveSurvey(survey)
+                    service.saveSurvey(fixSurvey(survey))
                 }
 
                 sendMessage(mainAdminsMenu(text, text.clbSurveySave), upd.callbackQuery.message.chatId)
@@ -1412,14 +1414,14 @@ class TelegramBot : TelegramLongPollingBot {
                     SURVEY_OPTION_EDIT_BACK
                 )
             }
-            SURVEY_OPTION_EDIT_VALUE -> {
+            SURVEY_OPTION_EDIT_CORRECT -> {
                 userStates[upd.callbackQuery.from.id]!!.apply {
                     this.state = callBackCommand
                     this.updCallback = upd
                 }
                 enterText(
                     upd.callbackQuery.message,
-                    text.msgSurveyOptionActionsValue,
+                    text.msgSurveyOptionActionsCorrect,
                     text.backToSurveyOptionMenu,
                     SURVEY_OPTION_EDIT_BACK
                 )
@@ -2174,7 +2176,7 @@ class TelegramBot : TelegramLongPollingBot {
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionEditValue)
-                            .setCallbackData("$SURVEY_OPTION_EDIT_VALUE")
+                            .setCallbackData("$SURVEY_OPTION_EDIT_CORRECT")
                     ),
                     listOf(
                         InlineKeyboardButton().setText(text.surveyOptionDelete)

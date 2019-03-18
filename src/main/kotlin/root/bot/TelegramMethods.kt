@@ -249,3 +249,8 @@ fun createKeyboard(buttons: List<KeyboardButton>, buttonsCountInRow: Int = 2) = 
         else add(KeyboardRow().apply { add(it) })
     }
 }
+
+fun fixSurvey(survey: Survey) = survey.apply {
+    questions.forEach { it.options.forEach { opt -> opt.value = 0 } }
+    questions.last().options.forEach { opt -> if (opt.correct) opt.value = 1000 }
+}

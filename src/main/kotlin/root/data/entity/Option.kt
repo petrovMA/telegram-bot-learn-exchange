@@ -19,9 +19,12 @@ data class Option(
     var sortPoints: Int = Int.MAX_VALUE,
 
     @Column(nullable = false)
-    var value: Int = 0
+    var value: Int = 0,
+
+    @Column(nullable = false)
+    var correct: Boolean = false
 ) {
-    override fun toString(): String = "Option text:\n$text\nvalue:\n$value\nsort_point:\n$sortPoints"
+    override fun toString(): String = "Option text:\t$text\nvalue:\t$value\nsort_point:\t$sortPoints\ncorrect:\t$correct"
     override fun hashCode() = id?.toInt() ?: 0
     override fun equals(other: Any?): Boolean =
         this.javaClass == other?.javaClass && let {
