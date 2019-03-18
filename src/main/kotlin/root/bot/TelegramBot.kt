@@ -1329,7 +1329,7 @@ class TelegramBot : TelegramLongPollingBot {
                     service.saveSurvey(fixSurvey(survey))
                 }
 
-                sendMessage(mainAdminsMenu(text, text.clbSurveySave), upd.callbackQuery.message.chatId)
+                editMessage(upd.callbackQuery.message, mainAdminsMenu(text, text.clbSurveySave))
             }
             SURVEY_EDIT -> {
                 userStates[upd.callbackQuery.from.id]!!.survey = service.getSurveyById(params[1].toLong())

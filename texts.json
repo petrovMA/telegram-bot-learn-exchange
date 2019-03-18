@@ -158,7 +158,7 @@
   "surveyQuestionEditSort": "Изменить коэфициент сортировки для вопроса",
   "surveyQuestionEditText": "Изменить текст вопроса",
   "surveyOptionDelete": "Удалить вариант ответа",
-  "surveyOptionEditValue": "Изменить количество баллов за этот вариант",
+  "surveyOptionEditValue": "Изменить \"корректный/не корректный\" вариант",
   "surveyOptionEditSort": "Изменить коэфициент сортировки для варианта",
   "surveyOptionEditText": "Изменить текст варианта",
   "enterTextBack": "назад к редактированию опросу",
