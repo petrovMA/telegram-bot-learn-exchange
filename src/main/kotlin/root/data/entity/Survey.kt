@@ -30,19 +30,11 @@ data class Survey(
     var questions: Set<Question>,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var campaign: Campaign
+    var campaign: Campaign?
 ) : ExcelEntity {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 
-    override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + name.hashCode()
-        result = 31 * result + (description?.hashCode() ?: 0)
-        result = 31 * result + createDate.hashCode()
-        result = 31 * result + questions.hashCode()
-        result = 31 * result + campaign.hashCode()
-        return result
-    }
+    override fun hashCode(): Int = createDate.hashCode()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -61,5 +53,5 @@ data class Survey(
     }
 
     override fun toHead() = arrayOf("id", "name", "description", "createDate", "questions", "campaign_name")
-    override fun toRow() = arrayOf("$id", name, "$description", "$createDate", "$questions", this.campaign.name)
+    override fun toRow() = arrayOf("$id", name, "$description", "$createDate", "$questions", "${campaign?.name}")
 }

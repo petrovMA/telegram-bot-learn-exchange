@@ -14,7 +14,10 @@ interface Service {
     fun deleteCampaignByName(name: String)
 
     fun deleteCommonCampaignByName(name: String)
+    fun getCommonCampaignById(id: Long): CommonCampaign?
     fun createCommonCampaign(commonCampaign: CommonCampaign): CommonCampaign
+    fun updateCommonCampaign(commonCampaign: CommonCampaign): CommonCampaign
+    fun getAllCommonCampaigns(): Iterable<CommonCampaign>
 
     fun getAllSuperAdmins(): Iterable<SuperAdmin>
     fun getSuperAdminById(userId: Int): SuperAdmin?

@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import root.data.Text
 import root.data.dao.SurveyDAO
 import root.data.entity.Campaign
+import root.data.entity.CommonCampaign
 import root.data.entity.PassedSurvey
 import root.data.entity.Survey
 import root.libs.addElements
@@ -26,12 +27,20 @@ fun msgUserInfo(passedSurveys: Iterable<PassedSurvey>, text: String) = SendMessa
     )
 }
 
-fun msgAvailableCampaignsList(text: String, command: String, campaigns: Iterable<Campaign>) = SendMessage().apply {
+fun msgAvailableCampaignsList(
+    text: String,
+    command: String,
+    campaigns: Iterable<Campaign>,
+    commonCamps: Iterable<CommonCampaign> = emptyList()
+) = SendMessage().apply {
     this.text = text
     replyMarkup = InlineKeyboardMarkup().apply {
         keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
             campaigns.forEach {
                 add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
+            }
+            commonCamps.forEach {
+                add(listOf(InlineKeyboardButton().setText("${it.name} [common]").setCallbackData("$command ${it.id} common")))
             }
         }
     }

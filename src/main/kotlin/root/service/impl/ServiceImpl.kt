@@ -54,7 +54,17 @@ open class ServiceImpl(
         commonCampaignRepository.save(commonCampaign)
 
     @Transactional
+    override fun updateCommonCampaign(commonCampaign: CommonCampaign): CommonCampaign =
+        commonCampaignRepository.save(commonCampaign)
+
+    @Transactional
     override fun deleteCommonCampaignByName(name: String) = commonCampaignRepository.deleteByName(name)
+
+    @Transactional
+    override fun getAllCommonCampaigns(): Iterable<CommonCampaign> = commonCampaignRepository.findAll()
+
+    @Transactional
+    override fun getCommonCampaignById(id: Long): CommonCampaign? = commonCampaignRepository.findById(id).orElse(null)
 
 
     @Transactional

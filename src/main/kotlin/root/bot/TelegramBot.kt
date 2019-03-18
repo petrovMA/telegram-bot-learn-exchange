@@ -146,7 +146,8 @@ class TelegramBot : TelegramLongPollingBot {
         val actionBack: () -> Unit = {
             when (userStates[upd.message.from.id]?.state) {
                 MAIN_MENU_ADD_MISSION, MAIN_MENU_ADD_TASK, MAIN_MENU_ADD_ADMIN, MAIN_MENU_ADD_CAMPAIGN,
-                MAIN_MENU_ADD_COMMON_CAMPAIGN, MAIN_MENU_ADD_GROUP, MAIN_MENU_ADD_SUPER_ADMIN -> {
+                MAIN_MENU_ADD_COMMON_CAMPAIGN, MAIN_MENU_ADD_GROUP, MAIN_MENU_ADD_SUPER_ADMIN,
+                CAMPAIGN_FOR_SURVEY -> {
                     userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD, upd.message.from)
                     sendMessage(mainAdminAddMenu(text).apply {
                         replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
@@ -212,8 +213,26 @@ class TelegramBot : TelegramLongPollingBot {
                         sendMessage(msgBackMenu(text.msgAddSuperAdmin, text.back), upd.message.chatId)
                     }
                     text.addMenuMission -> {
-                        userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_MISSION, upd.message.from)
-                        TODO("MAIN_MENU_ADD_MISSION")
+                        // todo refactor it userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_MISSION, upd.message.from)
+
+                        sendMessage(msgBackMenu(text.msgSurvey, text.back), upd.message.chatId)
+
+                        val availableCampaigns = service.getAllCampaigns().toList()
+                        val availableCommonCampaigns = service.getAllCommonCampaigns().toList()
+
+                        if (availableCampaigns.isNotEmpty()) {
+                            sendMessage(
+                                msgAvailableCampaignsList(
+                                    text.adminAvailableCampaignsSurveys,
+                                    CAMPAIGN_FOR_SURVEY.toString(),
+                                    availableCampaigns,
+                                    availableCommonCampaigns
+                                ), upd.message.chatId
+                            )
+                            userStates[upd.message.from.id] =
+                                UserData(CAMPAIGN_FOR_SURVEY, upd.message.from)
+                        } else
+                            sendMessage(mainAdminsMenu(text, text.msgNoCampaign), upd.message.chatId)
                     }
                     text.addMenuTask -> {
                         userStates[upd.message.from.id] = UserData(MAIN_MENU_ADD_TASK, upd.message.from)
@@ -527,6 +546,145 @@ class TelegramBot : TelegramLongPollingBot {
                         sendMessage(text.errDeleteAdmin, upd.message.chatId)
                         log.error("AdminGroup deleting err.", t)
                     }
+                }
+            }
+
+            SURVEY_CREATE -> {
+                val survey = Survey(
+                    name = upd.message.text,
+                    createDate = now(),
+                    questions = HashSet(),
+                    campaign = userStates[upd.message.from.id]!!.campaign
+                )
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey = survey
+                }
+                editSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_NAME -> {
+                val survey = userStates[upd.message.from.id]?.survey?.also { it.name = upd.message.text }
+                    ?: Survey(
+                        name = upd.message.text,
+                        createDate = now(),
+                        questions = HashSet(),
+                        campaign = userStates[upd.callbackQuery.from.id]!!.campaign
+                    )
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey = survey
+                }
+                editSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_DESCRIPTION -> {
+                val survey = userStates[upd.message.from.id]?.survey!!.also { it.description = upd.message.text }
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.survey = survey
+                }
+                editSurvey(survey, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_QUESTION_CREATE -> {
+                val question = Question(text = upd.message.text, options = HashSet())
+
+                userStates[upd.message.from.id]!!.apply {
+                    state = NONE
+                    this.question = question
+                }
+                editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_QUESTION_EDIT_TEXT -> {
+                val question = userStates[upd.message.from.id]?.question!!.also { it.text = upd.message.text }
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.question = question
+                }
+                editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_QUESTION_EDIT_SORT -> {
+                try {
+                    val question =
+                        userStates[upd.message.from.id]?.question!!.also { it.sortPoints = upd.message.text.toInt() }
+
+                    userStates[upd.message.from.id]!!.apply {
+                        this.state = NONE
+                        this.question = question
+                    }
+                    editQuestion(question, userStates[upd.message.from.id]!!.updCallback!!)
+                } catch (t: Throwable) {
+                    log.warn("error read sortPoints", t)
+
+                    enterText(
+                        userStates[upd.message.from.id]!!.updCallback!!.callbackQuery!!.message,
+                        text.errSurveyEnterNumber,
+                        text.backToSurveyQuestionMenu,
+                        SURVEY_QUESTION_SELECT
+                    )
+                }
+            }
+            SURVEY_OPTION_CREATE -> {
+                val option = Option(text = upd.message.text)
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.option = option
+                }
+                editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_OPTION_EDIT_TEXT -> {
+                val option = userStates[upd.message.from.id]?.option!!.also { it.text = upd.message.text }
+
+                userStates[upd.message.from.id]!!.apply {
+                    this.state = NONE
+                    this.option = option
+                }
+                editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+            }
+            SURVEY_OPTION_EDIT_VALUE -> {
+                try {
+                    val option =
+                        userStates[upd.message.from.id]?.option!!.also { it.value = upd.message.text.toInt() }
+
+                    userStates[upd.message.from.id]!!.apply {
+                        this.state = NONE
+                        this.option = option
+                    }
+                    editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+                } catch (t: Throwable) {
+                    log.warn("error read sortPoints", t)
+
+                    enterText(
+                        userStates[upd.message.from.id]!!.updCallback!!.callbackQuery!!.message,
+                        text.errSurveyEnterNumber,
+                        text.backToSurveyQuestionMenu,
+                        SURVEY_QUESTION_SELECT
+                    )
+                }
+            }
+            SURVEY_OPTION_EDIT_SORT -> {
+                try {
+                    val option =
+                        userStates[upd.message.from.id]?.option!!.also { it.sortPoints = upd.message.text.toInt() }
+
+                    userStates[upd.message.from.id]!!.apply {
+                        state = NONE
+                        survey!!.questions = survey!!.questions.toHashSet().apply { add(question!!) }
+                        this.option = option
+                    }
+                    editOption(option, userStates[upd.message.from.id]!!.updCallback!!)
+                } catch (t: Throwable) {
+                    log.warn("error read sortPoints", t)
+
+                    enterText(
+                        userStates[upd.message.from.id]!!.updCallback!!.callbackQuery!!.message,
+                        text.errSurveyEnterNumber,
+                        text.backToSurveyQuestionMenu,
+                        SURVEY_QUESTION_SELECT
+                    )
                 }
             }
             else -> {
@@ -1157,15 +1315,22 @@ class TelegramBot : TelegramLongPollingBot {
                 service.deleteSurveyById(params[1].toLong())
 
                 showSurveys(
-                    service.getSurveyByCampaign(userStates[upd.callbackQuery.from.id]!!.campaign!!).toList(),
+                    (userStates[upd.callbackQuery.from.id]!!.campaign?.let {
+                        service.getSurveyByCampaign(it)
+                    } ?: userStates[upd.callbackQuery.from.id]!!.commonCampaign!!.missions).toList(),
                     upd
                 )
             }
             SURVEY_SAVE -> {
-                val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
-                survey.campaign = userStates[upd.callbackQuery.from.id]!!.campaign!!
-                service.saveSurvey(survey)
-                mainAdminMenu(upd.callbackQuery.message, text.clbSurveySave)
+                userStates[upd.callbackQuery.from.id]!!.campaign?.let {
+                    val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
+                    survey.campaign = it
+                    service.saveSurvey(survey)
+                } ?: service.updateCommonCampaign(userStates[upd.callbackQuery.from.id]!!.commonCampaign!!.apply {
+                    missions = missions.toHashSet().apply { add(userStates[upd.callbackQuery.from.id]!!.survey!!) }
+                })
+
+                sendMessage(mainAdminsMenu(text, text.clbSurveySave), upd.message.chatId)
             }
             SURVEY_EDIT -> {
                 userStates[upd.callbackQuery.from.id]!!.survey = service.getSurveyById(params[1].toLong())
@@ -1275,8 +1440,8 @@ class TelegramBot : TelegramLongPollingBot {
                 )
             }
             SURVEY_BACK -> {
-                end(upd) { msg: Message, text: String -> mainAdminMenu(msg, text) }
                 deleteMessage(upd.callbackQuery.message)
+                sendMessage(mainAdminsMenu(text), upd.callbackQuery.message.chatId)
             }
             SURVEY_OPTION_SELECT_BACK -> {
                 editQuestion(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
@@ -1385,14 +1550,27 @@ class TelegramBot : TelegramLongPollingBot {
             }
             else errorAnswer.invoke()
             CAMPAIGN_FOR_SURVEY -> if (userStates[upd.callbackQuery.from.id]?.state == CAMPAIGN_FOR_SURVEY) try {
-                val campaign = service.getCampaignById(params[1].toLong())
-                    ?: throw CampaignNotFoundException()
+                if (params[1].endsWith("common")) {
+                    val id = params[1].split("\\s+".toRegex())[0].toLong()
 
-                userStates[upd.callbackQuery.from.id] =
-                    UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, campaign = campaign)
+                    val campaign = service.getCommonCampaignById(id)
+                        ?: throw CampaignNotFoundException()
 
-                val surveys = service.getSurveyByCampaign(campaign)
-                showSurveys(surveys.toList(), upd)
+                    userStates[upd.callbackQuery.from.id] =
+                        UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, commonCampaign = campaign)
+
+                    val surveys = campaign.missions
+                    showSurveys(surveys.toList(), upd)
+                } else {
+                    val campaign = service.getCampaignById(params[1].toLong())
+                        ?: throw CampaignNotFoundException()
+
+                    userStates[upd.callbackQuery.from.id] =
+                        UserData(CAMPAIGN_FOR_SURVEY, upd.callbackQuery.from, campaign = campaign)
+
+                    val surveys = service.getSurveyByCampaign(campaign)
+                    showSurveys(surveys.toList(), upd)
+                }
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SURVEY execute error", t)
                 execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
@@ -1729,36 +1907,6 @@ class TelegramBot : TelegramLongPollingBot {
             }
         }
     }
-
-    private fun mainAdminMenu(message: Message, textMsg: String = text.mainMenu) =
-        sendMessage(SendMessage().also { msg ->
-            msg.text = textMsg
-            msg.enableMarkdown(true)
-            msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-                markup.selective = true
-                markup.resizeKeyboard = true
-                markup.oneTimeKeyboard = false
-                markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-                    keyboard.addElements(KeyboardRow().also {
-                        it.add(text.addSuperAdmin)
-                        it.add(text.removeSuperAdmin)
-                        it.add(text.getTableFile)
-                    }, KeyboardRow().also {
-                        it.add(text.sendToEveryUser)
-                        it.add(text.sendToEveryGroup)
-                        it.add(text.survey)
-                    }, KeyboardRow().also {
-                        it.add(text.addGroupToCampaign)
-                        it.add(text.addAdminToCampaign)
-                        it.add(text.createCampaign)
-                    }, KeyboardRow().also {
-                        it.add(text.removeGroupFromCampaign)
-                        it.add(text.removeAdminFromCampaign)
-                        it.add(text.removeCampaign)
-                    })
-                }
-            }
-        }, message.chatId)
 
     private fun superAdminMenu(message: Message) = sendMessage(SendMessage().also { msg ->
         msg.text = text.mainMenu
