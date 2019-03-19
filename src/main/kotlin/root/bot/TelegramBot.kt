@@ -1271,7 +1271,12 @@ class TelegramBot : TelegramLongPollingBot {
                         ), chatId(upd)
                     )*/
                     userStates[upd.message.from.id] = UserData(USER_MENU_STATUS, upd.message.from)
-                    sendMessage(userStatusMenu(text), chatId(upd))
+                    sendMessage(
+                        userStatusMenu(
+                            text,
+                            service.getAllPassedSurveysByUser(stubUserInCampaign(userId = upd.message.from.id))
+                        ), chatId(upd)
+                    )
                 }
                 text.userMainMenuAccount -> {
                     /*val campaigns = service.getAllCampaignByUserId(chatId(upd).toInt()).toList()
@@ -1958,7 +1963,8 @@ class TelegramBot : TelegramLongPollingBot {
                                         lastName = upd.callbackQuery.from.lastName,
                                         userName = upd.callbackQuery.from.userName,
                                         createDate = now(),
-                                        campaigns = emptySet())
+                                        campaigns = emptySet()
+                                    )
                                 )
                                 service.savePassedSurvey(
                                     PassedSurvey(

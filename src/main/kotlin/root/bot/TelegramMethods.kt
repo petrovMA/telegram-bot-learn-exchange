@@ -250,67 +250,76 @@ fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) = SendMessage
     }
 }
 
-fun userCampaignsMenu(text: Text, campaigns: Iterable<Campaign>, textMsg : String = text.msgUserMainMenuCampaigns) = SendMessage().also { msg ->
-    msg.text = textMsg
+fun userCampaignsMenu(text: Text, campaigns: Iterable<Campaign>, textMsg: String = text.msgUserMainMenuCampaigns) =
+    SendMessage().also { msg ->
+        msg.text = textMsg
+        msg.enableMarkdown(true)
+        msg.replyMarkup = InlineKeyboardMarkup().apply {
+            keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
+                campaigns.forEach {
+                    if (!it.common)
+                        add(
+                            listOf(
+                                InlineKeyboardButton()
+                                    .setText(it.name)
+                                    .setCallbackData("$USER_MENU_ACTIVE_CAMPAIGN_SELECT ${it.id}")
+                            )
+                        )
+                    else
+                        log.warn("Common campaign found:\n$it")
+                }
+                add(
+                    listOf(
+                        InlineKeyboardButton()
+                            .setText(text.msgUserMainMenuCommonCampaignTasks)
+                            .setCallbackData("$USER_MENU_ACTIVE_COMMON_CAMPAIGN_SELECT")
+                    )
+                )
+                add(listOf(InlineKeyboardButton().setText(text.reset).setCallbackData("$RESET")))
+            }
+        }
+    }
+
+fun userStatusMenu(text: Text, surveys: Iterable<PassedSurvey>) = SendMessage().also { msg ->
+    var value = 0
+    var passedCamps = 0
+    var passedTasks = 0
+    var awardsCount = 0
+    var level = 0
+    var refferals = 0
+    var awardList = emptyList<String>()
+    var passedMissions = surveys.count()
+    surveys.forEach {
+        value += it.value
+    }
+
+    msg.text = resourceText(
+        text.msgUserMainMenuStatus,
+        "user.passed.camp" to "$passedCamps",
+        "user.passed.missions" to "$passedMissions",
+        "user.passed.tasks" to "$passedTasks",
+        "user.value" to "$value",
+        "user.awards.count" to "$awardsCount",
+        "user.awards" to awardList.joinToString(),
+        "user.level" to "$level",
+        "user.refferals" to "$refferals"
+    )
+
     msg.enableMarkdown(true)
     msg.replyMarkup = InlineKeyboardMarkup().apply {
         keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
-            campaigns.forEach {
-                if (!it.common)
-                    add(
-                        listOf(
-                            InlineKeyboardButton()
-                                .setText(it.name)
-                                .setCallbackData("$USER_MENU_ACTIVE_CAMPAIGN_SELECT ${it.id}")
-                        )
-                    )
-                else
-                    log.warn("Common campaign found:\n$it")
-            }
-            add(
-                listOf(
-                    InlineKeyboardButton()
-                        .setText(text.msgUserMainMenuCommonCampaignTasks)
-                        .setCallbackData("$USER_MENU_ACTIVE_COMMON_CAMPAIGN_SELECT")
-                )
-            )
-            add(listOf(InlineKeyboardButton().setText(text.reset).setCallbackData("$RESET")))
-        }
-    }
-}
-
-fun userStatusMenu(text: Text) = SendMessage().also { msg ->
-    msg.text = text.msgUserMainMenuCampaigns
-    msg.enableMarkdown(true)
-    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-        markup.selective = true
-        markup.resizeKeyboard = true
-        markup.oneTimeKeyboard = false
-        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-            keyboard.addElements(KeyboardRow().also {
-                it.add(text.userMainMenuCampaigns)
-                it.add(text.userMainMenuStatus)
-            }, KeyboardRow().also {
-                it.add(text.userMainMenuAccount)
-            })
+            add(listOf(InlineKeyboardButton().setText(text.btnUserMainMenuStatus).setCallbackData("$RESET")))
         }
     }
 }
 
 fun userAccountMenu(text: Text) = SendMessage().also { msg ->
-    msg.text = text.msgUserMainMenuCampaigns
+    msg.text = text.msgUserMainMenuAccount
     msg.enableMarkdown(true)
-    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-        markup.selective = true
-        markup.resizeKeyboard = true
-        markup.oneTimeKeyboard = false
-        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-            keyboard.addElements(KeyboardRow().also {
-                it.add(text.userMainMenuCampaigns)
-                it.add(text.userMainMenuStatus)
-            }, KeyboardRow().also {
-                it.add(text.userMainMenuAccount)
-            })
+    msg.replyMarkup = InlineKeyboardMarkup().apply {
+        keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
+            add(listOf(InlineKeyboardButton().setText(text.btnUserMainMenuAccountRegistration).setUrl(text.btnUserMainMenuAccountRegistrationUrl)))
+            add(listOf(InlineKeyboardButton().setText(text.btnUserMainMenuAccountFriends).setCallbackData("$RESET")))
         }
     }
 }
