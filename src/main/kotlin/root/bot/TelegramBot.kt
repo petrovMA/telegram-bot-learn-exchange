@@ -1256,16 +1256,25 @@ class TelegramBot : TelegramLongPollingBot {
                         } else sendMessage(text.msgUserAvailableCampaignsNotFound, upd.message.chatId)
                     } else sendMessage(text.inviteText, upd.message.chatId)
                 }
-                text.msgUserInfo -> {
+                text.userMainMenuCampaigns -> {
+                    userStates[upd.message.from.id] = UserData(USER_MENU_ACTIVE_CAMPAIGN, upd.message.from)
                     sendMessage(
+                        userCampaignsMenu(text, service.getAllCampaignByUserId(upd.message.from.id)),
+                        upd.message.chatId
+                    )
+                }
+                text.userMainMenuStatus -> {
+                    /*sendMessage(
                         msgUserInfo(
                             service.getAllPassedSurveysByUser(stubUserInCampaign(userId = upd.message.chatId.toInt())),
                             text.sendUserInfo
                         ), upd.message.chatId
-                    )
+                    )*/
+                    userStates[upd.message.from.id] = UserData(USER_MENU_STATUS, upd.message.from)
+                    sendMessage(userStatusMenu(text), upd.message.chatId)
                 }
-                text.showUserCampaigns -> {
-                    val campaigns = service.getAllCampaignByUserId(upd.message.chatId.toInt()).toList()
+                text.userMainMenuAccount -> {
+                    /*val campaigns = service.getAllCampaignByUserId(upd.message.chatId.toInt()).toList()
                     if (campaigns.isNotEmpty()) {
                         sendMessage(
                             msgAvailableCampaignsList(
@@ -1276,7 +1285,9 @@ class TelegramBot : TelegramLongPollingBot {
                             ), upd.message.chatId
                         )
                         userStates[upd.message.from.id] = UserData(USER_CAMPAIGN_FOR_TASK, upd.message.from)
-                    } else sendMessage(mainUsersMenu(text, text.userCampaignsNotFound), upd.message.chatId)
+                    } else sendMessage(mainUsersMenu(text, text.userCampaignsNotFound), upd.message.chatId)*/
+                    userStates[upd.message.from.id] = UserData(USER_MENU_MY_ACCOUNT, upd.message.from)
+                    sendMessage(userAccountMenu(text), upd.message.chatId)
                 }
                 else -> sendMessage(mainUsersMenu(text), upd.message.chatId)
             }
@@ -1329,7 +1340,14 @@ class TelegramBot : TelegramLongPollingBot {
                     service.saveSurvey(fixSurvey(survey))
                 }
 
-                editMessage(upd.callbackQuery.message, mainAdminsMenu(text, text.clbSurveySave))
+                editMessage(
+                    upd.callbackQuery.message,
+                    msgAvailableCampaignsList(
+                        text.clbSurveySave,
+                        CAMPAIGN_FOR_SURVEY.toString(),
+                        service.getAllCampaigns().toList()
+                    )
+                )
             }
             SURVEY_EDIT -> {
                 userStates[upd.callbackQuery.from.id]!!.survey = service.getSurveyById(params[1].toLong())
@@ -1783,7 +1801,7 @@ class TelegramBot : TelegramLongPollingBot {
     }
 
     private fun doUserCallback(upd: Update) {
-        val params = upd.callbackQuery.data.split("\\s+".toRegex(), 2)
+        val params = upd.callbackQuery.data.split("\\s+".toRegex())
         val callbackAnswer = AnswerCallbackQuery()
         val callBackCommand: UserState
         callbackAnswer.callbackQueryId = upd.callbackQuery.id
@@ -1799,7 +1817,7 @@ class TelegramBot : TelegramLongPollingBot {
         val timeOutBack = {
             execute(callbackAnswer.also { it.text = text.clbSurveyTimeOut })
             deleteMessage(upd.callbackQuery.message)
-            sendMessage(mainUsersMenu(text, text.errUsers), upd.message.chatId)
+            sendMessage(mainUsersMenu(text, text.errUsers), upd.callbackQuery.message.chatId)
         }
 
 
@@ -1836,8 +1854,8 @@ class TelegramBot : TelegramLongPollingBot {
                     upd.callbackQuery.message.chatId
                 )
             }
-            USER_CAMPAIGN_FOR_TASK -> {
-                if (userStates[upd.callbackQuery.from.id]?.state == USER_CAMPAIGN_FOR_TASK) {
+            USER_MENU_ACTIVE_CAMPAIGN_SELECT -> {
+                if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
                     execute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
                     val tasks = service.getAllSurveyForUser(params[1].toLong(), upd.callbackQuery.from.id).toList()
                     if (tasks.isNotEmpty())
@@ -1852,62 +1870,136 @@ class TelegramBot : TelegramLongPollingBot {
                     else sendMessage(mainUsersMenu(text, text.userTaskNotFound), upd.callbackQuery.message.chatId)
                 } else timeOutBack.invoke()
             }
+            USER_MENU_ACTIVE_COMMON_CAMPAIGN_SELECT -> {
+                if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
+                    execute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
+
+                    val tasks =
+                    // todo OPTIMIZE THIS REQUEST
+                    // todo ADD FILTER FOR PASSED TASKS
+                        service.getAllSurveysByCampaigns(service.getAllCommonCampaigns(true).toHashSet()).toList()
+
+                    if (tasks.isNotEmpty())
+                        editMessage(
+                            upd.callbackQuery.message,
+                            msgTaskList(
+                                text.sendChooseTask,
+                                CHOOSE_TASK.toString(),
+                                tasks
+                            )
+                        )
+                    else sendMessage(mainUsersMenu(text, text.userTaskNotFound), upd.callbackQuery.message.chatId)
+                } else timeOutBack.invoke()
+            }
             CHOOSE_TASK -> {
-                if (userStates[upd.callbackQuery.from.id]?.state == USER_CAMPAIGN_FOR_TASK) {
+                if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
                     val survey = service.getSurveyById(params[1].toLong()) ?: throw SurveyNotFoundException()
-                    userStates[upd.callbackQuery.from.id]!!.survey = survey
-                    userStates[upd.callbackQuery.from.id]!!.surveyInProgress = SurveyDAO(
-                        id = survey.id!!,
-                        name = survey.name,
-                        description = survey.description,
-                        createDate = survey.createDate,
-                        questions = survey.questions.toList().sortedBy { it.sortPoints },
-                        state = 0
-                    )
+
+                    userStates[upd.callbackQuery.from.id]!!.apply {
+                        this.survey = survey
+                        this.surveyInProgress = SurveyDAO(
+                            id = survey.id!!,
+                            name = survey.name,
+                            description = survey.description,
+                            createDate = survey.createDate,
+                            questions = survey.questions.toList().sortedBy { it.sortPoints },
+                            state = 0
+                        )
+                    }
+
                     editMessage(
                         upd.callbackQuery.message,
-                        msgQuestion(userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!, "$SURVEY_USERS_ANSWER")
+                        msgQuestion(
+                            text,
+                            userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!,
+                            "$SURVEY_USERS_ANSWER"
+                        )
                     )
                 } else timeOutBack.invoke()
             }
             SURVEY_USERS_ANSWER -> {
-                if (userStates[upd.callbackQuery.from.id]?.state == USER_CAMPAIGN_FOR_TASK) {
+                if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
                     val prevState = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.state
                     val question = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.questions[prevState]
-                    userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue += question.options.find {
-                        it.id == params[1].toLong()
-                    }!!.value
-                    userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.state++
-                    if (userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.state < userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.questions.size)
+                    val prevAnswer = question.options.first { it.id == params[1].toLong() }
+
+                    userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.apply {
+                        if (correct) correct = prevAnswer.correct
+                        currentValue += prevAnswer.value
+                        state++
+                    }
+
+                    if (userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.let { it.state < it.questions.size })
                         editMessage(
                             upd.callbackQuery.message,
                             msgQuestion(
+                                text,
                                 userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!,
                                 "$SURVEY_USERS_ANSWER"
                             )
                         )
                     else {
-                        service.savePassedSurvey(
-                            PassedSurvey(
-                                value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
-                                description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
-                                passDate = now(),
-                                survey = userStates[upd.callbackQuery.from.id]!!.survey!!,
-                                user = stubUserInCampaign(userId = upd.callbackQuery.from.id)
+                        if (userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.correct) {
+                            service.getUserById(upd.callbackQuery.from.id)?.let {
+                                service.savePassedSurvey(
+                                    PassedSurvey(
+                                        value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
+                                        description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
+                                        passDate = now(),
+                                        survey = userStates[upd.callbackQuery.from.id]!!.survey!!,
+                                        user = it
+                                    )
+                                )
+                            } ?: {
+                                val user = service.createOrUpdateGroupUser(
+                                    UserInCampaign(
+                                        userId = upd.callbackQuery.from.id,
+                                        firstName = upd.callbackQuery.from.firstName,
+                                        lastName = upd.callbackQuery.from.lastName,
+                                        userName = upd.callbackQuery.from.userName,
+                                        createDate = now(),
+                                        campaigns = emptySet())
+                                )
+                                service.savePassedSurvey(
+                                    PassedSurvey(
+                                        value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
+                                        description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
+                                        passDate = now(),
+                                        survey = userStates[upd.callbackQuery.from.id]!!.survey!!,
+                                        user = user
+                                    )
+                                )
+                            }.invoke()
+                            editMessage(
+                                upd.callbackQuery.message, userCampaignsMenu(
+                                    text,
+                                    service.getAllCampaignByUserId(upd.callbackQuery.from.id),
+                                    text.msgUserTaskPassed
+                                )
                             )
-                        )
-                        sendMessage(mainUsersMenu(text, text.surveyPassed), upd.callbackQuery.message.chatId)
+                        } else
+                            editMessage(
+                                upd.callbackQuery.message, userCampaignsMenu(
+                                    text,
+                                    service.getAllCampaignByUserId(upd.callbackQuery.from.id),
+                                    text.msgUserTaskFailed
+                                )
+                            )
                     }
                 } else timeOutBack.invoke()
             }
+            RESET -> {
+                deleteMessage(upd.callbackQuery.message)
+                sendMessage(mainUsersMenu(text), upd.message.chatId)
+            }
             else -> {
                 setTextToMessage(
-                    text.errUserAddedToCampaign,
+                    text.errUserUnknownCommand,
                     upd.callbackQuery.message.messageId,
                     upd.callbackQuery.message.chatId
                 )
                 userStates.remove(upd.callbackQuery.from.id)
-                execute(callbackAnswer.also { it.text = text.clbUserAddedToCampaign })
+                execute(callbackAnswer.also { it.text = text.clbUserUnknownCommand })
             }
         }
     }

@@ -15,7 +15,13 @@ import root.libs.addElements
 import root.libs.convertTime
 import root.libs.resourceText
 import java.util.ArrayList
+import org.apache.log4j.Logger
+import root.data.UserState
+import root.data.UserState.*
 
+class TelegramMethods
+
+private val log = Logger.getLogger(TelegramMethods::class.java)
 
 fun msgUserInfo(passedSurveys: Iterable<PassedSurvey>, text: String) = SendMessage().also { msg ->
     val value = passedSurveys.map { survey -> survey.value }.sum()
@@ -55,14 +61,15 @@ fun msgTaskList(text: String, command: String, surveys: Iterable<Survey>) = Send
     }
 }
 
-fun msgQuestion(survey: SurveyDAO, command: String) = SendMessage().also { msg ->
+fun msgQuestion(text: Text, survey: SurveyDAO, command: String) = SendMessage().also { msg ->
     val question = survey.questions[survey.state]
     msg.text = question.text
     msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
-        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
             question.options.toList().sortedBy { it.sortPoints }.forEach {
-                keyboard.add(listOf(InlineKeyboardButton().setText(it.text).setCallbackData("$command ${it.id}")))
+                add(listOf(InlineKeyboardButton().setText(it.text).setCallbackData("$command ${it.id}")))
             }
+            add(listOf(InlineKeyboardButton().setText(text.reset).setCallbackData("$RESET")))
         }
     }
 }
@@ -233,10 +240,76 @@ fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) = SendMessage
         markup.oneTimeKeyboard = false
         markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
             keyboard.addElements(KeyboardRow().also {
-                it.add(text.joinToCampaign)
-                it.add(text.msgUserInfo)
+                it.add(text.userMainMenuCampaigns)
+                it.add(text.userMainMenuStatus)
             }, KeyboardRow().also {
-                it.add(text.showUserCampaigns)
+                it.add(text.userMainMenuAccount)
+                it.add(text.joinToCampaign)
+            })
+        }
+    }
+}
+
+fun userCampaignsMenu(text: Text, campaigns: Iterable<Campaign>, textMsg : String = text.msgUserMainMenuCampaigns) = SendMessage().also { msg ->
+    msg.text = textMsg
+    msg.enableMarkdown(true)
+    msg.replyMarkup = InlineKeyboardMarkup().apply {
+        keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
+            campaigns.forEach {
+                if (!it.common)
+                    add(
+                        listOf(
+                            InlineKeyboardButton()
+                                .setText(it.name)
+                                .setCallbackData("$USER_MENU_ACTIVE_CAMPAIGN_SELECT ${it.id}")
+                        )
+                    )
+                else
+                    log.warn("Common campaign found:\n$it")
+            }
+            add(
+                listOf(
+                    InlineKeyboardButton()
+                        .setText(text.msgUserMainMenuCommonCampaignTasks)
+                        .setCallbackData("$USER_MENU_ACTIVE_COMMON_CAMPAIGN_SELECT")
+                )
+            )
+            add(listOf(InlineKeyboardButton().setText(text.reset).setCallbackData("$RESET")))
+        }
+    }
+}
+
+fun userStatusMenu(text: Text) = SendMessage().also { msg ->
+    msg.text = text.msgUserMainMenuCampaigns
+    msg.enableMarkdown(true)
+    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+        markup.selective = true
+        markup.resizeKeyboard = true
+        markup.oneTimeKeyboard = false
+        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+            keyboard.addElements(KeyboardRow().also {
+                it.add(text.userMainMenuCampaigns)
+                it.add(text.userMainMenuStatus)
+            }, KeyboardRow().also {
+                it.add(text.userMainMenuAccount)
+            })
+        }
+    }
+}
+
+fun userAccountMenu(text: Text) = SendMessage().also { msg ->
+    msg.text = text.msgUserMainMenuCampaigns
+    msg.enableMarkdown(true)
+    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+        markup.selective = true
+        markup.resizeKeyboard = true
+        markup.oneTimeKeyboard = false
+        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+            keyboard.addElements(KeyboardRow().also {
+                it.add(text.userMainMenuCampaigns)
+                it.add(text.userMainMenuStatus)
+            }, KeyboardRow().also {
+                it.add(text.userMainMenuAccount)
             })
         }
     }

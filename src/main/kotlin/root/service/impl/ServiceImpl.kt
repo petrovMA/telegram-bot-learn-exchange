@@ -49,6 +49,9 @@ open class ServiceImpl(
     override fun getAllCampaigns(): Iterable<Campaign> = campaignRepository.findAll()
 
     @Transactional
+    override fun getAllCommonCampaigns(common: Boolean): Iterable<Campaign> = campaignRepository.findAllByCommon(common)
+
+    @Transactional
     override fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign> =
         campaignRepository.findAllCampaignsByChatListNotContainsUser(chats, userId)
 
@@ -65,6 +68,10 @@ open class ServiceImpl(
     @Transactional
     override fun deleteSuperAdminById(userId: Int) = superAdminRepository.deleteByUserId(userId)
 
+
+    @Transactional
+    override fun getAllSurveysByCampaigns(campaigns: Set<Campaign>): Iterable<Survey> =
+        campaigns.map { surveyRepository.findAllByCampaign(it) }.flatten()
 
     @Transactional
     override fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey> =

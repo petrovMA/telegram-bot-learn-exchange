@@ -92,9 +92,15 @@ enum class UserState {
     // user commands
     JOIN_TO_CAMPAIGN,
     USER_CAMPAIGN_MENU,
+    USER_MENU_ACTIVE_CAMPAIGN,
+    USER_MENU_ACTIVE_CAMPAIGN_SELECT,
+    USER_MENU_ACTIVE_COMMON_CAMPAIGN_SELECT,
+    USER_MENU_MY_ACCOUNT,
+    USER_MENU_STATUS,
     USER_MENU,
 
     // common commands
+    RESET,
     BACK,
     NONE,
     TASK

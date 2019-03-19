@@ -16,7 +16,7 @@ data class Question(
     @Column(nullable = false)
     var text: String,
 
-    var sortPoints: Int? = null,
+    var sortPoints: Int = Int.MAX_VALUE,
 
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinTable(

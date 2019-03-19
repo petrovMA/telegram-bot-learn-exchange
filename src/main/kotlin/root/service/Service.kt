@@ -9,6 +9,7 @@ interface Service {
     fun getCampaignByName(name: String): Campaign?
     fun getCampaignById(id: Long): Campaign?
     fun getAllCampaigns(): Iterable<Campaign>
+    fun getAllCommonCampaigns(common: Boolean): Iterable<Campaign>
     fun getAllCampaignByUserId(userId: Int): Iterable<Campaign>
     fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign>
     fun deleteCampaignByName(name: String)
@@ -19,6 +20,7 @@ interface Service {
     fun deleteSuperAdminById(userId: Int)
 
     fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey>
+    fun getAllSurveysByCampaigns(campaigns: Set<Campaign>): Iterable<Survey>
     fun getSurveyByCampaignId(campaignId: Long): Iterable<Survey>
     fun getSurveyById(id: Long): Survey?
     fun getAllSurveyForUser(campaignId: Long, userId: Int): Iterable<Survey>
