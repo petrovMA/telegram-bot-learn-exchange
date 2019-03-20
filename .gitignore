@@ -4,6 +4,10 @@
 /gradle/
 gradlew
 
+# settings files
+application.yaml
+settings.conf
+
 # unversioned files
 .gitignore
 .gradle/
@@ -18,3 +22,6 @@ telegram-bot-learn-exchange-1.0-SNAPSHOT.jar
 test.sh
 test.sql
 tmpDir/
+build/
+sendToServer.sh
+telegram-bot-learn-exchange.iml
