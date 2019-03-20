@@ -1882,7 +1882,7 @@ class TelegramBot : TelegramLongPollingBot {
                     val tasks =
                     // todo OPTIMIZE THIS REQUEST
                     // todo ADD FILTER FOR PASSED TASKS
-                        service.getAllSurveysByCampaigns(service.getAllCommonCampaigns(true).toHashSet()).toList()
+                        service.getAllSurveysByUserFromCampaigns(service.getAllCommonCampaigns(true).toHashSet()).toList()
 
                     if (tasks.isNotEmpty())
                         editMessage(

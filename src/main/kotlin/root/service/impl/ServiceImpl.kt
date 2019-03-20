@@ -70,8 +70,8 @@ open class ServiceImpl(
 
 
     @Transactional
-    override fun getAllSurveysByCampaigns(campaigns: Set<Campaign>): Iterable<Survey> =
-        campaigns.map { surveyRepository.findAllByCampaign(it) }.flatten()
+    override fun getAllSurveysByUserFromCampaigns(userId: Int, common: Boolean): Iterable<Survey> =
+        surveyRepository.findAllSurveysByUserFromCampaigns(userId, common)
 
     @Transactional
     override fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey> =

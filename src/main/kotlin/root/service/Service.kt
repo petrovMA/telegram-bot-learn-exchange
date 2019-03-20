@@ -20,7 +20,7 @@ interface Service {
     fun deleteSuperAdminById(userId: Int)
 
     fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey>
-    fun getAllSurveysByCampaigns(campaigns: Set<Campaign>): Iterable<Survey>
+    fun getAllSurveysByUserFromCampaigns(userId: Int, common: Boolean = true): Iterable<Survey>
     fun getSurveyByCampaignId(campaignId: Long): Iterable<Survey>
     fun getSurveyById(id: Long): Survey?
     fun getAllSurveyForUser(campaignId: Long, userId: Int): Iterable<Survey>

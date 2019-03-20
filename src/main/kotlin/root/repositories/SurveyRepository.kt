@@ -11,4 +11,7 @@ interface SurveyRepository : CrudRepository<Survey, Long> {
 
     @Query(value = "SELECT * from surveys where campaign_id = ?1 and id not in (SELECT survey_id from passed_surveys where user_user_id = ?2)", nativeQuery = true)
     fun findAllForUser(campaignId: Long, userId: Int) : Iterable<Survey>
+
+    @Query(value = "SELECT * from surveys where id not in (SELECT survey_id from passed_surveys where user_user_id = ?1) and campaign_id in (SELECT id from campaign where id = campaign_id and common = ?2)", nativeQuery = true)
+    fun findAllSurveysByUserFromCampaigns(userId: Int, common: Boolean): Iterable<Survey>
 }
