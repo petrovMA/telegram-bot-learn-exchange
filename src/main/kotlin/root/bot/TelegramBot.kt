@@ -1879,10 +1879,8 @@ class TelegramBot : TelegramLongPollingBot {
                 if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
                     execute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
 
-                    val tasks =
                     // todo OPTIMIZE THIS REQUEST
-                    // todo ADD FILTER FOR PASSED TASKS
-                        service.getAllSurveysByUserFromCampaigns(service.getAllCommonCampaigns(true).toHashSet()).toList()
+                    val tasks = service.getAllSurveysByUserFromCampaigns(upd.callbackQuery.from.id, true).toList()
 
                     if (tasks.isNotEmpty())
                         editMessage(
