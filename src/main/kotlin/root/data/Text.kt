@@ -38,6 +38,7 @@ data class Text(
     val msgSendToEveryUser: String,
     val msgSendToEveryGroup: String,
     val msgNotAdmin: String,
+    val msgGetStatisticTables: String,
     val msgAdminToCampaignSelectCamp: String,
     val msgGroupToCampaignSelectCamp: String,
     val msgAdminToCampaignAdminId: String,

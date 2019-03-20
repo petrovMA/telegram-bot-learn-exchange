@@ -26,6 +26,7 @@
   "messagesMenuAllGroupsCampaign": "Всем группам кампании",
   "messagesMenuAllUsers": "Всем пользователям",
   "infoForAdmin": " ** приветственное сообщение, где будет кратко объясняться суть его функций ** ",
+  "msgGetStatisticTables": "Выберите тип данных, таблицу с которыми хотите получить",
   "msgSuccessDeleteAdmin": "Админ $admin.desc удалён из кампании с id = $camp.desc\nВведите id следующего админа для удаления",
   "msgSuccessAddAdmin": "Админ $admin.desc добавлен в кампанию с id = $camp.desc\nВведите id следующего админа для добавления",
   "msgSuccessDeleteGroup": "Группа $group.id удалена из кампании с id = $camp.desc\nВведите id следующей группы для удаления",

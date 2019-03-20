@@ -32,7 +32,7 @@ fun msgUserInfo(passedSurveys: Iterable<PassedSurvey>, text: String) = SendMessa
     )
 }
 
-fun msgAvailableCampaignsList(
+fun msgAvailableCampaignsListDivideCommon(
     text: String,
     command: String,
     campaigns: Iterable<Campaign>
@@ -45,6 +45,21 @@ fun msgAvailableCampaignsList(
                     add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
                 else
                     add(listOf(InlineKeyboardButton().setText("${it.name} [common]").setCallbackData("$command ${it.id} common")))
+            }
+        }
+    }
+}
+
+fun msgAvailableCampaignsList(
+    text: String,
+    command: String,
+    campaigns: Iterable<Campaign>
+) = SendMessage().apply {
+    this.text = text
+    replyMarkup = InlineKeyboardMarkup().apply {
+        keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
+            campaigns.forEach {
+                add(listOf(InlineKeyboardButton().setText(it.name).setCallbackData("$command ${it.id}")))
             }
         }
     }
@@ -279,6 +294,28 @@ fun userCampaignsMenu(text: Text, campaigns: Iterable<Campaign>, textMsg: String
             }
         }
     }
+
+fun sendTableSuperAdmin(text: Text) = SendMessage().also { msg ->
+    msg.text = text.msgGetStatisticTables
+    msg.enableMarkdown(true)
+    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
+        markup.selective = true
+        markup.resizeKeyboard = true
+        markup.oneTimeKeyboard = false
+        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
+            keyboard.addElements(KeyboardRow().also {
+                it.add(text.sendCampaignsTable)
+                it.add(text.sendSuperAdminTable)
+            }, KeyboardRow().also {
+                it.add(text.sendUsersInCampaign)
+                it.add(text.sendAdminsTable)
+                it.add(text.sendSurveysTable)
+            }, KeyboardRow().also {
+                it.add(text.reset)
+            })
+        }
+    }
+}
 
 fun userStatusMenu(text: Text, surveys: Iterable<PassedSurvey>) = SendMessage().also { msg ->
     var value = 0
