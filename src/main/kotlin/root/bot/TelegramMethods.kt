@@ -238,7 +238,6 @@ fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) = SendMessage
                 it.add(text.userMainMenuStatus)
             }, KeyboardRow().also {
                 it.add(text.userMainMenuAccount)
-                it.add(text.joinToCampaign)
             })
         }
     }
