@@ -562,7 +562,7 @@ class TelegramBot : TelegramLongPollingBot {
                         text.sendSurveysTable -> {
                             sendMessage(
                                 msgAvailableCampaignsList(
-                                    "sendGroupsTable",
+                                    text.msgSurveysTable,
                                     "$GET_EXCEL_TABLE_SURVEY",
                                     service.getAllCampaigns()
                                 ), chatId(upd)
@@ -571,7 +571,7 @@ class TelegramBot : TelegramLongPollingBot {
                         text.sendAdminsTable -> {
                             sendMessage(
                                 msgAvailableCampaignsList(
-                                    "sendAdminsTable",
+                                    text.msgAdminsTable,
                                     "$GET_EXCEL_TABLE_ADMINS",
                                     service.getAllCampaigns()
                                 ), chatId(upd)
@@ -580,7 +580,7 @@ class TelegramBot : TelegramLongPollingBot {
                         text.sendUsersInCampaign -> {
                             sendMessage(
                                 msgAvailableCampaignsList(
-                                    "sendUsersInCampaign",
+                                    text.msgUsersInCampaign,
                                     "$GET_EXCEL_TABLE_USERS_IN_CAMPAIGN",
                                     service.getAllCampaigns()
                                 ), chatId(upd)
@@ -783,12 +783,12 @@ class TelegramBot : TelegramLongPollingBot {
                     text.mainMenuStatistic -> {
                         userStates[upd.message.from.id] =
                             UserData(MAIN_MENU_STATISTIC, upd.message.from)
-                        sendMessage(sendTableSuperAdmin(text), chatId(upd))
+                        sendMessage(mainAdminStatisticMenu(text), chatId(upd))
                     }
                     text.back -> actionBack.invoke()
                     else -> {
                         when (userStates[upd.message.from.id]?.state) {
-                            MAIN_MENU_STATISTIC -> sendMessage(sendTableSuperAdmin(text), chatId(upd))
+                            MAIN_MENU_STATISTIC -> sendMessage(mainAdminStatisticMenu(text), chatId(upd))
                             MAIN_MENU_DELETE -> sendMessage(mainAdminDeleteMenu(text), chatId(upd))
                             MAIN_MENU_ADD -> sendMessage(mainAdminAddMenu(text), chatId(upd))
                             CAMPAIGN_FOR_SEND_GROUP_MSG -> sendMessage(mainAdminsMenu(text), chatId(upd))

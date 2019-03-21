@@ -225,27 +225,6 @@ fun mainAdminMessageMenu(text: Text, textMsg: String = text.deleteMenu) = SendMe
     }
 }
 
-fun mainAdminStatisticMenu(text: Text) = SendMessage().also { msg ->
-    msg.text = text.mainMenu
-    msg.enableMarkdown(true)
-    msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
-        markup.selective = true
-        markup.resizeKeyboard = true
-        markup.oneTimeKeyboard = false
-        markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
-            keyboard.addElements(KeyboardRow().also {
-                it.add(text.sendCampaignsTable)
-                it.add(text.sendUsersInCampaign)
-            }, KeyboardRow().also {
-                it.add(text.sendAdminsTable)
-                it.add(text.sendSurveysTable)
-            }, KeyboardRow().also {
-                it.add(text.back)
-            })
-        }
-    }
-}
-
 fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) = SendMessage().also { msg ->
     msg.text = textMsg
     msg.enableMarkdown(true)
@@ -295,7 +274,7 @@ fun userCampaignsMenu(text: Text, campaigns: Iterable<Campaign>, textMsg: String
         }
     }
 
-fun sendTableSuperAdmin(text: Text) = SendMessage().also { msg ->
+fun mainAdminStatisticMenu(text: Text) = SendMessage().also { msg ->
     msg.text = text.msgGetStatisticTables
     msg.enableMarkdown(true)
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
@@ -306,11 +285,10 @@ fun sendTableSuperAdmin(text: Text) = SendMessage().also { msg ->
             keyboard.addElements(KeyboardRow().also {
                 it.add(text.sendCampaignsTable)
                 it.add(text.sendSuperAdminTable)
-            }, KeyboardRow().also {
                 it.add(text.sendUsersInCampaign)
+            }, KeyboardRow().also {
                 it.add(text.sendAdminsTable)
                 it.add(text.sendSurveysTable)
-            }, KeyboardRow().also {
                 it.add(text.reset)
             })
         }
