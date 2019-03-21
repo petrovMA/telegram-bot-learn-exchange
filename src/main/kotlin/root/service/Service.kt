@@ -11,7 +11,12 @@ interface Service {
     fun getAllCampaigns(): Iterable<Campaign>
     fun getAllCommonCampaigns(common: Boolean): Iterable<Campaign>
     fun getAllCampaignByUserId(userId: Int): Iterable<Campaign>
-    fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign>
+    fun getAllCampaignsByChatListNotContainsUser(
+        chats: List<Long>,
+        userId: Int,
+        common: Boolean = false
+    ): Iterable<Campaign>
+
     fun deleteCampaignByName(name: String)
 
     fun getAllSuperAdmins(): Iterable<SuperAdmin>

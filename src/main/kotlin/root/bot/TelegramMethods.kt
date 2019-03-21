@@ -231,7 +231,7 @@ fun mainUsersMenu(text: Text, textMsg: String = text.userMainMenu) = SendMessage
     msg.replyMarkup = ReplyKeyboardMarkup().also { markup ->
         markup.selective = true
         markup.resizeKeyboard = true
-        markup.oneTimeKeyboard = false
+        markup.oneTimeKeyboard = true
         markup.keyboard = ArrayList<KeyboardRow>().also { keyboard ->
             keyboard.addElements(KeyboardRow().also {
                 it.add(text.userMainMenuCampaigns)
@@ -269,7 +269,31 @@ fun userCampaignsMenu(text: Text, campaigns: Iterable<Campaign>, textMsg: String
                             .setCallbackData("$USER_MENU_ACTIVE_COMMON_CAMPAIGN_SELECT")
                     )
                 )
+                add(listOf(InlineKeyboardButton().setText(text.joinToCampaign).setCallbackData("$JOIN_TO_CAMPAIGN")))
                 add(listOf(InlineKeyboardButton().setText(text.reset).setCallbackData("$RESET")))
+            }
+        }
+    }
+
+fun userJoinToCampaigns(text: Text, campaigns: Iterable<Campaign>, textMsg: String = text.userAvailableCampaigns) =
+    SendMessage().also { msg ->
+        msg.text = textMsg
+        msg.enableMarkdown(true)
+        msg.replyMarkup = InlineKeyboardMarkup().apply {
+            keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
+                campaigns.forEach {
+                    if (!it.common)
+                        add(
+                            listOf(
+                                InlineKeyboardButton()
+                                    .setText(it.name)
+                                    .setCallbackData("$JOIN_TO_CAMPAIGN_MENU ${it.id}")
+                            )
+                        )
+                    else
+                        log.warn("Common campaign found:\n$it")
+                }
+                add(listOf(InlineKeyboardButton().setText(text.back).setCallbackData("$JOIN_TO_CAMPAIGN_BACK")))
             }
         }
     }

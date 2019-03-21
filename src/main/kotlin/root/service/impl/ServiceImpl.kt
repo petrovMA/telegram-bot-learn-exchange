@@ -52,8 +52,8 @@ open class ServiceImpl(
     override fun getAllCommonCampaigns(common: Boolean): Iterable<Campaign> = campaignRepository.findAllByCommon(common)
 
     @Transactional
-    override fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int): Iterable<Campaign> =
-        campaignRepository.findAllCampaignsByChatListNotContainsUser(chats, userId)
+    override fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int, common: Boolean): Iterable<Campaign> =
+        campaignRepository.findAllCampaignsByChatListNotContainsUser(chats, userId, common)
 
 
     @Transactional
