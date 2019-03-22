@@ -144,6 +144,7 @@ data class Text(
     val clbSurveyQuestionDeleted: String,
     val clbSurveyTimeOut: String,
     val clbSurveyCollectProcess: String,
+    val clbSearchCampForUser: String,
     val editSurvey: String,
     val adminAvailableCampaignsSurveys: String,
     val surveyQuestionDelete: String,

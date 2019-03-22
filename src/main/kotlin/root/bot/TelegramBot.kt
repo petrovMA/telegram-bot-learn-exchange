@@ -109,7 +109,7 @@ class TelegramBot : TelegramLongPollingBot {
             } catch (t: Throwable) {
                 t.printStackTrace()
                 log.error("error when try response to callback: ${update.callbackQuery.data}", t)
-                execute(AnswerCallbackQuery().also {
+                clbExecute(AnswerCallbackQuery().also {
                     it.callbackQueryId = update.callbackQuery.id
                     it.text = text.errCallback
                 })
@@ -129,7 +129,7 @@ class TelegramBot : TelegramLongPollingBot {
                             t.printStackTrace()
                             log.error("error when try response to message: ${update.message.text}", t)
                             userStates.remove(sender.id)
-                            sendMessage(mainAdminsMenu(text, text.errAdmins), fromId(update))
+                            sendMessage(mainAdminsMenu(text, text.errAdmins), chatId(update))
                         }
                     } ?: try {
                         doUserUpdate(update)
@@ -137,7 +137,7 @@ class TelegramBot : TelegramLongPollingBot {
                         t.printStackTrace()
                         log.error("error when try response to message: ${update.message.text}", t)
                         userStates.remove(sender.id)
-                        sendMessage(mainUsersMenu(text, text.errUsers), fromId(update))
+                        sendMessage(mainUsersMenu(text, text.errUsers), chatId(update))
                     }
             }
         }
@@ -145,11 +145,11 @@ class TelegramBot : TelegramLongPollingBot {
 
     private fun doMainAdminUpdate(upd: Update) {
         val actionBack: () -> Unit = {
-            when (userStates[message(upd).from.id]?.state) {
+            when (userStates[fromId(upd)]?.state) {
                 MAIN_MENU_ADD_MISSION, MAIN_MENU_ADD_TASK, MAIN_MENU_ADD_ADMIN, MAIN_MENU_ADD_CAMPAIGN,
                 MAIN_MENU_ADD_COMMON_CAMPAIGN, MAIN_MENU_ADD_GROUP, MAIN_MENU_ADD_SUPER_ADMIN,
                 CAMPAIGN_FOR_SURVEY -> {
-                    userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD, message(upd).from)
+                    userStates[fromId(upd)] = UserData(MAIN_MENU_ADD, message(upd).from)
                     sendMessage(mainAdminAddMenu(text).apply {
                         replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
                             keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
@@ -162,11 +162,11 @@ class TelegramBot : TelegramLongPollingBot {
                                 )
                             })
                         }
-                    }, fromId(upd))
+                    }, chatId(upd))
                 }
                 MAIN_MENU_DELETE_MISSION, MAIN_MENU_DELETE_TASK, MAIN_MENU_DELETE_ADMIN, MAIN_MENU_DELETE_CAMPAIGN,
                 MAIN_MENU_DELETE_COMMON_CAMPAIGN, MAIN_MENU_DELETE_GROUP, MAIN_MENU_DELETE_SUPER_ADMIN -> {
-                    userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE, message(upd).from)
+                    userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE, message(upd).from)
                     sendMessage(mainAdminDeleteMenu(text).apply {
                         replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
                             keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
@@ -179,44 +179,44 @@ class TelegramBot : TelegramLongPollingBot {
                                 )
                             })
                         }
-                    }, fromId(upd))
+                    }, chatId(upd))
                 }
                 else -> {
-                    userStates.remove(message(upd).from.id)
-                    sendMessage(mainAdminsMenu(text), fromId(upd))
+                    userStates.remove(fromId(upd))
+                    sendMessage(mainAdminsMenu(text), chatId(upd))
                 }
             }
         }
 
-        when (userStates[message(upd).from.id]?.state) {
+        when (userStates[fromId(upd)]?.state) {
             MAIN_MENU_ADD -> {
                 when (message(upd).text) {
                     text.addMenuCampaign -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_CAMPAIGN, message(upd).from)
-                        sendMessage(msgBackMenu(text.msgCreateCampaign, text.back), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_CAMPAIGN, message(upd).from)
+                        sendMessage(msgBackMenu(text.msgCreateCampaign, text.back), chatId(upd))
                     }
                     text.addMenuCommonCampaign -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_COMMON_CAMPAIGN, message(upd).from)
-                        sendMessage(msgBackMenu(text.msgCreateCommonCampaign, text.back), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_COMMON_CAMPAIGN, message(upd).from)
+                        sendMessage(msgBackMenu(text.msgCreateCommonCampaign, text.back), chatId(upd))
                     }
                     text.addMenuGroup -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_GROUP, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_GROUP, message(upd).from)
                         sendMessage(
                             msgAvailableCampaignsListDivideCommon(
                                 text.msgGroupToCampaignSelectCamp,
                                 MAIN_MENU_ADD_GROUP.toString(),
                                 service.getAllCampaigns()
-                            ), fromId(upd)
+                            ), chatId(upd)
                         )
                     }
                     text.addMenuSuperAdmin -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_SUPER_ADMIN, message(upd).from)
-                        sendMessage(msgBackMenu(text.msgAddSuperAdmin, text.back), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_SUPER_ADMIN, message(upd).from)
+                        sendMessage(msgBackMenu(text.msgAddSuperAdmin, text.back), chatId(upd))
                     }
                     text.addMenuMission -> {
-                        // todo refactor it userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_MISSION, message(upd).from)
+                        // todo refactor it userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_MISSION, message(upd).from)
 
-                        sendMessage(msgBackMenu(text.msgSurvey, text.back), fromId(upd))
+                        sendMessage(msgBackMenu(text.msgSurvey, text.back), chatId(upd))
 
                         val availableCampaigns = service.getAllCampaigns().toList()
 
@@ -226,17 +226,17 @@ class TelegramBot : TelegramLongPollingBot {
                                     text.adminAvailableCampaignsSurveys,
                                     CAMPAIGN_FOR_SURVEY.toString(),
                                     availableCampaigns
-                                ), fromId(upd)
+                                ), chatId(upd)
                             )
-                            userStates[message(upd).from.id] =
+                            userStates[fromId(upd)] =
                                 UserData(CAMPAIGN_FOR_SURVEY, message(upd).from)
                         } else {
-                            sendMessage(mainAdminsMenu(text, text.msgNoCampaign), fromId(upd))
-                            userStates.remove(message(upd).from.id)
+                            sendMessage(mainAdminsMenu(text, text.msgNoCampaign), chatId(upd))
+                            userStates.remove(fromId(upd))
                         }
                     }
                     text.addMenuTask -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_TASK, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_TASK, message(upd).from)
                         TODO("MAIN_MENU_ADD_TASK")
                     }
                     text.addMenuAdmin -> {
@@ -245,7 +245,7 @@ class TelegramBot : TelegramLongPollingBot {
                                 text.msgAdminToCampaignSelectCamp,
                                 MAIN_MENU_ADD_ADMIN.toString(),
                                 service.getAllCampaigns()
-                            ), fromId(upd)
+                            ), chatId(upd)
                         )
                     }
                     text.back -> actionBack.invoke()
@@ -254,43 +254,43 @@ class TelegramBot : TelegramLongPollingBot {
             MAIN_MENU_DELETE -> {
                 when (message(upd).text) {
                     text.deleteMenuCampaign -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_CAMPAIGN, message(upd).from)
-                        sendMessage(msgBackMenu(text.msgRemoveCampaign, text.back), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_CAMPAIGN, message(upd).from)
+                        sendMessage(msgBackMenu(text.msgRemoveCampaign, text.back), chatId(upd))
                     }
                     text.deleteMenuCommonCampaign -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_COMMON_CAMPAIGN, message(upd).from)
-                        sendMessage(msgBackMenu(text.msgRemoveCommonCampaign, text.back), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_COMMON_CAMPAIGN, message(upd).from)
+                        sendMessage(msgBackMenu(text.msgRemoveCommonCampaign, text.back), chatId(upd))
                     }
                     text.deleteMenuGroup -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_GROUP, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_GROUP, message(upd).from)
                         sendMessage(
                             msgAvailableCampaignsListDivideCommon(
                                 text.msgRemoveGroupFromCampaign,
                                 MAIN_MENU_DELETE_GROUP.toString(),
                                 service.getAllCampaigns()
-                            ), fromId(upd)
+                            ), chatId(upd)
                         )
                     }
                     text.deleteMenuSuperAdmin -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_SUPER_ADMIN, message(upd).from)
-                        sendMessage(msgBackMenu(text.msgDeleteSuperAdmin, text.back), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_SUPER_ADMIN, message(upd).from)
+                        sendMessage(msgBackMenu(text.msgDeleteSuperAdmin, text.back), chatId(upd))
                     }
                     text.deleteMenuMission -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_MISSION, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_MISSION, message(upd).from)
                         TODO("MAIN_MENU_DELETE_MISSION")
                     }
                     text.deleteMenuTask -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_TASK, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_TASK, message(upd).from)
                         TODO("MAIN_MENU_DELETE_TASK")
                     }
                     text.deleteMenuAdmin -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_ADMIN, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_ADMIN, message(upd).from)
                         sendMessage(
                             msgAvailableCampaignsListDivideCommon(
                                 text.msgRemoveAdminFromCampaign,
                                 MAIN_MENU_DELETE_ADMIN.toString(),
                                 service.getAllCampaigns()
-                            ), fromId(upd)
+                            ), chatId(upd)
                         )
                     }
                     text.back -> actionBack.invoke()
@@ -303,14 +303,14 @@ class TelegramBot : TelegramLongPollingBot {
                         val adminId = message(upd).text.toInt()
 
                         service.getSuperAdminById(adminId)?.run {
-                            sendMessage(text.errAddSuperAdminAlreadyExist, fromId(upd))
+                            sendMessage(text.errAddSuperAdminAlreadyExist, chatId(upd))
                         } ?: {
                             service.saveSuperAdmin(SuperAdmin(userId = adminId, createDate = now()))
-                            sendMessage(text.sucAddSuperAdmin, fromId(upd))
+                            sendMessage(text.sucAddSuperAdmin, chatId(upd))
                         }.invoke()
 
                     } catch (t: Throwable) {
-                        sendMessage(text.errAddSuperAdmin, fromId(upd))
+                        sendMessage(text.errAddSuperAdmin, chatId(upd))
                         log.error("SuperAdmin creating err.", t)
                     }
                 }
@@ -320,9 +320,9 @@ class TelegramBot : TelegramLongPollingBot {
                     text.back -> actionBack.invoke()
                     else -> try {
                         service.deleteSuperAdminById(message(upd).text.toInt())
-                        sendMessage(text.sucRemoveSuperAdmin, fromId(upd))
+                        sendMessage(text.sucRemoveSuperAdmin, chatId(upd))
                     } catch (t: Throwable) {
-                        sendMessage(text.errRemoveSuperAdmin, fromId(upd))
+                        sendMessage(text.errRemoveSuperAdmin, chatId(upd))
                         log.error("SuperAdmin deleting err.", t)
                     }
                 }
@@ -342,12 +342,12 @@ class TelegramBot : TelegramLongPollingBot {
                             )
                         )
 
-                        sendMessage(text.sucCreateCommonCampaign, fromId(upd))
+                        sendMessage(text.sucCreateCommonCampaign, chatId(upd))
                     } catch (e: DataIntegrityViolationException) {
-                        sendMessage(text.errCreateCommonCampaignAlreadyExist, fromId(upd))
+                        sendMessage(text.errCreateCommonCampaignAlreadyExist, chatId(upd))
                         log.error("Campaign creating err.", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errCreateCommonCampaign, fromId(upd))
+                        sendMessage(text.errCreateCommonCampaign, chatId(upd))
                         log.error("Campaign creating err.", t)
                     }
                 }
@@ -360,9 +360,9 @@ class TelegramBot : TelegramLongPollingBot {
 
                         service.deleteCampaignByName(newCampName)
 
-                        sendMessage(text.sucRemoveCommonCampaign, fromId(upd))
+                        sendMessage(text.sucRemoveCommonCampaign, chatId(upd))
                     } catch (t: Throwable) {
-                        sendMessage(text.errRemoveCommonCampaign, fromId(upd))
+                        sendMessage(text.errRemoveCommonCampaign, chatId(upd))
                         log.error("Campaign remove err.", t)
                     }
                 }
@@ -375,12 +375,12 @@ class TelegramBot : TelegramLongPollingBot {
 
                         service.createCampaign(Campaign(name = newCampName, createDate = now(), groups = emptySet()))
 
-                        sendMessage(text.sucCreateCampaign, fromId(upd))
+                        sendMessage(text.sucCreateCampaign, chatId(upd))
                     } catch (e: DataIntegrityViolationException) {
-                        sendMessage(text.errCreateCampaignAlreadyExist, fromId(upd))
+                        sendMessage(text.errCreateCampaignAlreadyExist, chatId(upd))
                         log.error("Campaign creating err.", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errCreateCampaign, fromId(upd))
+                        sendMessage(text.errCreateCampaign, chatId(upd))
                         log.error("Campaign creating err.", t)
                     }
                 }
@@ -393,9 +393,9 @@ class TelegramBot : TelegramLongPollingBot {
 
                         service.deleteCampaignByName(newCampName)
 
-                        sendMessage(text.sucRemoveCampaign, fromId(upd))
+                        sendMessage(text.sucRemoveCampaign, chatId(upd))
                     } catch (t: Throwable) {
-                        sendMessage(text.errRemoveCampaign, fromId(upd))
+                        sendMessage(text.errRemoveCampaign, chatId(upd))
                         log.error("Campaign remove err.", t)
                     }
                 }
@@ -406,12 +406,12 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val params = message(upd).text.split("\\s+".toRegex())
                         val groupId = params[0].toLong()
-                        val camp = userStates[message(upd).from.id]!!.campaign!!
+                        val camp = userStates[fromId(upd)]!!.campaign!!
 
                         val userId = fromId(upd)
 
                         val (addedGroup, campaign) = service.addGroup(
-                            userId = userId.toInt(),
+                            userId = userId,
                             groupId = groupId,
                             camp = camp,
                             maimAdmins = mainAdmins
@@ -424,14 +424,14 @@ class TelegramBot : TelegramLongPollingBot {
                                     "group.id" to "${addedGroup.groupId}",
                                     "camp.desc" to "${campaign.id} ${campaign.name}"
                                 ), text.back
-                            ), userId
+                            ), userId.toLong()
                         )
 
                     } catch (e: NoAccessException) {
-                        sendMessage(text.errAddGroupAccessDenied, fromId(upd))
+                        sendMessage(text.errAddGroupAccessDenied, chatId(upd))
                         log.error("Group creating err (access denied).", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errAddGroup, fromId(upd))
+                        sendMessage(text.errAddGroup, chatId(upd))
                         log.error("Group creating err.", t)
                     }
                 }
@@ -442,12 +442,12 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val params = message(upd).text.split("\\s+".toRegex(), 2)
                         val groupId = params[0].toLong()
-                        val camp = userStates[message(upd).from.id]!!.campaign!!
+                        val camp = userStates[fromId(upd)]!!.campaign!!
 
                         val userId = fromId(upd)
 
                         val (deletedGroup, campaign) = service.deleteGroup(
-                            userId = userId.toInt(),
+                            userId = userId,
                             groupId = groupId,
                             camp = camp,
                             maimAdmins = mainAdmins
@@ -460,17 +460,17 @@ class TelegramBot : TelegramLongPollingBot {
                                     "group.id" to "${deletedGroup.groupId}",
                                     "camp.desc" to "${campaign.id} ${campaign.name}"
                                 ), text.back
-                            ), userId
+                            ), userId.toLong()
                         )
 
                     } catch (e: AdminNotFoundException) {
-                        sendMessage(text.errDeleteGroupNotFound, fromId(upd))
+                        sendMessage(text.errDeleteGroupNotFound, chatId(upd))
                         log.error("Group deleting err (not found).", e)
                     } catch (e: NoAccessException) {
-                        sendMessage(text.errDeleteGroupAccessDenied, fromId(upd))
+                        sendMessage(text.errDeleteGroupAccessDenied, chatId(upd))
                         log.error("Group deleting err (access denied).", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errDeleteGroup, fromId(upd))
+                        sendMessage(text.errDeleteGroup, chatId(upd))
                         log.error("Group deleting err.", t)
                     }
                 }
@@ -481,12 +481,12 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val params = message(upd).text.split("\\s+".toRegex())
                         val adminId = params[0].toInt()
-                        val camp = userStates[message(upd).from.id]!!.campaign!!
+                        val camp = userStates[fromId(upd)]!!.campaign!!
 
                         val userId = fromId(upd)
 
                         val (addedAdmin, campaign) = service.addAdmin(
-                            userId = userId.toInt(),
+                            userId = userId,
                             adminId = adminId,
                             camp = camp,
                             maimAdmins = mainAdmins
@@ -499,14 +499,14 @@ class TelegramBot : TelegramLongPollingBot {
                                     "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
                                     "camp.desc" to "${campaign.id} ${campaign.name}"
                                 ), text.back
-                            ), userId
+                            ), userId.toLong()
                         )
 
                     } catch (e: NoAccessException) {
-                        sendMessage(text.errAddAdminAccessDenied, fromId(upd))
+                        sendMessage(text.errAddAdminAccessDenied, chatId(upd))
                         log.error("AdminGroup creating err (access denied).", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errAddAdmin, fromId(upd))
+                        sendMessage(text.errAddAdmin, chatId(upd))
                         log.error("AdminGroup creating err.", t)
                     }
                 }
@@ -517,12 +517,12 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val params = message(upd).text.split("\\s+".toRegex(), 2)
                         val adminId = params[0].toInt()
-                        val camp = userStates[message(upd).from.id]!!.campaign!!
+                        val camp = userStates[fromId(upd)]!!.campaign!!
 
                         val userId = fromId(upd)
 
                         val (deletedAdmin, campaign) = service.deleteAdmin(
-                            userId = userId.toInt(),
+                            userId = userId,
                             adminId = adminId,
                             camp = camp,
                             maimAdmins = mainAdmins
@@ -535,17 +535,17 @@ class TelegramBot : TelegramLongPollingBot {
                                     "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
                                     "camp.desc" to "${campaign.id} ${campaign.name}"
                                 ), text.back
-                            ), userId
+                            ), userId.toLong()
                         )
 
                     } catch (e: AdminNotFoundException) {
-                        sendMessage(text.errDeleteAdminNotFound, fromId(upd))
+                        sendMessage(text.errDeleteAdminNotFound, chatId(upd))
                         log.error("AdminGroup deleting err (not found).", e)
                     } catch (e: NoAccessException) {
-                        sendMessage(text.errDeleteAdminAccessDenied, fromId(upd))
+                        sendMessage(text.errDeleteAdminAccessDenied, chatId(upd))
                         log.error("AdminGroup deleting err (access denied).", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errDeleteAdmin, fromId(upd))
+                        sendMessage(text.errDeleteAdmin, chatId(upd))
                         log.error("AdminGroup deleting err.", t)
                     }
                 }
@@ -566,7 +566,7 @@ class TelegramBot : TelegramLongPollingBot {
                                     text.msgSurveysTable,
                                     "$GET_EXCEL_TABLE_SURVEY",
                                     service.getAllCampaigns()
-                                ), fromId(upd)
+                                ), chatId(upd)
                             )
                         }
                         text.sendAdminsTable -> {
@@ -575,7 +575,7 @@ class TelegramBot : TelegramLongPollingBot {
                                     text.msgAdminsTable,
                                     "$GET_EXCEL_TABLE_ADMINS",
                                     service.getAllCampaigns()
-                                ), fromId(upd)
+                                ), chatId(upd)
                             )
                         }
                         text.sendUsersInCampaign -> {
@@ -584,7 +584,7 @@ class TelegramBot : TelegramLongPollingBot {
                                     text.msgUsersInCampaign,
                                     "$GET_EXCEL_TABLE_USERS_IN_CAMPAIGN",
                                     service.getAllCampaigns()
-                                ), fromId(upd)
+                                ), chatId(upd)
                             )
                         }
                     }
@@ -595,17 +595,17 @@ class TelegramBot : TelegramLongPollingBot {
                     name = message(upd).text,
                     createDate = now(),
                     questions = HashSet(),
-                    campaign = userStates[message(upd).from.id]!!.campaign!!
+                    campaign = userStates[fromId(upd)]!!.campaign!!
                 )
 
-                userStates[message(upd).from.id]!!.apply {
+                userStates[fromId(upd)]!!.apply {
                     this.state = NONE
                     this.survey = survey
                 }
-                editSurvey(survey, userStates[message(upd).from.id]!!.updCallback!!)
+                editSurvey(survey, userStates[fromId(upd)]!!.updCallback!!)
             }
             SURVEY_NAME -> {
-                val survey = userStates[message(upd).from.id]?.survey?.also { it.name = message(upd).text }
+                val survey = userStates[fromId(upd)]?.survey?.also { it.name = message(upd).text }
                     ?: Survey(
                         name = message(upd).text,
                         createDate = now(),
@@ -613,54 +613,54 @@ class TelegramBot : TelegramLongPollingBot {
                         campaign = userStates[upd.callbackQuery.from.id]!!.campaign!!
                     )
 
-                userStates[message(upd).from.id]!!.apply {
+                userStates[fromId(upd)]!!.apply {
                     this.state = NONE
                     this.survey = survey
                 }
-                editSurvey(survey, userStates[message(upd).from.id]!!.updCallback!!)
+                editSurvey(survey, userStates[fromId(upd)]!!.updCallback!!)
             }
             SURVEY_DESCRIPTION -> {
-                val survey = userStates[message(upd).from.id]?.survey!!.also { it.description = message(upd).text }
+                val survey = userStates[fromId(upd)]?.survey!!.also { it.description = message(upd).text }
 
-                userStates[message(upd).from.id]!!.apply {
+                userStates[fromId(upd)]!!.apply {
                     this.state = NONE
                     this.survey = survey
                 }
-                editSurvey(survey, userStates[message(upd).from.id]!!.updCallback!!)
+                editSurvey(survey, userStates[fromId(upd)]!!.updCallback!!)
             }
             SURVEY_QUESTION_CREATE -> {
                 val question = Question(text = message(upd).text, options = HashSet())
 
-                userStates[message(upd).from.id]!!.apply {
+                userStates[fromId(upd)]!!.apply {
                     state = NONE
                     this.question = question
                 }
-                editQuestion(question, userStates[message(upd).from.id]!!.updCallback!!)
+                editQuestion(question, userStates[fromId(upd)]!!.updCallback!!)
             }
             SURVEY_QUESTION_EDIT_TEXT -> {
-                val question = userStates[message(upd).from.id]?.question!!.also { it.text = message(upd).text }
+                val question = userStates[fromId(upd)]?.question!!.also { it.text = message(upd).text }
 
-                userStates[message(upd).from.id]!!.apply {
+                userStates[fromId(upd)]!!.apply {
                     this.state = NONE
                     this.question = question
                 }
-                editQuestion(question, userStates[message(upd).from.id]!!.updCallback!!)
+                editQuestion(question, userStates[fromId(upd)]!!.updCallback!!)
             }
             SURVEY_QUESTION_EDIT_SORT -> {
                 try {
                     val question =
-                        userStates[message(upd).from.id]?.question!!.also { it.sortPoints = message(upd).text.toInt() }
+                        userStates[fromId(upd)]?.question!!.also { it.sortPoints = message(upd).text.toInt() }
 
-                    userStates[message(upd).from.id]!!.apply {
+                    userStates[fromId(upd)]!!.apply {
                         this.state = NONE
                         this.question = question
                     }
-                    editQuestion(question, userStates[message(upd).from.id]!!.updCallback!!)
+                    editQuestion(question, userStates[fromId(upd)]!!.updCallback!!)
                 } catch (t: Throwable) {
                     log.warn("error read sortPoints", t)
 
                     enterText(
-                        userStates[message(upd).from.id]!!.updCallback!!.callbackQuery!!.message,
+                        userStates[fromId(upd)]!!.updCallback!!.callbackQuery!!.message,
                         text.errSurveyEnterNumber,
                         text.backToSurveyQuestionMenu,
                         SURVEY_QUESTION_SELECT
@@ -670,38 +670,38 @@ class TelegramBot : TelegramLongPollingBot {
             SURVEY_OPTION_CREATE -> {
                 val option = Option(text = message(upd).text)
 
-                userStates[message(upd).from.id]!!.apply {
+                userStates[fromId(upd)]!!.apply {
                     this.state = NONE
                     this.option = option
                 }
-                editOption(option, userStates[message(upd).from.id]!!.updCallback!!)
+                editOption(option, userStates[fromId(upd)]!!.updCallback!!)
             }
             SURVEY_OPTION_EDIT_TEXT -> {
-                val option = userStates[message(upd).from.id]?.option!!.also { it.text = message(upd).text }
+                val option = userStates[fromId(upd)]?.option!!.also { it.text = message(upd).text }
 
-                userStates[message(upd).from.id]!!.apply {
+                userStates[fromId(upd)]!!.apply {
                     this.state = NONE
                     this.option = option
                 }
-                editOption(option, userStates[message(upd).from.id]!!.updCallback!!)
+                editOption(option, userStates[fromId(upd)]!!.updCallback!!)
             }
             SURVEY_OPTION_EDIT_CORRECT -> {
                 try {
                     val option =
-                        userStates[message(upd).from.id]?.option!!.also {
+                        userStates[fromId(upd)]?.option!!.also {
                             it.correct = message(upd).text.equals("true", ignoreCase = true)
                         }
 
-                    userStates[message(upd).from.id]!!.apply {
+                    userStates[fromId(upd)]!!.apply {
                         this.state = NONE
                         this.option = option
                     }
-                    editOption(option, userStates[message(upd).from.id]!!.updCallback!!)
+                    editOption(option, userStates[fromId(upd)]!!.updCallback!!)
                 } catch (t: Throwable) {
                     log.warn("error read sortPoints", t)
 
                     enterText(
-                        userStates[message(upd).from.id]!!.updCallback!!.callbackQuery!!.message,
+                        userStates[fromId(upd)]!!.updCallback!!.callbackQuery!!.message,
                         text.errSurveyEnterNumber,
                         text.backToSurveyQuestionMenu,
                         SURVEY_QUESTION_SELECT
@@ -711,19 +711,19 @@ class TelegramBot : TelegramLongPollingBot {
             SURVEY_OPTION_EDIT_SORT -> {
                 try {
                     val option =
-                        userStates[message(upd).from.id]?.option!!.also { it.sortPoints = message(upd).text.toInt() }
+                        userStates[fromId(upd)]?.option!!.also { it.sortPoints = message(upd).text.toInt() }
 
-                    userStates[message(upd).from.id]!!.apply {
+                    userStates[fromId(upd)]!!.apply {
                         state = NONE
                         survey!!.questions = survey!!.questions.toHashSet().apply { add(question!!) }
                         this.option = option
                     }
-                    editOption(option, userStates[message(upd).from.id]!!.updCallback!!)
+                    editOption(option, userStates[fromId(upd)]!!.updCallback!!)
                 } catch (t: Throwable) {
                     log.warn("error read sortPoints", t)
 
                     enterText(
-                        userStates[message(upd).from.id]!!.updCallback!!.callbackQuery!!.message,
+                        userStates[fromId(upd)]!!.updCallback!!.callbackQuery!!.message,
                         text.errSurveyEnterNumber,
                         text.backToSurveyQuestionMenu,
                         SURVEY_QUESTION_SELECT
@@ -733,7 +733,7 @@ class TelegramBot : TelegramLongPollingBot {
             else -> {
                 when (message(upd).text) {
                     text.mainMenuAdd -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD, message(upd).from)
                         sendMessage(mainAdminAddMenu(text).apply {
                             replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
                                 keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
@@ -746,10 +746,10 @@ class TelegramBot : TelegramLongPollingBot {
                                     )
                                 })
                             }
-                        }, fromId(upd))
+                        }, chatId(upd))
                     }
                     text.mainMenuDelete -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE, message(upd).from)
                         sendMessage(mainAdminDeleteMenu(text).apply {
                             replyMarkup = (replyMarkup as ReplyKeyboardMarkup).apply {
                                 keyboard = createKeyboard(keyboard.flatten().toArrayList().apply {
@@ -762,10 +762,10 @@ class TelegramBot : TelegramLongPollingBot {
                                     )
                                 })
                             }
-                        }, fromId(upd))
+                        }, chatId(upd))
                     }
                     text.mainMenuMessages -> {
-                        sendMessage(msgBackMenu(text.msgSendToEveryGroup, text.reset), fromId(upd))
+                        sendMessage(msgBackMenu(text.msgSendToEveryGroup, text.reset), chatId(upd))
 
                         service.getAllCampaigns().toList().run {
                             if (isNotEmpty()) {
@@ -774,27 +774,27 @@ class TelegramBot : TelegramLongPollingBot {
                                         text.adminAvailableCampaigns,
                                         CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
                                         this
-                                    ), fromId(upd)
+                                    ), chatId(upd)
                                 )
-                                userStates[message(upd).from.id] =
+                                userStates[fromId(upd)] =
                                     UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, message(upd).from)
                             }
                         }
                     }
                     text.mainMenuStatistic -> {
-                        userStates[message(upd).from.id] =
+                        userStates[fromId(upd)] =
                             UserData(MAIN_MENU_STATISTIC, message(upd).from)
-                        sendMessage(mainAdminStatisticMenu(text), fromId(upd))
+                        sendMessage(mainAdminStatisticMenu(text), chatId(upd))
                     }
                     text.back -> actionBack.invoke()
                     else -> {
-                        when (userStates[message(upd).from.id]?.state) {
-                            MAIN_MENU_STATISTIC -> sendMessage(mainAdminStatisticMenu(text), fromId(upd))
-                            MAIN_MENU_DELETE -> sendMessage(mainAdminDeleteMenu(text), fromId(upd))
-                            MAIN_MENU_ADD -> sendMessage(mainAdminAddMenu(text), fromId(upd))
-                            CAMPAIGN_FOR_SEND_GROUP_MSG -> sendMessage(mainAdminsMenu(text), fromId(upd))
+                        when (userStates[fromId(upd)]?.state) {
+                            MAIN_MENU_STATISTIC -> sendMessage(mainAdminStatisticMenu(text), chatId(upd))
+                            MAIN_MENU_DELETE -> sendMessage(mainAdminDeleteMenu(text), chatId(upd))
+                            MAIN_MENU_ADD -> sendMessage(mainAdminAddMenu(text), chatId(upd))
+                            CAMPAIGN_FOR_SEND_GROUP_MSG -> sendMessage(mainAdminsMenu(text), chatId(upd))
                             else -> {
-                                sendMessage(mainAdminsMenu(text), fromId(upd))
+                                sendMessage(mainAdminsMenu(text), chatId(upd))
                                 log.warn("Not supported action!\n${message(upd)}")
                             }
                         }
@@ -809,11 +809,11 @@ class TelegramBot : TelegramLongPollingBot {
             admin.update(message(upd).from)
             service.saveSuperAdmin(admin)
         }
-        when (userStates[message(upd).from.id]?.state) {
+        when (userStates[fromId(upd)]?.state) {
             CREATE_CAMPAIGN -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
@@ -829,7 +829,7 @@ class TelegramBot : TelegramLongPollingBot {
 
                         end(upd, text.sucCreateCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
                     } catch (t: Throwable) {
-                        sendMessage(text.errCreateCampaign, fromId(upd))
+                        sendMessage(text.errCreateCampaign, chatId(upd))
                         log.error("Campaign creating err.", t)
                     }
                 }
@@ -837,7 +837,7 @@ class TelegramBot : TelegramLongPollingBot {
             MAIN_MENU_ADD_ADMIN -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
@@ -860,11 +860,11 @@ class TelegramBot : TelegramLongPollingBot {
 
 //                            end(upd, text.sucAdminToCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
                         } ?: {
-                            sendMessage(text.errCampaignNotFound, fromId(upd))
+                            sendMessage(text.errCampaignNotFound, chatId(upd))
                         }.invoke()
 
                     } catch (t: Throwable) {
-                        sendMessage(text.errAdminToCampaign, fromId(upd))
+                        sendMessage(text.errAdminToCampaign, chatId(upd))
                         log.error("AdminGroup creating err.", t)
                     }
                 }
@@ -872,7 +872,7 @@ class TelegramBot : TelegramLongPollingBot {
             ADD_GROUP_TO_CAMPAIGN -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
@@ -885,12 +885,12 @@ class TelegramBot : TelegramLongPollingBot {
                             it.groups = it.groups.toHashSet().also { gr -> gr.add(group) }
                             service.updateCampaign(it)
                         } ?: {
-                            sendMessage(text.errCampaignNotFound, fromId(upd))
+                            sendMessage(text.errCampaignNotFound, chatId(upd))
                         }.invoke()
 
                         end(upd, text.sucGroupToCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
                     } catch (t: Throwable) {
-                        sendMessage(text.errGroupToCampaign, fromId(upd))
+                        sendMessage(text.errGroupToCampaign, chatId(upd))
                         log.error("AdminGroup creating err.", t)
                     }
                 }
@@ -898,14 +898,14 @@ class TelegramBot : TelegramLongPollingBot {
             REMOVE_CAMPAIGN -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
                         service.deleteCampaignByName(message(upd).text)
                         end(upd, text.sucRemoveCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
                     } catch (t: Throwable) {
-                        sendMessage(text.errRemoveCampaign, fromId(upd))
+                        sendMessage(text.errRemoveCampaign, chatId(upd))
                         log.error("Campaign creating err.", t)
                     }
                 }
@@ -913,7 +913,7 @@ class TelegramBot : TelegramLongPollingBot {
             REMOVE_ADMIN_FROM_CAMPAIGN -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
@@ -925,7 +925,7 @@ class TelegramBot : TelegramLongPollingBot {
                         service.saveAdmin(adminForDelete)
                         end(upd, text.sucRemoveAdminFromCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
                     } catch (t: Throwable) {
-                        sendMessage(text.errRemoveAdminFromCampaign, fromId(upd))
+                        sendMessage(text.errRemoveAdminFromCampaign, chatId(upd))
                         log.error("AdminGroup deleting err.", t)
                     }
                 }
@@ -933,7 +933,7 @@ class TelegramBot : TelegramLongPollingBot {
             REMOVE_GROUP_FROM_CAMPAIGN -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
@@ -945,7 +945,7 @@ class TelegramBot : TelegramLongPollingBot {
                         service.updateCampaign(campaign)
                         end(upd, text.sucRemoveGroupFromCampaign) { msg: Message, _: String -> superAdminMenu(msg) }
                     } catch (t: Throwable) {
-                        sendMessage(text.errRemoveGroupFromCampaign, fromId(upd))
+                        sendMessage(text.errRemoveGroupFromCampaign, chatId(upd))
                         log.error("AdminGroup creating err.", t)
                     }
                 }
@@ -953,11 +953,11 @@ class TelegramBot : TelegramLongPollingBot {
             MSG_TO_USERS -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
-                        val users = userStates[message(upd).from.id]?.users
+                        val users = userStates[fromId(upd)]?.users
                         if (users?.firstOrNull() != null) {
                             msgToUsers(users, upd)
                             end(upd, text.sucMsgToUsers) { msg: Message, _: String ->
@@ -968,7 +968,7 @@ class TelegramBot : TelegramLongPollingBot {
                                 superAdminMenu(msg)
                             }
                     } catch (t: Throwable) {
-                        sendMessage(text.errMsgToUsers, fromId(upd))
+                        sendMessage(text.errMsgToUsers, chatId(upd))
                         log.error("error msgToUsers", t)
                     }
                 }
@@ -976,11 +976,11 @@ class TelegramBot : TelegramLongPollingBot {
             MSG_TO_CAMPAIGN -> {
                 when (message(upd).text) {
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> try {
-                        val groups = userStates[message(upd).from.id]?.groups
+                        val groups = userStates[fromId(upd)]?.groups
                         if (!groups.isNullOrEmpty()) {
                             msgToCampaign(groups.toList(), upd)
                             end(upd, text.sucMsgToCampaign) { msg: Message, _: String ->
@@ -992,7 +992,7 @@ class TelegramBot : TelegramLongPollingBot {
                             }
                         }
                     } catch (t: Throwable) {
-                        sendMessage(text.errMsgToCampaign, fromId(upd))
+                        sendMessage(text.errMsgToCampaign, chatId(upd))
                         log.error("error msgToUsers", t)
                     }
                 }
@@ -1000,37 +1000,37 @@ class TelegramBot : TelegramLongPollingBot {
             else -> {
                 when (message(upd).text) {
                     text.removeCampaign -> {
-                        sendMessage(msgBackMenu(text.msgRemoveCampaign, text.reset), fromId(upd))
-                        userStates[message(upd).from.id] =
+                        sendMessage(msgBackMenu(text.msgRemoveCampaign, text.reset), chatId(upd))
+                        userStates[fromId(upd)] =
                             UserData(REMOVE_CAMPAIGN, message(upd).from)
                     }
                     text.removeAdminFromCampaign -> {
-                        sendMessage(msgBackMenu(text.msgRemoveAdminFromCampaign, text.reset), fromId(upd))
-                        userStates[message(upd).from.id] =
+                        sendMessage(msgBackMenu(text.msgRemoveAdminFromCampaign, text.reset), chatId(upd))
+                        userStates[fromId(upd)] =
                             UserData(REMOVE_ADMIN_FROM_CAMPAIGN, message(upd).from)
                     }
                     text.removeGroupFromCampaign -> {
-                        sendMessage(msgBackMenu(text.msgRemoveGroupFromCampaign, text.reset), fromId(upd))
-                        userStates[message(upd).from.id] =
+                        sendMessage(msgBackMenu(text.msgRemoveGroupFromCampaign, text.reset), chatId(upd))
+                        userStates[fromId(upd)] =
                             UserData(REMOVE_GROUP_FROM_CAMPAIGN, message(upd).from)
                     }
                     text.addAdminToCampaign -> {
-                        sendMessage(msgBackMenu(text.msgAdminToCampaignAdminId, text.reset), fromId(upd))
-                        userStates[message(upd).from.id] =
+                        sendMessage(msgBackMenu(text.msgAdminToCampaignAdminId, text.reset), chatId(upd))
+                        userStates[fromId(upd)] =
                             UserData(MAIN_MENU_ADD_ADMIN, message(upd).from)
                     }
                     text.addGroupToCampaign -> {
-                        sendMessage(msgBackMenu(text.msgGroupToCampaign, text.reset), fromId(upd))
-                        userStates[message(upd).from.id] =
+                        sendMessage(msgBackMenu(text.msgGroupToCampaign, text.reset), chatId(upd))
+                        userStates[fromId(upd)] =
                             UserData(ADD_GROUP_TO_CAMPAIGN, message(upd).from)
                     }
                     text.createCampaign -> {
-                        sendMessage(msgBackMenu(text.msgCreateCampaign, text.reset), fromId(upd))
-                        userStates[message(upd).from.id] =
+                        sendMessage(msgBackMenu(text.msgCreateCampaign, text.reset), chatId(upd))
+                        userStates[fromId(upd)] =
                             UserData(CREATE_CAMPAIGN, message(upd).from)
                     }
                     text.sendToEveryUser -> {
-                        sendMessage(msgBackMenu(text.msgSendToEveryUser, text.reset), fromId(upd))
+                        sendMessage(msgBackMenu(text.msgSendToEveryUser, text.reset), chatId(upd))
 
                         val availableCampaigns = service.getAllCampaigns().toList()
 
@@ -1040,14 +1040,14 @@ class TelegramBot : TelegramLongPollingBot {
                                     text.adminAvailableCampaigns,
                                     CAMPAIGN_FOR_SEND_USERS_MSG.toString(),
                                     availableCampaigns
-                                ), fromId(upd)
+                                ), chatId(upd)
                             )
-                            userStates[message(upd).from.id] =
+                            userStates[fromId(upd)] =
                                 UserData(CAMPAIGN_FOR_SEND_USERS_MSG, message(upd).from)
                         }
                     }
                     text.sendToEveryGroup -> {
-                        sendMessage(msgBackMenu(text.msgSendToEveryGroup, text.reset), fromId(upd))
+                        sendMessage(msgBackMenu(text.msgSendToEveryGroup, text.reset), chatId(upd))
 
                         val availableCampaigns = service.getAllCampaigns().toList()
 
@@ -1057,14 +1057,14 @@ class TelegramBot : TelegramLongPollingBot {
                                     text.adminAvailableCampaigns,
                                     CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
                                     availableCampaigns
-                                ), fromId(upd)
+                                ), chatId(upd)
                             )
-                            userStates[message(upd).from.id] =
+                            userStates[fromId(upd)] =
                                 UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, message(upd).from)
                         }
                     }
                     text.reset -> {
-                        userStates.remove(message(upd).from.id)
+                        userStates.remove(fromId(upd))
                         superAdminMenu(message(upd))
                     }
                     else -> {
@@ -1081,18 +1081,18 @@ class TelegramBot : TelegramLongPollingBot {
             service.saveAdmin(admin)
         }
         val actionBack: () -> Unit = {
-            when (userStates[message(upd).from.id]?.state) {
+            when (userStates[fromId(upd)]?.state) {
                 MAIN_MENU_ADD_MISSION, MAIN_MENU_ADD_TASK, MAIN_MENU_ADD_ADMIN -> {
-                    userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD, message(upd).from)
-                    sendMessage(mainAdminAddMenu(text), fromId(upd))
+                    userStates[fromId(upd)] = UserData(MAIN_MENU_ADD, message(upd).from)
+                    sendMessage(mainAdminAddMenu(text), chatId(upd))
                 }
                 MAIN_MENU_DELETE_MISSION, MAIN_MENU_DELETE_TASK, MAIN_MENU_DELETE_ADMIN -> {
-                    userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE, message(upd).from)
-                    sendMessage(mainAdminDeleteMenu(text), fromId(upd))
+                    userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE, message(upd).from)
+                    sendMessage(mainAdminDeleteMenu(text), chatId(upd))
                 }
                 else -> {
-                    userStates.remove(message(upd).from.id)
-                    sendMessage(mainAdminsMenu(text, text.infoForAdmin), fromId(upd))
+                    userStates.remove(fromId(upd))
+                    sendMessage(mainAdminsMenu(text, text.infoForAdmin), chatId(upd))
                 }
             }
         }
@@ -1101,11 +1101,11 @@ class TelegramBot : TelegramLongPollingBot {
             MAIN_MENU_ADD -> {
                 when (message(upd).text) {
                     text.addMenuMission -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_MISSION, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_MISSION, message(upd).from)
                         TODO("MAIN_MENU_ADD_MISSION")
                     }
                     text.addMenuTask -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD_TASK, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD_TASK, message(upd).from)
                         TODO("MAIN_MENU_ADD_TASK")
                     }
                     text.addMenuAdmin -> {
@@ -1114,7 +1114,7 @@ class TelegramBot : TelegramLongPollingBot {
                                 text.msgAdminToCampaignSelectCamp,
                                 MAIN_MENU_ADD_ADMIN.toString(),
                                 admin.campaigns
-                            ), fromId(upd)
+                            ), chatId(upd)
                         )
                     }
                     text.back -> actionBack.invoke()
@@ -1123,21 +1123,21 @@ class TelegramBot : TelegramLongPollingBot {
             MAIN_MENU_DELETE -> {
                 when (message(upd).text) {
                     text.deleteMenuMission -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_MISSION, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_MISSION, message(upd).from)
                         TODO("MAIN_MENU_DELETE_MISSION")
                     }
                     text.deleteMenuTask -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_TASK, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_TASK, message(upd).from)
                         TODO("MAIN_MENU_DELETE_TASK")
                     }
                     text.deleteMenuAdmin -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE_ADMIN, message(upd).from)
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE_ADMIN, message(upd).from)
                         sendMessage(
                             msgAvailableCampaignsListDivideCommon(
                                 text.msgRemoveAdminFromCampaign,
                                 MAIN_MENU_DELETE_ADMIN.toString(),
                                 service.getAllCampaigns()
-                            ), fromId(upd)
+                            ), chatId(upd)
                         )
                     }
                     text.back -> actionBack.invoke()
@@ -1149,12 +1149,12 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val params = message(upd).text.split("\\s+".toRegex())
                         val adminId = params[0].toInt()
-                        val camp = userStates[message(upd).from.id]!!.campaign!!
+                        val camp = userStates[fromId(upd)]!!.campaign!!
 
                         val userId = fromId(upd)
 
                         val (addedAdmin, campaign) = service.addAdmin(
-                            userId = userId.toInt(),
+                            userId = userId,
                             adminId = adminId,
                             camp = camp,
                             maimAdmins = mainAdmins
@@ -1167,14 +1167,14 @@ class TelegramBot : TelegramLongPollingBot {
                                     "admin.desc" to "${addedAdmin.userId} ${addedAdmin.userName}",
                                     "camp.desc" to "${campaign.id} ${campaign.name}"
                                 ), text.back
-                            ), userId
+                            ), userId.toLong()
                         )
 
                     } catch (e: NoAccessException) {
-                        sendMessage(text.errAddAdminAccessDenied, fromId(upd))
+                        sendMessage(text.errAddAdminAccessDenied, chatId(upd))
                         log.error("AdminGroup creating err (access denied).", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errAddAdmin, fromId(upd))
+                        sendMessage(text.errAddAdmin, chatId(upd))
                         log.error("AdminGroup creating err.", t)
                     }
                 }
@@ -1185,12 +1185,12 @@ class TelegramBot : TelegramLongPollingBot {
                     else -> try {
                         val params = message(upd).text.split("\\s+".toRegex(), 2)
                         val adminId = params[0].toInt()
-                        val camp = userStates[message(upd).from.id]!!.campaign!!
+                        val camp = userStates[fromId(upd)]!!.campaign!!
 
                         val userId = fromId(upd)
 
                         val (deletedAdmin, campaign) = service.deleteAdmin(
-                            userId = userId.toInt(),
+                            userId = userId,
                             adminId = adminId,
                             camp = camp,
                             maimAdmins = mainAdmins
@@ -1203,17 +1203,17 @@ class TelegramBot : TelegramLongPollingBot {
                                     "admin.desc" to "${deletedAdmin.userId} ${deletedAdmin.userName}",
                                     "camp.desc" to "${campaign.id} ${campaign.name}"
                                 ), text.back
-                            ), userId
+                            ), userId.toLong()
                         )
 
                     } catch (e: AdminNotFoundException) {
-                        sendMessage(text.errDeleteAdminNotFound, fromId(upd))
+                        sendMessage(text.errDeleteAdminNotFound, chatId(upd))
                         log.error("AdminGroup deleting err (not found).", e)
                     } catch (e: NoAccessException) {
-                        sendMessage(text.errDeleteAdminAccessDenied, fromId(upd))
+                        sendMessage(text.errDeleteAdminAccessDenied, chatId(upd))
                         log.error("AdminGroup deleting err (access denied).", e)
                     } catch (t: Throwable) {
-                        sendMessage(text.errDeleteAdmin, fromId(upd))
+                        sendMessage(text.errDeleteAdmin, chatId(upd))
                         log.error("AdminGroup deleting err.", t)
                     }
                 }
@@ -1221,15 +1221,15 @@ class TelegramBot : TelegramLongPollingBot {
             else -> {
                 when (message(upd).text) {
                     text.mainMenuAdd -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_ADD, message(upd).from)
-                        sendMessage(mainAdminAddMenu(text), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_ADD, message(upd).from)
+                        sendMessage(mainAdminAddMenu(text), chatId(upd))
                     }
                     text.mainMenuDelete -> {
-                        userStates[message(upd).from.id] = UserData(MAIN_MENU_DELETE, message(upd).from)
-                        sendMessage(mainAdminDeleteMenu(text), fromId(upd))
+                        userStates[fromId(upd)] = UserData(MAIN_MENU_DELETE, message(upd).from)
+                        sendMessage(mainAdminDeleteMenu(text), chatId(upd))
                     }
                     text.mainMenuMessages -> {
-                        sendMessage(msgBackMenu(text.msgSendToEveryGroup, text.reset), fromId(upd))
+                        sendMessage(msgBackMenu(text.msgSendToEveryGroup, text.reset), chatId(upd))
 
                         if (admin.campaigns.isNotEmpty()) {
                             sendMessage(
@@ -1237,26 +1237,26 @@ class TelegramBot : TelegramLongPollingBot {
                                     text.adminAvailableCampaigns,
                                     CAMPAIGN_FOR_SEND_GROUP_MSG.toString(),
                                     admin.campaigns
-                                ), fromId(upd)
+                                ), chatId(upd)
                             )
-                            userStates[message(upd).from.id] =
+                            userStates[fromId(upd)] =
                                 UserData(CAMPAIGN_FOR_SEND_GROUP_MSG, message(upd).from)
                         }
                     }
                     text.mainMenuStatistic -> {
-                        userStates[message(upd).from.id] =
+                        userStates[fromId(upd)] =
                             UserData(MAIN_MENU_STATISTIC, message(upd).from)
-                        sendMessage(mainAdminStatisticMenu(text), fromId(upd))
+                        sendMessage(mainAdminStatisticMenu(text), chatId(upd))
                     }
                     text.back -> actionBack.invoke()
                     else -> {
-                        when (userStates[message(upd).from.id]?.state) {
-                            MAIN_MENU_STATISTIC -> sendMessage(mainAdminStatisticMenu(text), fromId(upd))
-                            MAIN_MENU_DELETE -> sendMessage(mainAdminDeleteMenu(text), fromId(upd))
-                            MAIN_MENU_ADD -> sendMessage(mainAdminAddMenu(text), fromId(upd))
-                            CAMPAIGN_FOR_SEND_GROUP_MSG -> sendMessage(mainAdminsMenu(text), fromId(upd))
+                        when (userStates[fromId(upd)]?.state) {
+                            MAIN_MENU_STATISTIC -> sendMessage(mainAdminStatisticMenu(text), chatId(upd))
+                            MAIN_MENU_DELETE -> sendMessage(mainAdminDeleteMenu(text), chatId(upd))
+                            MAIN_MENU_ADD -> sendMessage(mainAdminAddMenu(text), chatId(upd))
+                            CAMPAIGN_FOR_SEND_GROUP_MSG -> sendMessage(mainAdminsMenu(text), chatId(upd))
                             else -> {
-                                sendMessage(mainAdminsMenu(text, text.infoForAdmin), fromId(upd))
+                                sendMessage(mainAdminsMenu(text, text.infoForAdmin), chatId(upd))
                                 log.warn("Not supported action!\n${message(upd)}")
                             }
                         }
@@ -1266,30 +1266,30 @@ class TelegramBot : TelegramLongPollingBot {
         }
     }
 
-    private fun doUserUpdate(upd: Update) = when (userStates[message(upd).from.id]?.state) {
-        RESET -> sendMessage(mainUsersMenu(text), fromId(upd))
+    private fun doUserUpdate(upd: Update) = when (userStates[fromId(upd)]?.state) {
+        RESET -> sendMessage(mainUsersMenu(text), chatId(upd))
         else -> when (message(upd).text) {
             text.userMainMenuCampaigns -> {
-                userStates[message(upd).from.id] = UserData(USER_MENU_ACTIVE_CAMPAIGN, message(upd).from)
+                userStates[fromId(upd)] = UserData(USER_MENU_ACTIVE_CAMPAIGN, message(upd).from)
                 sendMessage(
-                    userCampaignsMenu(text, service.getAllCampaignByUserId(message(upd).from.id)),
-                    fromId(upd)
+                    userCampaignsMenu(text, service.getAllCampaignByUserId(fromId(upd))),
+                    chatId(upd)
                 )
             }
             text.userMainMenuStatus -> {
-                userStates[message(upd).from.id] = UserData(USER_MENU_STATUS, message(upd).from)
+                userStates[fromId(upd)] = UserData(USER_MENU_STATUS, message(upd).from)
                 sendMessage(
                     userStatusMenu(
                         text,
-                        service.getAllPassedSurveysByUser(stubUserInCampaign(userId = message(upd).from.id))
-                    ), fromId(upd)
+                        service.getAllPassedSurveysByUser(stubUserInCampaign(userId = fromId(upd)))
+                    ), chatId(upd)
                 )
             }
             text.userMainMenuAccount -> {
-                userStates[message(upd).from.id] = UserData(USER_MENU_MY_ACCOUNT, message(upd).from)
-                sendMessage(userAccountMenu(text), fromId(upd))
+                userStates[fromId(upd)] = UserData(USER_MENU_MY_ACCOUNT, message(upd).from)
+                sendMessage(userAccountMenu(text), chatId(upd))
             }
-            else -> sendMessage(mainUsersMenu(text), fromId(upd))
+            else -> sendMessage(mainUsersMenu(text), chatId(upd))
         }
     }
 
@@ -1302,7 +1302,7 @@ class TelegramBot : TelegramLongPollingBot {
             callBackCommand = UserState.valueOf(params[0])
         } catch (e: Exception) {
             log.error("UserState = \"${upd.callbackQuery.data}\", not found", e)
-            execute(callbackAnswer.also { it.text = text.errClbCommon })
+            clbExecute(callbackAnswer.also { it.text = text.errClbCommon })
             throw e
         }
 
@@ -1310,10 +1310,10 @@ class TelegramBot : TelegramLongPollingBot {
             setTextToMessage(
                 resourceText(text.errCommon),
                 upd.callbackQuery.message.messageId,
-                fromId(upd)
+                chatId(upd)
             )
             userStates.remove(upd.callbackQuery.from.id)
-            execute(callbackAnswer.also { it.text = text.errClbCommon })
+            clbExecute(callbackAnswer.also { it.text = text.errClbCommon })
         }
 
         when (callBackCommand) {
@@ -1351,11 +1351,11 @@ class TelegramBot : TelegramLongPollingBot {
             SURVEY_EDIT -> {
                 userStates[upd.callbackQuery.from.id]!!.survey = service.getSurveyById(params[1].toLong())
                 editSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbEditSurvey })
+                clbExecute(callbackAnswer.also { it.text = text.clbEditSurvey })
             }
             SURVEY -> {
                 editSurvey(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbEditSurvey })
+                clbExecute(callbackAnswer.also { it.text = text.clbEditSurvey })
             }
             SURVEY_NAME -> {
                 userStates[upd.callbackQuery.from.id]!!.apply {
@@ -1457,11 +1457,11 @@ class TelegramBot : TelegramLongPollingBot {
             }
             SURVEY_BACK -> {
                 deleteMessage(upd.callbackQuery.message)
-                sendMessage(mainAdminsMenu(text), fromId(upd))
+                sendMessage(mainAdminsMenu(text), chatId(upd))
             }
             SURVEY_OPTION_SELECT_BACK -> {
                 editQuestion(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurvey })
+                clbExecute(callbackAnswer.also { it.text = text.clbSurvey })
             }
             SURVEY_QUESTIONS -> {
                 userStates[upd.callbackQuery.from.id]!!.question?.let {
@@ -1471,14 +1471,14 @@ class TelegramBot : TelegramLongPollingBot {
                     showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
                 } ?: {
                     showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
-                    execute(callbackAnswer.also { it.text = text.clbSurveyQuestions })
+                    clbExecute(callbackAnswer.also { it.text = text.clbSurveyQuestions })
                 }.invoke()
             }
             SURVEY_QUESTION_SELECT -> {
                 userStates[upd.callbackQuery.from.id]!!.question =
                     userStates[upd.callbackQuery.from.id]!!.survey!!.questions.first { it.text.hashCode() == params[1].toInt() }
                 editQuestion(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyQuestionEdit })
+                clbExecute(callbackAnswer.also { it.text = text.clbSurveyQuestionEdit })
             }
             SURVEY_QUESTION_DELETE -> {
                 val survey = userStates[upd.callbackQuery.from.id]!!.survey!!
@@ -1487,7 +1487,7 @@ class TelegramBot : TelegramLongPollingBot {
                 userStates[upd.callbackQuery.from.id]!!.question = null
 
                 showQuestions(userStates[upd.callbackQuery.from.id]!!.survey!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyQuestionDeleted })
+                clbExecute(callbackAnswer.also { it.text = text.clbSurveyQuestionDeleted })
             }
             SURVEY_OPTION_DELETE -> {
                 val question = userStates[upd.callbackQuery.from.id]!!.question!!
@@ -1496,7 +1496,7 @@ class TelegramBot : TelegramLongPollingBot {
                 userStates[upd.callbackQuery.from.id]!!.option = null
 
                 showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyOptionDeleted })
+                clbExecute(callbackAnswer.also { it.text = text.clbSurveyOptionDeleted })
             }
             SURVEY_OPTIONS -> {
                 userStates[upd.callbackQuery.from.id]!!.option?.let {
@@ -1506,38 +1506,38 @@ class TelegramBot : TelegramLongPollingBot {
                     showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
                 } ?: {
                     showOptions(userStates[upd.callbackQuery.from.id]!!.question!!, upd)
-                    execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+                    clbExecute(callbackAnswer.also { it.text = text.clbSurveyOptions })
                 }.invoke()
             }
             SURVEY_OPTION_SELECT -> {
                 userStates[upd.callbackQuery.from.id]!!.option =
                     userStates[upd.callbackQuery.from.id]!!.question!!.options.first { it.text.hashCode() == params[1].toInt() }
                 editOption(userStates[upd.callbackQuery.from.id]!!.option!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+                clbExecute(callbackAnswer.also { it.text = text.clbSurveyOptions })
             }
             SURVEY_OPTION_EDIT_BACK -> {
                 editOption(userStates[upd.callbackQuery.from.id]!!.option!!, upd)
-                execute(callbackAnswer.also { it.text = text.clbSurveyOptions })
+                clbExecute(callbackAnswer.also { it.text = text.clbSurveyOptions })
             }
 
             GET_EXCEL_TABLE_SURVEY -> {
                 deleteMessage(upd.callbackQuery.message)
                 sendTable(
-                    fromId(upd),
+                    chatId(upd),
                     service.getSurveyByCampaignId(params[1].toLong())
                 )
             }
             GET_EXCEL_TABLE_USERS_IN_CAMPAIGN -> {
                 deleteMessage(upd.callbackQuery.message)
                 sendTable(
-                    fromId(upd),
+                    chatId(upd),
                     service.getUsersByCampaignId(params[1].toLong())
                 )
             }
             GET_EXCEL_TABLE_ADMINS -> {
                 deleteMessage(upd.callbackQuery.message)
                 sendTable(
-                    fromId(upd),
+                    chatId(upd),
                     service.getAdminsByCampaigns(setOf(stubCampaign(id = params[1].toLong())))
                 )
             }
@@ -1549,15 +1549,15 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(MSG_TO_CAMPAIGN, upd.callbackQuery.from, groups = groups)
-                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryGroup })
+                clbExecute(callbackAnswer.also { it.text = text.clbSendMessageToEveryGroup })
                 setTextToMessage(
                     resourceText(text.sucSendMessageToEveryGroup, "campaign.name" to campaign.name),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SEND_GROUP_MSG execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
+                clbExecute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
                 throw t
             }
             else errorAnswer.invoke()
@@ -1567,15 +1567,15 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(MSG_TO_USERS, upd.callbackQuery.from, users = users)
-                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryUsers })
+                clbExecute(callbackAnswer.also { it.text = text.clbSendMessageToEveryUsers })
                 setTextToMessage(
                     resourceText("${text.sucSendMessageToEveryUsers} id = ", "campaign.name" to params[1]),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SEND_USERS_MSG execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
+                clbExecute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
                 throw t
             }
             else errorAnswer.invoke()
@@ -1594,7 +1594,7 @@ class TelegramBot : TelegramLongPollingBot {
                 showSurveys(surveys.toList(), upd)
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SURVEY execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
+                clbExecute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
                 throw t
             }
             else errorAnswer.invoke()
@@ -1604,7 +1604,7 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(callBackCommand, upd.callbackQuery.from, campaign = campaign)
-                execute(callbackAnswer.also {
+                clbExecute(callbackAnswer.also {
                     it.text = when (callBackCommand) {
                         MAIN_MENU_ADD_ADMIN -> text.clbAddAdminToCampaign
                         MAIN_MENU_DELETE_ADMIN -> text.clbDeleteAdminFromCampaign
@@ -1623,11 +1623,11 @@ class TelegramBot : TelegramLongPollingBot {
                             MAIN_MENU_DELETE_GROUP -> text.msgGroupDeleteFromCampaignGroupId
                             else -> throw CommandNotFoundException()
                         }, text.back
-                    ), fromId(upd)
+                    ), chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("$callBackCommand execute error", t)
-                execute(callbackAnswer.also {
+                clbExecute(callbackAnswer.also {
                     it.text = when (callBackCommand) {
                         MAIN_MENU_ADD_ADMIN -> text.errClbAddAdminToCampaign
                         MAIN_MENU_DELETE_ADMIN -> text.errClbDeleteAdminFromCampaign
@@ -1651,7 +1651,7 @@ class TelegramBot : TelegramLongPollingBot {
             callBackCommand = UserState.valueOf(params[0])
         } catch (e: Exception) {
             log.error("UserState = \"${upd.callbackQuery.data}\", not found", e)
-            execute(callbackAnswer.also { it.text = text.errClbCommon })
+            clbExecute(callbackAnswer.also { it.text = text.errClbCommon })
             throw e
         }
 
@@ -1664,15 +1664,15 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(MSG_TO_CAMPAIGN, upd.callbackQuery.from, groups = groups)
-                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryGroup })
+                clbExecute(callbackAnswer.also { it.text = text.clbSendMessageToEveryGroup })
                 setTextToMessage(
                     resourceText(text.sucSendMessageToEveryGroup, "campaign.name" to campaign.name),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SEND_GROUP_MSG execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
+                clbExecute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
                 throw t
             }
             CAMPAIGN_FOR_SEND_USERS_MSG == callBackCommand &&
@@ -1682,25 +1682,25 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(MSG_TO_USERS, upd.callbackQuery.from, users = users)
-                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryUsers })
+                clbExecute(callbackAnswer.also { it.text = text.clbSendMessageToEveryUsers })
                 setTextToMessage(
                     resourceText("${text.sucSendMessageToEveryUsers} id = ", "campaign.name" to params[1]),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SEND_USERS_MSG execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
+                clbExecute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
                 throw t
             }
             else -> {
                 setTextToMessage(
                     resourceText(text.errCommon),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
                 userStates.remove(upd.callbackQuery.from.id)
-                execute(callbackAnswer.also { it.text = text.errClbCommon })
+                clbExecute(callbackAnswer.also { it.text = text.errClbCommon })
             }
         }
     }
@@ -1714,7 +1714,7 @@ class TelegramBot : TelegramLongPollingBot {
             callBackCommand = UserState.valueOf(params[0])
         } catch (e: Exception) {
             log.error("UserState = \"${upd.callbackQuery.data}\", not found", e)
-            execute(callbackAnswer.also { it.text = text.errClbCommon })
+            clbExecute(callbackAnswer.also { it.text = text.errClbCommon })
             throw e
         }
 
@@ -1727,15 +1727,15 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(MSG_TO_CAMPAIGN, upd.callbackQuery.from, groups = groups)
-                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryGroup })
+                clbExecute(callbackAnswer.also { it.text = text.clbSendMessageToEveryGroup })
                 setTextToMessage(
                     resourceText(text.sucSendMessageToEveryGroup, "campaign.name" to campaign.name),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SEND_GROUP_MSG execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
+                clbExecute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryGroup })
                 throw t
             }
             CAMPAIGN_FOR_SEND_USERS_MSG == callBackCommand &&
@@ -1745,15 +1745,15 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(MSG_TO_USERS, upd.callbackQuery.from, users = users)
-                execute(callbackAnswer.also { it.text = text.clbSendMessageToEveryUsers })
+                clbExecute(callbackAnswer.also { it.text = text.clbSendMessageToEveryUsers })
                 setTextToMessage(
                     resourceText("${text.sucSendMessageToEveryUsers} id = ", "campaign.name" to params[1]),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("CAMPAIGN_FOR_SEND_USERS_MSG execute error", t)
-                execute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
+                clbExecute(callbackAnswer.also { it.text = text.errClbSendMessageToEveryUsers })
                 throw t
             }
             MAIN_MENU_ADD_ADMIN == callBackCommand || MAIN_MENU_DELETE_ADMIN == callBackCommand -> try {
@@ -1762,7 +1762,7 @@ class TelegramBot : TelegramLongPollingBot {
 
                 userStates[upd.callbackQuery.from.id] =
                     UserData(callBackCommand, upd.callbackQuery.from, campaign = campaign)
-                execute(callbackAnswer.also {
+                clbExecute(callbackAnswer.also {
                     it.text = when (callBackCommand) {
                         MAIN_MENU_ADD_ADMIN -> text.clbAddAdminToCampaign
                         else -> text.clbDeleteAdminFromCampaign
@@ -1775,11 +1775,11 @@ class TelegramBot : TelegramLongPollingBot {
                             MAIN_MENU_ADD_ADMIN -> text.msgAdminToCampaignAdminId
                             else -> text.msgAdminDeleteFromCampaignAdminId
                         }, text.back
-                    ), fromId(upd)
+                    ), chatId(upd)
                 )
             } catch (t: Throwable) {
                 log.error("$callBackCommand execute error", t)
-                execute(callbackAnswer.also {
+                clbExecute(callbackAnswer.also {
                     it.text = when (callBackCommand) {
                         MAIN_MENU_ADD_ADMIN -> text.errClbAddAdminToCampaign
                         else -> text.errClbDeleteAdminFromCampaign
@@ -1791,10 +1791,10 @@ class TelegramBot : TelegramLongPollingBot {
                 setTextToMessage(
                     resourceText(text.errCommon),
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
                 userStates.remove(upd.callbackQuery.from.id)
-                execute(callbackAnswer.also { it.text = text.errClbCommon })
+                clbExecute(callbackAnswer.also { it.text = text.errClbCommon })
             }
         }
     }
@@ -1809,27 +1809,27 @@ class TelegramBot : TelegramLongPollingBot {
             callBackCommand = UserState.valueOf(params[0])
         } catch (e: Exception) {
             log.error("UserState = \"${upd.callbackQuery.data}\", not found", e)
-            execute(callbackAnswer.also { it.text = text.errClbUser })
+            clbExecute(callbackAnswer.also { it.text = text.errClbUser })
             throw e
         }
 
         val timeOutBack = {
-            execute(callbackAnswer.also { it.text = text.clbSurveyTimeOut })
+            clbExecute(callbackAnswer.also { it.text = text.clbSurveyTimeOut })
             deleteMessage(upd.callbackQuery.message)
-            sendMessage(mainUsersMenu(text, text.errUsers), fromId(upd))
+            sendMessage(mainUsersMenu(text, text.errUsers), chatId(upd))
         }
 
 
         when (callBackCommand) {
             JOIN_TO_CAMPAIGN -> {
-                val userChats = getAllUserChats(service.getAllGroups().toList(), message(upd).from.id)
+                val userChats = getAllUserChats(service.getAllGroups().toList(), fromId(upd))
 
-                execute(callbackAnswer.also { it.text = "todo clb camp search" /* todo clb camp search */ })
+                clbExecute(callbackAnswer.also { it.text = text.clbSearchCampForUser })
 
                 if (userChats.isNotEmpty()) {
                     val availableCampaigns = service.getAllCampaignsByChatListNotContainsUser(
                         userChats.map { it.groupId },
-                        message(upd).from.id
+                        fromId(upd)
                     ).toList()
 
                     if (availableCampaigns.isNotEmpty()) {
@@ -1837,24 +1837,27 @@ class TelegramBot : TelegramLongPollingBot {
                             message(upd),
                             userJoinToCampaigns(text, availableCampaigns, text.userAvailableCampaigns)
                         )
-                        userStates[message(upd).from.id] = UserData(JOIN_TO_CAMPAIGN_MENU, message(upd).from)
+                        userStates[fromId(upd)] = UserData(JOIN_TO_CAMPAIGN_MENU, message(upd).from)
                     } else editMessage(
                         message(upd),
                         userCampaignsMenu(
                             text,
-                            service.getAllCampaignByUserId(message(upd).from.id),
+                            service.getAllCampaignByUserId(fromId(upd)),
                             text.msgUserAvailableCampaignsNotFound
                         )
                     )
                 } else editMessage(
-                        message(upd),
-                        userJoinToCampaigns(text, emptyList(), text.inviteText)
-                    )
+                    message(upd),
+                    userJoinToCampaigns(text, emptyList(), text.inviteText)
+                )
             }
-            JOIN_TO_CAMPAIGN_BACK -> TODO("JOIN_TO_CAMPAIGN_BACK implement")
+            JOIN_TO_CAMPAIGN_BACK -> editMessage(
+                message(upd),
+                userCampaignsMenu(text, service.getAllCampaignByUserId(fromId(upd)))
+            )
             JOIN_TO_CAMPAIGN_MENU -> {
                 val campaignForAdd = service.getCampaignById(params[1].toLong()) ?: throw CampaignNotFoundException()
-                execute(callbackAnswer.also { it.text = text.clbUserAddedToCampaign })
+                clbExecute(callbackAnswer.also { it.text = text.clbUserAddedToCampaign })
                 service.getUserById(upd.callbackQuery.from.id)?.let {
                     service.createOrUpdateGroupUser(
                         UserInCampaign(
@@ -1878,15 +1881,14 @@ class TelegramBot : TelegramLongPollingBot {
                         )
                     )
                 }.invoke()
-                setTextToMessage(
-                    text.userAddedToCampaign,
-                    upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                editMessage(
+                    message(upd),
+                    userCampaignsMenu(text, service.getAllCampaignByUserId(fromId(upd)), text.userAddedToCampaign)
                 )
             }
             USER_MENU_ACTIVE_CAMPAIGN_SELECT -> {
                 if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
-                    execute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
+                    clbExecute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
                     val tasks = service.getAllSurveyForUser(params[1].toLong(), upd.callbackQuery.from.id).toList()
                     if (tasks.isNotEmpty())
                         editMessage(
@@ -1897,12 +1899,12 @@ class TelegramBot : TelegramLongPollingBot {
                                 tasks
                             )
                         )
-                    else sendMessage(mainUsersMenu(text, text.userTaskNotFound), fromId(upd))
+                    else sendMessage(mainUsersMenu(text, text.userTaskNotFound), chatId(upd))
                 } else timeOutBack.invoke()
             }
             USER_MENU_ACTIVE_COMMON_CAMPAIGN_SELECT -> {
                 if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
-                    execute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
+                    clbExecute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
 
                     val tasks = service.getAllSurveysByUserFromCampaigns(upd.callbackQuery.from.id, true).toList()
 
@@ -1915,7 +1917,7 @@ class TelegramBot : TelegramLongPollingBot {
                                 tasks
                             )
                         )
-                    else sendMessage(mainUsersMenu(text, text.userTaskNotFound), fromId(upd))
+                    else sendMessage(mainUsersMenu(text, text.userTaskNotFound), chatId(upd))
                 } else timeOutBack.invoke()
             }
             CHOOSE_TASK -> {
@@ -2018,16 +2020,16 @@ class TelegramBot : TelegramLongPollingBot {
             }
             RESET -> {
                 deleteMessage(upd.callbackQuery.message)
-                sendMessage(mainUsersMenu(text), fromId(upd))
+                sendMessage(mainUsersMenu(text), chatId(upd))
             }
             else -> {
                 setTextToMessage(
                     text.errUserUnknownCommand,
                     upd.callbackQuery.message.messageId,
-                    fromId(upd)
+                    chatId(upd)
                 )
                 userStates.remove(upd.callbackQuery.from.id)
-                execute(callbackAnswer.also { it.text = text.clbUserUnknownCommand })
+                clbExecute(callbackAnswer.also { it.text = text.clbUserUnknownCommand })
             }
         }
     }
@@ -2086,7 +2088,7 @@ class TelegramBot : TelegramLongPollingBot {
         execute(
             ForwardMessage(
                 it.groupId,
-                fromId(upd),
+                chatId(upd),
                 message(upd).messageId
             )
         )
@@ -2096,7 +2098,7 @@ class TelegramBot : TelegramLongPollingBot {
         execute(
             ForwardMessage(
                 it.userId.toLong(),
-                fromId(upd),
+                chatId(upd),
                 message(upd).messageId
             )
         )
@@ -2381,6 +2383,12 @@ class TelegramBot : TelegramLongPollingBot {
         log.error(e.message, e)
     }
 
+    private fun clbExecute(callback: AnswerCallbackQuery) = try {
+        execute(callback)
+    } catch (t: Throwable) {
+        log.error("CallbackQuery execution Error. \nAnswerCallbackQuery:\n$callback\n", t)
+    }
+
     private fun end(upd: Update, msgTest: String = text.mainMenu, menu: (msg: Message, text: String) -> Unit) {
         userStates[message(upd).from?.id ?: upd.callbackQuery.from.id]!!.state = NONE
         menu.invoke(message(upd), msgTest)
@@ -2392,6 +2400,7 @@ class TelegramBot : TelegramLongPollingBot {
 
     override fun getBotToken(): String = botToken
 
-    private fun fromId(upd: Update) = upd.message?.chatId ?: upd.callbackQuery!!.message!!.chatId!!
+    private fun fromId(upd: Update):Int = upd.message?.from?.id ?: upd.callbackQuery!!.from!!.id
+    private fun chatId(upd: Update):Long = upd.message?.chatId ?: upd.callbackQuery!!.message!!.chatId
     private fun message(upd: Update) = upd.message ?: upd.callbackQuery!!.message!!
 }
