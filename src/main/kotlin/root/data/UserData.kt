@@ -7,11 +7,11 @@ import root.data.entity.*
 
 data class UserData(
     var state: UserState = UserState.NONE,
-    val user: User,
-    val taskName: String? = null,
-    val groups: Set<Group>? = null,
-    val campaign: Campaign? = null,
-    val users: Iterable<UserInCampaign>? = null,
+    var user: User,
+    var taskName: String? = null,
+    var groups: Set<Group>? = null,
+    var campaign: Campaign? = null,
+    var users: Iterable<UserInCampaign>? = null,
     var survey: Survey? = null,
     var question: Question? = null,
     var option: Option? = null,
