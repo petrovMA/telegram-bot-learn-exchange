@@ -15,6 +15,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import root.data.MainAdmin
+import root.data.SquadSticker
 import root.data.Text
 import root.libs.readConf
 import root.service.Service
@@ -49,6 +50,14 @@ open class Controller @Autowired constructor(open val accountService: Service) {
             MainAdmin(it.getInt("user-id"), it.getString("user-name"))
         }
 
+        val stickers = conf.getConfigList("bot-settings.stickers")!!.map {
+            it.getString("name") to SquadSticker(
+                useImageId = it.getBoolean("use-image-id") && it.getString("file-id") != "",
+                fileId = it.getString("file-id"),
+                path = it.getString("source-path")
+            )
+        }.toMap()
+
         ApiContextInitializer.init()
         val text = serialize(File(conf.getString("bot-settings.texts")))
         try {
@@ -76,6 +85,7 @@ open class Controller @Autowired constructor(open val accountService: Service) {
                     tasks = tasks,
                     text = text,
                     service = accountService,
+                    stickers = stickers,
                     mainAdmins = mainAdmins,
                     options = botOptions
                 )
@@ -87,6 +97,7 @@ open class Controller @Autowired constructor(open val accountService: Service) {
                     tasks = tasks,
                     text = text,
                     service = accountService,
+                    stickers = stickers,
                     mainAdmins = mainAdmins
                 )
                 TelegramBotsApi().registerBot(bot)

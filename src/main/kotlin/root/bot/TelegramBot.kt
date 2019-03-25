@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.ForwardMessage
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Message
@@ -17,12 +18,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import root.bot.commands.doMainAdminUpdate
-import root.data.MainAdmin
-import root.data.Text
-import root.data.UserData
-import root.data.UserState
+import root.data.*
 import root.service.Service
 import java.time.OffsetDateTime.now
 import java.util.ArrayList
@@ -52,6 +51,7 @@ class TelegramBot : TelegramLongPollingBot {
     private val text: Text
     private val mainAdmins: List<MainAdmin>
     private val service: Service
+    private val stickers: Map<String, SquadSticker>
 
 
     constructor(
@@ -61,6 +61,7 @@ class TelegramBot : TelegramLongPollingBot {
         text: Text,
         service: Service,
         mainAdmins: List<MainAdmin>,
+        stickers: Map<String, SquadSticker>,
         options: DefaultBotOptions?
     ) : super(options) {
         this.botUsername = botUsername
@@ -68,6 +69,7 @@ class TelegramBot : TelegramLongPollingBot {
         this.tasks = tasks
         this.text = text
         this.service = service
+        this.stickers = stickers
         this.mainAdmins = mainAdmins
     }
 
@@ -77,6 +79,7 @@ class TelegramBot : TelegramLongPollingBot {
         tasks: Map<String, String>,
         text: Text,
         service: Service,
+        stickers: Map<String, SquadSticker>,
         mainAdmins: List<MainAdmin>
     ) : super() {
         this.botUsername = botUsername
@@ -84,17 +87,28 @@ class TelegramBot : TelegramLongPollingBot {
         this.tasks = tasks
         this.text = text
         this.service = service
+        this.stickers = stickers
         this.mainAdmins = mainAdmins
     }
 
     override fun onUpdateReceived(update: Update) {
+        if (message(update).sticker == null)
+            stickers.forEach { k, v ->
+                sendMessage(k, chatId(update))
+                val sticker = v.getSticker().apply {
+                    setChatId(chatId(update))
+                }
+                execute(sticker)
+            }
+
         log.info(
             "\nMessage: " + update.message?.text +
                     "\nFromMsg: " + update.message?.from +
                     "\nChat: " + update.message?.chat +
                     "\nCallbackQuery: " + update.callbackQuery?.data +
                     "\nFromCallBck: " + update.callbackQuery?.from +
-                    "\nChatId: " + update.message?.chatId
+                    "\nChatId: " + update.message?.chatId +
+                    "\nSticker: " + update.message?.sticker
         )
         if (update.hasCallbackQuery()) {
             val sender = update.callbackQuery.from
@@ -1418,6 +1432,7 @@ class TelegramBot : TelegramLongPollingBot {
                                     )
                                 )
                             }.invoke()
+                            // todo calc and update groupUser statistic
                             execute(
                                 editMessage(
                                     upd.callbackQuery.message, userCampaignsMenu(
