@@ -92,15 +92,6 @@ class TelegramBot : TelegramLongPollingBot {
     }
 
     override fun onUpdateReceived(update: Update) {
-        if (message(update).sticker == null)
-            stickers.forEach { k, v ->
-                sendMessage(k, chatId(update))
-                val sticker = v.getSticker().apply {
-                    setChatId(chatId(update))
-                }
-                execute(sticker)
-            }
-
         log.info(
             "\nMessage: " + update.message?.text +
                     "\nFromMsg: " + update.message?.from +
