@@ -34,7 +34,7 @@ data class Survey(
 
     @ManyToOne(fetch = FetchType.LAZY)
     override var campaign: Campaign
-) : Task(id, createDate, campaign) {
+) : Task {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 
     override fun hashCode(): Int = createDate.hashCode()
