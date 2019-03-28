@@ -1,14 +1,13 @@
-package root.data.entity
+package root.data.entity.tasks.surveus
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import java.time.OffsetDateTime
 import javax.persistence.*
 
 @Entity
-@Table(name = "options")
+@Table(name = "questions")
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
-data class Option(
+data class Question(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null,
@@ -18,19 +17,21 @@ data class Option(
 
     var sortPoints: Int = Int.MAX_VALUE,
 
-    @Column(nullable = false)
-    var value: Int = 0,
-
-    @Column(nullable = false)
-    var correct: Boolean = false
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    @JoinTable(
+        name="questions_to_options",
+        joinColumns = [JoinColumn(name="questions_id")],
+        inverseJoinColumns = [JoinColumn(name="options_id")]
+    )
+    var options: Set<Option>
 ) {
-    override fun toString(): String = "Option text:\t$text\nvalue:\t$value\nsort_point:\t$sortPoints\ncorrect:\t$correct"
+    override fun toString(): String = "Question text:\n$text\nsort_point:\n$sortPoints"
     override fun hashCode() = id?.toInt() ?: 0
     override fun equals(other: Any?): Boolean =
         this.javaClass == other?.javaClass && let {
-            other is Option && (id == other.id)
+            other is Question && (id == other.id)
                     && (text == other.text)
                     && (sortPoints == other.sortPoints)
-                    && (value == other.value)
+                    && (options == other.options)
         }
 }

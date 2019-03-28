@@ -2,6 +2,8 @@ package root.service
 
 import root.data.MainAdmin
 import root.data.entity.*
+import root.data.entity.tasks.PassedTask
+import root.data.entity.tasks.surveus.Survey
 
 interface Service {
     fun createCampaign(campaign: Campaign): Campaign
@@ -51,6 +53,6 @@ interface Service {
     fun getUserById(userId: Int): UserInCampaign?
     fun getUsersByCampaignId(campaignId: Long): Iterable<UserInCampaign>
 
-    fun getAllPassedSurveysByUser(user: UserInCampaign): Iterable<PassedSurvey>
-    fun savePassedSurvey(passedSurvey: PassedSurvey): PassedSurvey
+    fun getAllPassedSurveysByUser(user: UserInCampaign): Iterable<PassedTask>
+    fun savePassedSurvey(passedTask: PassedTask): PassedTask
 }

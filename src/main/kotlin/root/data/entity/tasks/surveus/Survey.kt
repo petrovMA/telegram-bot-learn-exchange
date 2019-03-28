@@ -1,7 +1,10 @@
-package root.data.entity
+package root.data.entity.tasks.surveus
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import root.data.entity.Campaign
+import root.data.entity.ExcelEntity
+import root.data.entity.tasks.Task
 import java.time.OffsetDateTime
 import javax.persistence.*
 
@@ -11,7 +14,7 @@ import javax.persistence.*
 data class Survey(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    var id: Long? = null,
+    override var id: Long? = null,
 
     @Column(nullable = false)
     var name: String,
@@ -19,7 +22,7 @@ data class Survey(
     var description: String? = null,
 
     @Column(nullable = false)
-    var createDate: OffsetDateTime,
+    override var createDate: OffsetDateTime,
 
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinTable(
@@ -30,8 +33,8 @@ data class Survey(
     var questions: Set<Question>,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var campaign: Campaign
-) : ExcelEntity {
+    override var campaign: Campaign
+) : Task(id, createDate, campaign) {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 
     override fun hashCode(): Int = createDate.hashCode()

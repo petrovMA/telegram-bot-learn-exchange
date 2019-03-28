@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import root.data.MainAdmin
 import root.data.entity.*
+import root.data.entity.tasks.PassedTask
+import root.data.entity.tasks.surveus.Survey
 import root.libs.*
 import root.repositories.*
 import java.time.OffsetDateTime.now
@@ -19,7 +21,7 @@ open class ServiceImpl(
     @Autowired open val groupUserRepository: GroupUserRepository,
     @Autowired open val groupRepository: GroupRepository,
     @Autowired open val campaignRepository: CampaignRepository,
-    @Autowired open val passedSurveyRepository: PassedSurveyRepository
+    @Autowired open val passedSurveyRepository: PassedTaskRepository
 ) : root.service.Service {
     @Transactional
     override fun getCampaignByName(name: String): Campaign? = campaignRepository.findCampaignByName(name)
@@ -203,7 +205,7 @@ open class ServiceImpl(
         passedSurveyRepository.findAllByUser(user)
 
     @Transactional
-    override fun savePassedSurvey(passedSurvey: PassedSurvey): PassedSurvey = passedSurveyRepository.save(passedSurvey)
+    override fun savePassedSurvey(passedTask: PassedTask): PassedTask = passedSurveyRepository.save(passedTask)
 
     private fun isMainAccess(userId: Int, maimAdmins: List<MainAdmin>) = maimAdmins.any { it.userId == userId }
     private fun isSuperAccess(userId: Int) = getAllSuperAdmins().any { it.userId == userId }

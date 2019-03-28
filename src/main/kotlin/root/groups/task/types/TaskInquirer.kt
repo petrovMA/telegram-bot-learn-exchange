@@ -24,7 +24,7 @@ class TaskInquirer(conf: Config): Task(conf) {
             val rowInline = ArrayList<InlineKeyboardButton>()
 
             conf
-                .getConfigList("task.settings.questions")
+                .getConfigList("tasks.settings.questions")
                 .first()
                 .getConfigList("answer-options")
                 .forEach {
@@ -40,7 +40,7 @@ class TaskInquirer(conf: Config): Task(conf) {
             // Add it to the message
             markupInline.keyboard = rowsInline
             message.replyMarkup = markupInline
-            message.text = conf.getConfigList("task.settings.questions").first().getString("text")
+            message.text = conf.getConfigList("tasks.settings.questions").first().getString("text")
 
             message
         } catch (e: Exception) {
@@ -58,7 +58,7 @@ class TaskInquirer(conf: Config): Task(conf) {
             val rowInline = ArrayList<InlineKeyboardButton>()
 
             conf
-                .getConfigList("task.settings.questions")
+                .getConfigList("tasks.settings.questions")
                 .first()
                 .getConfigList("answer-options")
                 .forEach {
@@ -74,7 +74,7 @@ class TaskInquirer(conf: Config): Task(conf) {
             // Add it to the message
             markupInline.keyboard = rowsInline
             message.replyMarkup = markupInline
-            message.text = conf.getConfigList("task.settings.questions").first().getString("text")
+            message.text = conf.getConfigList("tasks.settings.questions").first().getString("text")
 
             message
         } catch (e: Exception) {

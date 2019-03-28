@@ -1,10 +1,10 @@
 package root.libs
 
 import org.apache.log4j.Logger
-import org.telegram.telegrambots.meta.api.objects.Update
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import root.data.entity.*
+import root.data.entity.tasks.surveus.Option
+import root.data.entity.tasks.surveus.Question
+import root.data.entity.tasks.surveus.Survey
 import java.time.OffsetDateTime.now
 
 class ProjectUtill

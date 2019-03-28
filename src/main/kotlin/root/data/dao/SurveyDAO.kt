@@ -1,6 +1,6 @@
 package root.data.dao
 
-import root.data.entity.Question
+import root.data.entity.tasks.surveus.Question
 import java.time.OffsetDateTime
 
 data class SurveyDAO(

@@ -13,6 +13,9 @@ import root.data.Text
 import root.data.UserData
 import root.data.UserState.*
 import root.data.entity.*
+import root.data.entity.tasks.surveus.Option
+import root.data.entity.tasks.surveus.Question
+import root.data.entity.tasks.surveus.Survey
 import root.libs.*
 import root.service.Service
 import java.time.OffsetDateTime.now

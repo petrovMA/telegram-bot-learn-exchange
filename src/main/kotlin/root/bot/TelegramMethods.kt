@@ -16,13 +16,17 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import root.data.UserState
 import root.data.UserState.*
 import root.data.entity.*
+import root.data.entity.tasks.PassedTask
+import root.data.entity.tasks.surveus.Option
+import root.data.entity.tasks.surveus.Question
+import root.data.entity.tasks.surveus.Survey
 import root.libs.*
 
 class TelegramMethods
 
 private val log = Logger.getLogger(TelegramMethods::class.java)
 
-fun msgUserInfo(passedSurveys: Iterable<PassedSurvey>, text: String) = SendMessage().also { msg ->
+fun msgUserInfo(passedSurveys: Iterable<PassedTask>, text: String) = SendMessage().also { msg ->
     val value = passedSurveys.map { survey -> survey.value }.sum()
     msg.text = resourceText(
         text,
@@ -317,7 +321,7 @@ fun mainAdminStatisticMenu(text: Text) = SendMessage().also { msg ->
     }
 }
 
-fun userStatusMenu(text: Text, surveys: Iterable<PassedSurvey>) = SendMessage().also { msg ->
+fun userStatusMenu(text: Text, surveys: Iterable<PassedTask>) = SendMessage().also { msg ->
     var value = 0
     var passedCamps = 0
     var passedTasks = 0

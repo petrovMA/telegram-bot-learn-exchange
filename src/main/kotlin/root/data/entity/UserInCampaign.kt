@@ -6,9 +6,6 @@ import org.telegram.telegrambots.meta.api.objects.User
 import java.time.OffsetDateTime
 import javax.persistence.*
 
-/**
- * Created by knekrasov on 10/24/2018.
- */
 @Entity
 @Table(name = "user_in_group")
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)

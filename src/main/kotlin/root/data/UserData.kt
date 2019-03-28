@@ -4,6 +4,9 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
 import root.data.dao.SurveyDAO
 import root.data.entity.*
+import root.data.entity.tasks.surveus.Option
+import root.data.entity.tasks.surveus.Question
+import root.data.entity.tasks.surveus.Survey
 
 data class UserData(
     var state: UserState = UserState.NONE,

@@ -6,9 +6,6 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.telegram.telegrambots.meta.api.objects.User
 
-/**
- * Created by knekrasov on 10/24/2018.
- */
 @Entity
 @Table(name = "super_admin")
 @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)

@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.methods.ForwardMessage
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
-import org.telegram.telegrambots.meta.api.methods.send.SendSticker
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Message
@@ -18,7 +17,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
-import org.telegram.telegrambots.meta.api.objects.stickers.Sticker
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import root.bot.commands.doMainAdminUpdate
 import root.data.*
@@ -30,6 +28,9 @@ import java.util.HashMap
 import root.data.UserState.*
 import root.data.dao.SurveyDAO
 import root.data.entity.*
+import root.data.entity.tasks.PassedTask
+import root.data.entity.tasks.surveus.Question
+import root.data.entity.tasks.surveus.Survey
 import root.libs.*
 import java.io.File
 import java.io.FileInputStream
@@ -1394,7 +1395,7 @@ class TelegramBot : TelegramLongPollingBot {
                         if (userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.correct) {
                             service.getUserById(upd.callbackQuery.from.id)?.let {
                                 service.savePassedSurvey(
-                                    PassedSurvey(
+                                    PassedTask(
                                         value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
                                         description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
                                         passDate = now(),
@@ -1414,7 +1415,7 @@ class TelegramBot : TelegramLongPollingBot {
                                     )
                                 )
                                 service.savePassedSurvey(
-                                    PassedSurvey(
+                                    PassedTask(
                                         value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
                                         description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
                                         passDate = now(),
