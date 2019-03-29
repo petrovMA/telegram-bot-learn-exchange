@@ -229,5 +229,13 @@ data class Text(
     val errUserUnknownCommand: String,
     val errRemoveAdminFromCampaign: String,
     val errRemoveGroupFromCampaign: String,
-    val stickerHello: String
+    val stickerHello: String,
+    val lvl0: String,
+    val lvl1: String,
+    val lvl2: String,
+    val lvl3: String,
+    val lvl4: String,
+    val lvl5: String,
+    val lvl6: String,
+    val lvl7: String
 )

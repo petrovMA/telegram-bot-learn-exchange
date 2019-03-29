@@ -248,18 +248,18 @@ open class ServiceImpl(
         val result = createOrUpdateGroupUser(passedTask.user.apply {
             value += passedTask.value
 
-            level = when {
-                value in 1000..1999 -> 1
-                value in 2000..2999 -> 2
-                value in 3000..3999 -> 3
-                value in 5000..5999 -> 4
-                value in 10000..19999 -> 5
-                value in 20000..39999 -> 6
-                value >= 40000 -> 7
+            level = when (value) {
+                in 1000..1999 -> 1
+                in 2000..2999 -> 2
+                in 3000..3999 -> 3
+                in 5000..5999 -> 4
+                in 10000..19999 -> 5
+                in 20000..39999 -> 6
+                in 40000..Int.MAX_VALUE -> 7
                 else -> 0
             }
-
         })
+
         passedTaskRepository.save(passedTask.apply { user = result })
 
         return result

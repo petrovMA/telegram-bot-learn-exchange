@@ -327,8 +327,8 @@ fun userStatusMenu(text: Text, user: UserInCampaign?) = SendMessage().also { msg
     var passedCamps = 0
     var passedTasks = 0
     var awardsCount = 0
-    var level = 0
-    var refferals = 0
+    var level = ""
+    var referrals = 0
     var awardList = emptyList<String>()
     var passedMissions = 0
     user?.let {
@@ -336,8 +336,17 @@ fun userStatusMenu(text: Text, user: UserInCampaign?) = SendMessage().also { msg
         passedCamps = 0
         passedTasks = 0
         awardsCount = 0
-        level = it.level
-        refferals = 0
+        level = when(it.level) {
+            1 -> text.lvl1
+            2 -> text.lvl2
+            3 -> text.lvl3
+            4 -> text.lvl4
+            5 -> text.lvl5
+            6 -> text.lvl6
+            7 -> text.lvl7
+            else -> text.lvl0
+        }
+        referrals = 0
         awardList = emptyList<String>()
         passedMissions = 0
     }
@@ -350,8 +359,8 @@ fun userStatusMenu(text: Text, user: UserInCampaign?) = SendMessage().also { msg
         "user.value" to "$value",
         "user.awards.count" to "$awardsCount",
         "user.awards" to awardList.joinToString(),
-        "user.level" to "$level",
-        "user.refferals" to "$refferals"
+        "user.level" to level,
+        "user.referrals" to "$referrals"
     )
 
     msg.enableMarkdown(true)
