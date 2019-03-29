@@ -10,6 +10,8 @@ abstract class Task: ExcelEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     open var id: Long? = null
 
+    abstract var name: String
+
     @Column(nullable = false)
     open var createDate: OffsetDateTime = OffsetDateTime.now()
 }

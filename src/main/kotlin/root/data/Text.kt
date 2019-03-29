@@ -79,6 +79,8 @@ data class Text(
     val msgUserMainMenuAccount: String,
     val msgUserTaskPassed: String,
     val msgUserTaskFailed: String,
+    val msgEnterYourEmail: String,
+    val msgEmailSaved: String,
     val btnUserMainMenuStatus: String,
     val btnUserMainMenuAccountRegistration: String,
     val btnUserMainMenuAccountRegistrationUrl: String,

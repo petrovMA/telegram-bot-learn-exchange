@@ -16,7 +16,7 @@ data class Survey(
     override var id: Long? = null,
 
     @Column(nullable = false)
-    var name: String,
+    override var name: String,
 
     var description: String? = null,
 

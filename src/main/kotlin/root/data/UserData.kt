@@ -102,6 +102,7 @@ enum class UserState {
     USER_MENU_MY_ACCOUNT,
     USER_MENU_STATUS,
     USER_MENU,
+    USER_ENTER_EMAIL,
 
     // common commands
     RESET,

@@ -3,25 +3,32 @@ package root.service.impl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.telegram.telegrambots.meta.api.objects.User
+import root.bot.fromId
+import root.bot.message
 import root.data.MainAdmin
 import root.data.entity.*
 import root.data.entity.tasks.PassedTask
+import root.data.entity.tasks.RegisterOnExchange
+import root.data.entity.tasks.Task
 import root.data.entity.tasks.surveus.Survey
 import root.libs.*
 import root.repositories.*
 import java.time.OffsetDateTime.now
+import javax.validation.constraints.Email
 
 @Service
 open class ServiceImpl(
     @Autowired open val adminRepository: AdminRepository,
-    @Autowired open val optionRepository: OptionRepository,
+    @Autowired open val taskRepository: TaskRepository,
     @Autowired open val questionRepository: QuestionRepository,
     @Autowired open val surveyRepository: SurveyRepository,
     @Autowired open val superAdminRepository: SuperAdminRepository,
     @Autowired open val groupUserRepository: GroupUserRepository,
     @Autowired open val groupRepository: GroupRepository,
     @Autowired open val campaignRepository: CampaignRepository,
-    @Autowired open val passedSurveyRepository: PassedTaskRepository
+    @Autowired open val passedSurveyRepository: PassedTaskRepository,
+    @Autowired open val registerOnExchangeRepository: RegisterOnExchangeRepository
 ) : root.service.Service {
     @Transactional
     override fun getCampaignByName(name: String): Campaign? = campaignRepository.findCampaignByName(name)
@@ -54,7 +61,11 @@ open class ServiceImpl(
     override fun getAllCommonCampaigns(common: Boolean): Iterable<Campaign> = campaignRepository.findAllByCommon(common)
 
     @Transactional
-    override fun getAllCampaignsByChatListNotContainsUser(chats: List<Long>, userId: Int, common: Boolean): Iterable<Campaign> =
+    override fun getAllCampaignsByChatListNotContainsUser(
+        chats: List<Long>,
+        userId: Int,
+        common: Boolean
+    ): Iterable<Campaign> =
         campaignRepository.findAllCampaignsByChatListNotContainsUser(chats, userId, common)
 
 
@@ -72,8 +83,8 @@ open class ServiceImpl(
 
 
     @Transactional
-    override fun getAllSurveysByUserFromCampaigns(userId: Int, common: Boolean): Iterable<Survey> =
-        surveyRepository.findAllSurveysByUserFromCampaigns(userId, common)
+    override fun getAllTasksByUserFromCampaigns(userId: Int, common: Boolean): Iterable<Task> =
+        taskRepository.findAllTasksByUserFromCampaigns(userId, common)
 
     @Transactional
     override fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey> =
@@ -87,8 +98,8 @@ open class ServiceImpl(
     override fun getSurveyById(id: Long): Survey? = surveyRepository.findById(id).orElse(null)
 
     @Transactional
-    override fun getAllSurveyForUser(campaignId: Long, userId: Int): Iterable<Survey> =
-        surveyRepository.findAllForUser(campaignId, userId)
+    override fun getAllSurveyForUser(campaignId: Long, userId: Int): Iterable<Task> =
+        taskRepository.findAllForUser(campaignId, userId)
 
     @Transactional
     override fun saveSurvey(survey: Survey): Survey = surveyRepository.save(survey)
@@ -211,4 +222,24 @@ open class ServiceImpl(
     private fun isSuperAccess(userId: Int) = getAllSuperAdmins().any { it.userId == userId }
     private fun isAdminAccess(userId: Int, camp: Campaign) =
         getAdminsByCampaigns(setOf(camp)).any { it.userId == userId }
+
+
+    @Transactional
+    override fun getRegistered(user: UserInCampaign): RegisterOnExchange? =
+        registerOnExchangeRepository.findByUser(user)
+
+    @Transactional
+    override fun saveRegistered(email: String, user: User): RegisterOnExchange =
+        getUserById(user.id)?.let {
+            registerOnExchangeRepository.save(RegisterOnExchange(email = email, createDate = now(), user = it))
+        } ?: createOrUpdateGroupUser(
+            UserInCampaign(
+                userId = user.id,
+                lastName = user.lastName,
+                firstName = user.firstName,
+                userName = user.userName,
+                createDate = now(),
+                campaigns = emptySet()
+            )
+        ).let { registerOnExchangeRepository.save(RegisterOnExchange(email = email, createDate = now(), user = it)) }
 }

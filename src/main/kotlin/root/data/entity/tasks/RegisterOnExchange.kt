@@ -24,7 +24,7 @@ data class RegisterOnExchange(
     @Column(nullable = false)
     var createDate: OffsetDateTime,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     var user: UserInCampaign
 ):ExcelEntity {
     override fun toString(): String = "id:\n$id\nemail:\n$email\nregistered:\n$registered\ncreateTime:\n$createDate\nuser:\n$user"

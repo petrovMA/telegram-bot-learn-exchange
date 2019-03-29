@@ -1,8 +1,11 @@
 package root.service
 
+import org.telegram.telegrambots.meta.api.objects.User
 import root.data.MainAdmin
 import root.data.entity.*
 import root.data.entity.tasks.PassedTask
+import root.data.entity.tasks.RegisterOnExchange
+import root.data.entity.tasks.Task
 import root.data.entity.tasks.surveus.Survey
 
 interface Service {
@@ -27,10 +30,10 @@ interface Service {
     fun deleteSuperAdminById(userId: Int)
 
     fun getSurveyByCampaign(campaign: Campaign): Iterable<Survey>
-    fun getAllSurveysByUserFromCampaigns(userId: Int, common: Boolean = true): Iterable<Survey>
+    fun getAllTasksByUserFromCampaigns(userId: Int, common: Boolean = true): Iterable<Task>
     fun getSurveyByCampaignId(campaignId: Long): Iterable<Survey>
     fun getSurveyById(id: Long): Survey?
-    fun getAllSurveyForUser(campaignId: Long, userId: Int): Iterable<Survey>
+    fun getAllSurveyForUser(campaignId: Long, userId: Int): Iterable<Task>
     fun saveSurvey(survey: Survey): Survey
     fun deleteSurveyById(id: Long)
 
@@ -55,4 +58,7 @@ interface Service {
 
     fun getAllPassedSurveysByUser(user: UserInCampaign): Iterable<PassedTask>
     fun savePassedSurvey(passedTask: PassedTask): PassedTask
+
+    fun getRegistered(user: UserInCampaign): RegisterOnExchange?
+    fun saveRegistered(email: String, user: User): RegisterOnExchange
 }

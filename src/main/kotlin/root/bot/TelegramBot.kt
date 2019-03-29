@@ -17,7 +17,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
-import org.telegram.telegrambots.meta.api.objects.stickers.Sticker
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import root.bot.commands.doMainAdminUpdate
 import root.data.*
@@ -638,13 +637,28 @@ class TelegramBot : TelegramLongPollingBot {
 
     private fun doUserUpdate(upd: Update) = when (userStates[fromId(upd)]?.state) {
         RESET -> sendMessage(mainUsersMenu(text), chatId(upd))
+        USER_ENTER_EMAIL -> {
+
+            service.saveRegistered(email = message(upd).text, user = message(upd).from)
+
+            userStates[fromId(upd)] = UserData(USER_MENU_ACTIVE_CAMPAIGN, message(upd).from)
+            sendMessage(
+                userCampaignsMenu(text, service.getAllCampaignByUserId(fromId(upd)), text.msgEmailSaved),
+                chatId(upd)
+            )
+        }
         else -> when (message(upd).text) {
             text.userMainMenuCampaigns -> {
-                userStates[fromId(upd)] = UserData(USER_MENU_ACTIVE_CAMPAIGN, message(upd).from)
-                sendMessage(
-                    userCampaignsMenu(text, service.getAllCampaignByUserId(fromId(upd))),
-                    chatId(upd)
-                )
+                service.getRegistered(stubUserInCampaign(fromId(upd)))?.let {
+                    userStates[fromId(upd)] = UserData(USER_MENU_ACTIVE_CAMPAIGN, message(upd).from)
+                    sendMessage(
+                        userCampaignsMenu(text, service.getAllCampaignByUserId(fromId(upd))),
+                        chatId(upd)
+                    )
+                } ?: {
+                    userStates[fromId(upd)] = UserData(USER_ENTER_EMAIL, message(upd).from)
+                    sendMessage(userAccountRegister(text), chatId(upd))
+                }.invoke()
             }
             text.userMainMenuStatus -> {
                 userStates[fromId(upd)] = UserData(USER_MENU_STATUS, message(upd).from)
@@ -660,8 +674,13 @@ class TelegramBot : TelegramLongPollingBot {
                 sendMessage(userAccountMenu(text), chatId(upd))
             }
             else -> {
-                stickers[text.stickerHello]?.let { sendSticker(it, chatId(upd)) }
-                sendMessage(mainUsersMenu(text), chatId(upd))
+                userStates[fromId(upd)]?.let { sendMessage(mainUsersMenu(text), chatId(upd)) }
+                    ?: stickers[text.stickerHello]?.let {
+                        sendSticker(it, chatId(upd))
+                        sendMessage(mainUsersMenu(text), chatId(upd))
+                    } ?: sendMessage(mainUsersMenu(text), chatId(upd))
+
+                userStates[fromId(upd)] = UserData(NONE, message(upd).from)
             }
         }
     }
@@ -1328,7 +1347,7 @@ class TelegramBot : TelegramLongPollingBot {
                 if (userStates[upd.callbackQuery.from.id]?.state == USER_MENU_ACTIVE_CAMPAIGN) {
                     clbExecute(callbackAnswer.also { it.text = text.clbSurveyCollectProcess })
 
-                    val tasks = service.getAllSurveysByUserFromCampaigns(upd.callbackQuery.from.id, true).toList()
+                    val tasks = service.getAllTasksByUserFromCampaigns(upd.callbackQuery.from.id, true).toList()
 
                     if (tasks.isNotEmpty())
                         execute(

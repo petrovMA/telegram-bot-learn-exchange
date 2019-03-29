@@ -17,6 +17,7 @@ import root.data.UserState
 import root.data.UserState.*
 import root.data.entity.*
 import root.data.entity.tasks.PassedTask
+import root.data.entity.tasks.Task
 import root.data.entity.tasks.surveus.Option
 import root.data.entity.tasks.surveus.Question
 import root.data.entity.tasks.surveus.Survey
@@ -68,7 +69,7 @@ fun msgAvailableCampaignsList(
     }
 }
 
-fun msgTaskList(text: String, command: String, surveys: Iterable<Survey>) = SendMessage().apply {
+fun msgTaskList(text: String, command: String, surveys: Iterable<Task>) = SendMessage().apply {
     this.text = text
     replyMarkup = InlineKeyboardMarkup().apply {
         keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
@@ -484,6 +485,16 @@ fun userAccountMenu(text: Text) = SendMessage().also { msg ->
         keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
             add(listOf(InlineKeyboardButton().setText(text.btnUserMainMenuAccountRegistration).setUrl(text.btnUserMainMenuAccountRegistrationUrl)))
             add(listOf(InlineKeyboardButton().setText(text.btnUserMainMenuAccountFriends).setCallbackData("$RESET")))
+        }
+    }
+}
+
+fun userAccountRegister(text: Text) = SendMessage().also { msg ->
+    msg.text = text.msgEnterYourEmail
+    msg.enableMarkdown(true)
+    msg.replyMarkup = InlineKeyboardMarkup().apply {
+        keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
+            add(listOf(InlineKeyboardButton().setText(text.btnUserMainMenuAccountRegistration).setUrl(text.btnUserMainMenuAccountRegistrationUrl)))
         }
     }
 }
