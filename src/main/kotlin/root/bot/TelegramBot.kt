@@ -1416,16 +1416,51 @@ class TelegramBot : TelegramLongPollingBot {
                         )
                     else {
                         if (userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.correct) {
-                            service.getUserById(upd.callbackQuery.from.id)?.let {
-                                service.savePassedSurvey(
+                            service.getUserById(upd.callbackQuery.from.id)?.let { oldUser ->
+                                val oldLevel = oldUser.level
+
+                                service.savePassedTaskAndUpdateUser(
                                     PassedTask(
                                         value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
                                         description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
                                         passDate = now(),
                                         task = userStates[upd.callbackQuery.from.id]!!.survey!!,
-                                        user = it
+                                        user = oldUser
                                     )
-                                )
+                                ).also { newUser ->
+                                    if (oldLevel != newUser.level) {
+                                        when (newUser.level) {
+                                            1 -> {
+                                                sendSticker(stickers.getValue("recruit"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            2 -> {
+                                                sendSticker(stickers.getValue("kadet"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            3 -> {
+                                                sendSticker(stickers.getValue("explorer"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            4 -> {
+                                                sendSticker(stickers.getValue("engineer"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            5 -> {
+                                                sendSticker(stickers.getValue("professor"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            6 -> {
+                                                sendSticker(stickers.getValue("captain"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            7 -> {
+                                                sendSticker(stickers.getValue("ranger"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                        }
+                                    }
+                                }
                             } ?: {
                                 val user = service.createOrUpdateGroupUser(
                                     UserInCampaign(
@@ -1437,7 +1472,7 @@ class TelegramBot : TelegramLongPollingBot {
                                         campaigns = emptySet()
                                     )
                                 )
-                                service.savePassedSurvey(
+                                service.savePassedTaskAndUpdateUser(
                                     PassedTask(
                                         value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
                                         description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
@@ -1445,9 +1480,40 @@ class TelegramBot : TelegramLongPollingBot {
                                         task = userStates[upd.callbackQuery.from.id]!!.survey!!,
                                         user = user
                                     )
-                                )
+                                ).also { newUser ->
+                                    if (1000 <= newUser.value)
+                                        when (newUser.level) {
+                                            1 -> {
+                                                sendSticker(stickers.getValue("recruit"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            2 -> {
+                                                sendSticker(stickers.getValue("kadet"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            3 -> {
+                                                sendSticker(stickers.getValue("explorer"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            4 -> {
+                                                sendSticker(stickers.getValue("engineer"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            5 -> {
+                                                sendSticker(stickers.getValue("professor"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            6 -> {
+                                                sendSticker(stickers.getValue("captain"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                            7 -> {
+                                                sendSticker(stickers.getValue("ranger"), fromId(upd).toLong())
+                                                sendSticker(stickers.getValue("2_rank"), fromId(upd).toLong())
+                                            }
+                                        }
+                                }
                             }.invoke()
-                            // todo calc and update groupUser statistic
                             execute(
                                 editMessage(
                                     upd.callbackQuery.message, userCampaignsMenu(

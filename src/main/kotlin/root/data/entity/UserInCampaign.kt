@@ -22,6 +22,15 @@ data class UserInCampaign(
     @Column(nullable = false)
     var createDate: OffsetDateTime,
 
+    @Column(nullable = false)
+    var value: Int = 0,
+
+    @Column(nullable = false)
+    var level: Int = 0,
+
+    @Column(nullable = false)
+    var awards: String = "",
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "campaign_to_user_in_group",

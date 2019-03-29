@@ -58,6 +58,7 @@ interface Service {
 
     fun getAllPassedSurveysByUser(user: UserInCampaign): Iterable<PassedTask>
     fun savePassedSurvey(passedTask: PassedTask): PassedTask
+    fun savePassedTaskAndUpdateUser(passedTask: PassedTask): UserInCampaign
 
     fun getRegistered(user: UserInCampaign): RegisterOnExchange?
     fun saveRegistered(email: String, user: User): RegisterOnExchange

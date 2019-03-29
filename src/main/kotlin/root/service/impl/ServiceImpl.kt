@@ -27,7 +27,7 @@ open class ServiceImpl(
     @Autowired open val groupUserRepository: GroupUserRepository,
     @Autowired open val groupRepository: GroupRepository,
     @Autowired open val campaignRepository: CampaignRepository,
-    @Autowired open val passedSurveyRepository: PassedTaskRepository,
+    @Autowired open val passedTaskRepository: PassedTaskRepository,
     @Autowired open val registerOnExchangeRepository: RegisterOnExchangeRepository
 ) : root.service.Service {
     @Transactional
@@ -213,10 +213,10 @@ open class ServiceImpl(
 
     @Transactional
     override fun getAllPassedSurveysByUser(user: UserInCampaign) =
-        passedSurveyRepository.findAllByUser(user)
+        passedTaskRepository.findAllByUser(user)
 
     @Transactional
-    override fun savePassedSurvey(passedTask: PassedTask): PassedTask = passedSurveyRepository.save(passedTask)
+    override fun savePassedSurvey(passedTask: PassedTask): PassedTask = passedTaskRepository.save(passedTask)
 
     private fun isMainAccess(userId: Int, maimAdmins: List<MainAdmin>) = maimAdmins.any { it.userId == userId }
     private fun isSuperAccess(userId: Int) = getAllSuperAdmins().any { it.userId == userId }
@@ -242,4 +242,26 @@ open class ServiceImpl(
                 campaigns = emptySet()
             )
         ).let { registerOnExchangeRepository.save(RegisterOnExchange(email = email, createDate = now(), user = it)) }
+
+    @Transactional
+    override fun savePassedTaskAndUpdateUser(passedTask: PassedTask): UserInCampaign {
+        val result = createOrUpdateGroupUser(passedTask.user.apply {
+            value += passedTask.value
+
+            level = when {
+                value in 1000..1999 -> 1
+                value in 2000..2999 -> 2
+                value in 3000..3999 -> 3
+                value in 5000..5999 -> 4
+                value in 10000..19999 -> 5
+                value in 20000..39999 -> 6
+                value >= 40000 -> 7
+                else -> 0
+            }
+
+        })
+        passedTaskRepository.save(passedTask.apply { user = result })
+
+        return result
+    }
 }
