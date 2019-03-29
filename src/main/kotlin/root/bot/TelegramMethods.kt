@@ -322,7 +322,7 @@ fun mainAdminStatisticMenu(text: Text) = SendMessage().also { msg ->
     }
 }
 
-fun userStatusMenu(text: Text, surveys: Iterable<PassedTask>) = SendMessage().also { msg ->
+fun userStatusMenu(text: Text, user: UserInCampaign?) = SendMessage().also { msg ->
     var value = 0
     var passedCamps = 0
     var passedTasks = 0
@@ -330,9 +330,16 @@ fun userStatusMenu(text: Text, surveys: Iterable<PassedTask>) = SendMessage().al
     var level = 0
     var refferals = 0
     var awardList = emptyList<String>()
-    var passedMissions = surveys.count()
-    surveys.forEach {
-        value += it.value
+    var passedMissions = 0
+    user?.let {
+        value = it.value
+        passedCamps = 0
+        passedTasks = 0
+        awardsCount = 0
+        level = it.level
+        refferals = 0
+        awardList = emptyList<String>()
+        passedMissions = 0
     }
 
     msg.text = resourceText(

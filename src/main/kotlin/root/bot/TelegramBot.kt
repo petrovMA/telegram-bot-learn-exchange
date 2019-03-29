@@ -665,7 +665,7 @@ class TelegramBot : TelegramLongPollingBot {
                 sendMessage(
                     userStatusMenu(
                         text,
-                        service.getAllPassedSurveysByUser(stubUserInCampaign(userId = fromId(upd)))
+                        service.getUserById(userId = fromId(upd))
                     ), chatId(upd)
                 )
             }
