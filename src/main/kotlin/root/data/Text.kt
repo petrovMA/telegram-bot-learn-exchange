@@ -226,5 +226,6 @@ data class Text(
     val errClbUser: String,
     val errUserUnknownCommand: String,
     val errRemoveAdminFromCampaign: String,
-    val errRemoveGroupFromCampaign: String
+    val errRemoveGroupFromCampaign: String,
+    val stickerHello: String
 )

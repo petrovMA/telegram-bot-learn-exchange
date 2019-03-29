@@ -3,8 +3,7 @@ package root.data.entity.tasks.surveus
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import root.data.entity.Campaign
-import root.data.entity.ExcelEntity
-import root.data.entity.tasks.Task
+import root.data.entity.tasks.TaskCampaign
 import java.time.OffsetDateTime
 import javax.persistence.*
 
@@ -34,7 +33,7 @@ data class Survey(
 
     @ManyToOne(fetch = FetchType.LAZY)
     override var campaign: Campaign
-) : Task {
+) : TaskCampaign() {
     override fun toString(): String = "name:\n$name\ndescription:\n$description\ncreateTime:\n$createDate"
 
     override fun hashCode(): Int = createDate.hashCode()

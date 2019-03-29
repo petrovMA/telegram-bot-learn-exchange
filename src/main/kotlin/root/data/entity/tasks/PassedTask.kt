@@ -24,7 +24,7 @@ data class PassedTask(
     var passDate: OffsetDateTime,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var survey: Survey,
+    var task: Task,
 
     @ManyToOne(fetch = FetchType.LAZY)
     var user: UserInCampaign

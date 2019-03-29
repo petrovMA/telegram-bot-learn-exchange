@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import root.bot.commands.doMainAdminUpdate
 import root.data.*
@@ -658,7 +659,10 @@ class TelegramBot : TelegramLongPollingBot {
                 userStates[fromId(upd)] = UserData(USER_MENU_MY_ACCOUNT, message(upd).from)
                 sendMessage(userAccountMenu(text), chatId(upd))
             }
-            else -> sendMessage(mainUsersMenu(text), chatId(upd))
+            else -> {
+                stickers[text.stickerHello]?.let { sendSticker(it, chatId(upd)) }
+                sendMessage(mainUsersMenu(text), chatId(upd))
+            }
         }
     }
 
@@ -1399,7 +1403,7 @@ class TelegramBot : TelegramLongPollingBot {
                                         value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
                                         description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
                                         passDate = now(),
-                                        survey = userStates[upd.callbackQuery.from.id]!!.survey!!,
+                                        task = userStates[upd.callbackQuery.from.id]!!.survey!!,
                                         user = it
                                     )
                                 )
@@ -1419,7 +1423,7 @@ class TelegramBot : TelegramLongPollingBot {
                                         value = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.currentValue,
                                         description = userStates[upd.callbackQuery.from.id]!!.surveyInProgress!!.description,
                                         passDate = now(),
-                                        survey = userStates[upd.callbackQuery.from.id]!!.survey!!,
+                                        task = userStates[upd.callbackQuery.from.id]!!.survey!!,
                                         user = user
                                     )
                                 )
@@ -1489,7 +1493,7 @@ class TelegramBot : TelegramLongPollingBot {
 
     private fun sendMessage(messageText: String, chatId: Long) = try {
         val message = SendMessage().setChatId(chatId)
-        log.debug("Send to fromId = $chatId\nMessage: \"$messageText\"")
+        log.debug("Send to chatId = $chatId\nMessage: \"$messageText\"")
         message.text = messageText
         execute(message)
     } catch (e: Exception) {
@@ -1497,9 +1501,16 @@ class TelegramBot : TelegramLongPollingBot {
     }
 
     private fun sendMessage(message: SendMessage, chatId: Long) = try {
-        log.debug("Send to fromId = $chatId\nMessage: \"${message.text}\"")
+        log.debug("Send to chatId = $chatId\nMessage: \"${message.text}\"")
         message.setChatId(chatId)
         execute<Message, SendMessage>(message)
+    } catch (e: Exception) {
+        log.warn(e.message, e)
+    }
+
+    private fun sendSticker(sticker: SquadSticker, chatId: Long) = try {
+        log.debug("Send sticker to chatId = $chatId\nSticker: \"${sticker.path}\"")
+        execute(sticker.getSticker().apply { setChatId(chatId) })
     } catch (e: Exception) {
         log.warn(e.message, e)
     }
