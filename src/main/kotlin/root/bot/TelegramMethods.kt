@@ -10,6 +10,7 @@ import root.data.Text
 import root.data.dao.SurveyDAO
 import java.util.ArrayList
 import org.apache.log4j.Logger
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -22,6 +23,7 @@ import root.data.entity.tasks.surveus.Option
 import root.data.entity.tasks.surveus.Question
 import root.data.entity.tasks.surveus.Survey
 import root.libs.*
+import java.io.Serializable
 
 class TelegramMethods
 
@@ -363,6 +365,7 @@ fun userStatusMenu(text: Text, user: UserInCampaign?) = SendMessage().also { msg
         "user.referrals" to "$referrals"
     )
 
+    // todo CREATE buttons for awards
     msg.enableMarkdown(true)
     msg.replyMarkup = InlineKeyboardMarkup().apply {
         keyboard = ArrayList<List<InlineKeyboardButton>>().apply {
@@ -376,6 +379,93 @@ fun editMessage(old: Message, new: SendMessage) = EditMessageText().also { msg -
     msg.messageId = old.messageId
     msg.text = new.text
     msg.replyMarkup = new.replyMarkup as InlineKeyboardMarkup
+}
+
+fun showSurveys(text: Text, surveys: List<Survey>, upd: Update) = EditMessageText().also { msg ->
+    msg.chatId = fromId(upd).toString()
+    msg.messageId = upd.callbackQuery.message.messageId
+    msg.text = text.editSurveys
+    msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
+        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+            surveys.sortedBy { it.name }.forEach {
+                keyboard.add(
+                    listOf(
+                        InlineKeyboardButton().setText(it.name.subStr(25, "..."))
+                            .setCallbackData("$SURVEY_EDIT ${it.id}")
+                    )
+                )
+            }
+            keyboard.addElements(
+                listOf(
+                    InlineKeyboardButton().setText(text.surveyCreate)
+                        .setCallbackData("$SURVEY_CREATE")
+                ),
+                listOf(
+                    InlineKeyboardButton().setText(text.surveyBack)
+                        .setCallbackData("$SURVEY_BACK")
+                )
+            )
+        }
+    }
+}
+
+fun showQuestions(text: Text, survey: Survey, upd: Update) = EditMessageText().also { msg ->
+    msg.chatId = fromId(upd).toString()
+    msg.messageId = upd.callbackQuery.message.messageId
+    msg.text = "${survey.name}\n${survey.description}\n${printQuestions(survey.questions)}"
+    msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
+        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+            survey.questions.toList().sortedBy { it.sortPoints }.forEach {
+                keyboard.add(
+                    listOf(
+                        InlineKeyboardButton().setText(it.text.subStr(25, "..."))
+                            .setCallbackData("$SURVEY_QUESTION_SELECT ${it.text.hashCode()}")
+                    )
+                )
+            }
+            keyboard.addElements(
+                listOf(
+                    InlineKeyboardButton().setText(text.surveyQuestionCreate)
+                        .setCallbackData("$SURVEY_QUESTION_CREATE")
+                ),
+                listOf(
+                    InlineKeyboardButton().setText(text.surveyQuestionSelectBack)
+                        .setCallbackData("$SURVEY")
+                )
+            )
+        }
+    }
+}
+
+fun showOptions(text: Text, question: Question, upd: Update) = EditMessageText().also { msg ->
+    msg.chatId = fromId(upd).toString()
+    msg.messageId = upd.callbackQuery.message.messageId
+    msg.text = if (!question.options.isEmpty())
+        printOptions(question.options)
+    else
+        "NULL"
+    msg.replyMarkup = InlineKeyboardMarkup().also { markup ->
+        markup.keyboard = ArrayList<List<InlineKeyboardButton>>().also { keyboard ->
+            question.options.toList().sortedBy { it.sortPoints }.forEach {
+                keyboard.add(
+                    listOf(
+                        InlineKeyboardButton().setText(it.text.subStr(25, "..."))
+                            .setCallbackData("$SURVEY_OPTION_SELECT ${it.text.hashCode()}")
+                    )
+                )
+            }
+            keyboard.addElements(
+                listOf(
+                    InlineKeyboardButton().setText(text.surveyOptionCreate)
+                        .setCallbackData("$SURVEY_OPTION_CREATE")
+                ),
+                listOf(
+                    InlineKeyboardButton().setText(text.surveyOptionSelectBack)
+                        .setCallbackData("$SURVEY_OPTION_SELECT_BACK")
+                )
+            )
+        }
+    }
 }
 
 fun editSurvey(text: Text, survey: Survey, upd: Update) = EditMessageText().also { msg ->

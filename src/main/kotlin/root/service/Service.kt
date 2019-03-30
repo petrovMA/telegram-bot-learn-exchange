@@ -38,18 +38,18 @@ interface Service {
     fun deleteSurveyById(id: Long)
 
     fun getAdminsByCampaigns(campaigns: Set<Campaign>): Iterable<Admin>
-    fun addAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>): Pair<Admin, Campaign>
-    fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin>): Pair<Admin, Campaign>
+    fun addAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin> = emptyList()): Pair<Admin, Campaign>
+    fun deleteAdmin(userId: Int, adminId: Int, camp: Campaign, maimAdmins: List<MainAdmin> = emptyList()): Pair<Admin, Campaign>
     fun getAdminById(userId: Int): Admin?
     fun saveAdmin(admin: Admin): Admin?
     fun deleteAdminById(userId: Int)
 
     fun createGroup(group: Group): Group
-    fun addGroup(userId: Int, groupId: Long, camp: Campaign, maimAdmins: List<MainAdmin>): Pair<Group, Campaign>
+    fun addGroup(userId: Int, groupId: Long, camp: Campaign, maimAdmins: List<MainAdmin> = emptyList()): Pair<Group, Campaign>
     fun getAllGroups(): Iterable<Group>
     fun getGroupsByCampaignId(campaignId: Long): Iterable<Group>
     fun deleteGroupById(id: Long)
-    fun deleteGroup(userId: Int, groupId: Long, camp: Campaign, maimAdmins: List<MainAdmin>): Pair<Group, Campaign>
+    fun deleteGroup(userId: Int, groupId: Long, camp: Campaign, maimAdmins: List<MainAdmin> = emptyList()): Pair<Group, Campaign>
 
     fun createOrUpdateGroupUser(user: UserInCampaign): UserInCampaign
     fun getAllUsers(): Iterable<UserInCampaign>
